@@ -55,7 +55,7 @@ jobs:
         uses: ./.github/actions/setup
 
       - name: Build package
-        run: yarn prepare
+        run: yarn build
 
   build-android:
     runs-on: ubuntu-latest

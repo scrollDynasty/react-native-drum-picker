@@ -4083,7 +4083,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"babel-jest@npm:30.4.1":
+"babel-jest@npm:30.4.1, babel-jest@npm:^30.3.0":
   version: 30.4.1
   resolution: "babel-jest@npm:30.4.1"
   dependencies:
@@ -9908,14 +9908,16 @@ __metadata:
     react: "npm:19.2.3"
     react-native: "npm:0.85.0"
     react-native-builder-bob: "npm:^0.41.0"
+    react-native-drum-picker: "workspace:*"
     react-native-monorepo-config: "npm:^0.3.3"
   languageName: unknown
   linkType: soft
 
-"react-native-drum-picker@workspace:.":
+"react-native-drum-picker@workspace:*, react-native-drum-picker@workspace:.":
   version: 0.0.0-use.local
   resolution: "react-native-drum-picker@workspace:."
   dependencies:
+    "@babel/core": "npm:^7.25.2"
     "@eslint/compat": "npm:^2.0.3"
     "@eslint/eslintrc": "npm:^3.3.5"
     "@eslint/js": "npm:^10.0.1"
@@ -9925,6 +9927,7 @@ __metadata:
     "@react-native/jest-preset": "npm:0.85.0"
     "@release-it/conventional-changelog": "npm:^10.0.6"
     "@types/react": "npm:^19.2.0"
+    babel-jest: "npm:^30.3.0"
     del-cli: "npm:^7.0.0"
     eslint: "npm:^9.39.4"
     eslint-config-prettier: "npm:^10.1.8"
@@ -9939,8 +9942,8 @@ __metadata:
     turbo: "npm:^2.8.21"
     typescript: "npm:^6.0.2"
   peerDependencies:
-    react: "*"
-    react-native: "*"
+    react: ">=18.0.0"
+    react-native: ">=0.76.0"
   languageName: unknown
   linkType: soft
 

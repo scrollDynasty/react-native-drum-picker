@@ -6,6 +6,18 @@ import {
   type StyleProp,
   type ViewStyle,
 } from 'react-native';
+import {
+  buildDayItems,
+  buildMonthItems,
+  buildYearItems,
+  clampDateDrumPickerValue,
+  clampDayForMonth,
+  clampYear,
+  normalizeYearRange,
+  parseMonthFromLabel,
+  type DateDrumPickerMonthFormat,
+  type DateDrumPickerValue,
+} from './dateDrumPickerLogic';
 import { DrumPicker } from './DrumPicker';
 import type { DrumPickerChangeEvent } from './types';
 
@@ -19,13 +31,12 @@ export type DateDrumPickerMode =
   | 'month-day-year'
   | 'year-month-day';
 
-export type DateDrumPickerValue = {
-  day?: number;
-  month?: number;
-  year?: number;
-};
-
-export type DateDrumPickerMonthFormat = 'short' | 'long' | 'number';
+export type { DateDrumPickerMonthFormat, DateDrumPickerValue };
+export {
+  clampDateDrumPickerValue,
+  getDaysInMonth,
+  normalizeYearRange,
+} from './dateDrumPickerLogic';
 
 export type DateDrumPickerColumnKey = 'day' | 'month' | 'year';
 
@@ -50,9 +61,7 @@ export type DateDrumPickerProps = {
   itemBackgroundColor?: string;
   containerBackgroundColor?: string;
   style?: StyleProp<ViewStyle>;
-  /** Applied to every column */
   columnStyle?: StyleProp<ViewStyle>;
-  /** Per-column style overrides (width, margin, …) */
   columnStyles?: Partial<Record<DateDrumPickerColumnKey, StyleProp<ViewStyle>>>;
 };
 
@@ -77,86 +86,6 @@ const COLUMN_WIDTH: Record<DateColumnKey, number> = {
 
 const DEFAULT_ITEM_HEIGHT = 44;
 const DEFAULT_VISIBLE_ITEM_COUNT = 5;
-
-export function getDaysInMonth(month: number, year: number): number {
-  return new Date(year, clampMonth(month), 0).getDate();
-}
-
-export function normalizeYearRange(
-  minYear: number,
-  maxYear: number
-): { minYear: number; maxYear: number } {
-  if (minYear <= maxYear) {
-    return { minYear, maxYear };
-  }
-  return { minYear: maxYear, maxYear: minYear };
-}
-
-function clampMonth(month: number): number {
-  return Math.min(12, Math.max(1, Math.round(month)));
-}
-
-function clampYear(year: number, minYear: number, maxYear: number): number {
-  return Math.min(maxYear, Math.max(minYear, Math.round(year)));
-}
-
-function clampDayForMonth(day: number, month: number, year: number): number {
-  const maxDay = getDaysInMonth(month, year);
-  return Math.min(maxDay, Math.max(1, Math.round(day)));
-}
-
-export function clampDateDrumPickerValue(
-  value: DateDrumPickerValue,
-  minYear: number,
-  maxYear: number
-): Required<DateDrumPickerValue> {
-  const { minYear: min, maxYear: max } = normalizeYearRange(minYear, maxYear);
-  const now = new Date();
-  const month = clampMonth(value.month ?? now.getMonth() + 1);
-  const year = clampYear(value.year ?? now.getFullYear(), min, max);
-  const day = clampDayForMonth(value.day ?? now.getDate(), month, year);
-  return { day, month, year };
-}
-
-function buildDayItems(month: number, year: number): string[] {
-  const count = getDaysInMonth(month, year);
-  return Array.from({ length: count }, (_, index) => String(index + 1));
-}
-
-function buildMonthItems(
-  monthFormat: DateDrumPickerMonthFormat,
-  locale: string
-): string[] {
-  if (monthFormat === 'number') {
-    return Array.from({ length: 12 }, (_, index) =>
-      String(index + 1).padStart(2, '0')
-    );
-  }
-
-  const monthStyle = monthFormat === 'long' ? 'long' : 'short';
-  return Array.from({ length: 12 }, (_, index) => {
-    const date = new Date(2020, index, 1);
-    return new Intl.DateTimeFormat(locale, { month: monthStyle }).format(date);
-  });
-}
-
-function buildYearItems(minYear: number, maxYear: number): string[] {
-  const { minYear: min, maxYear: max } = normalizeYearRange(minYear, maxYear);
-  const length = max - min + 1;
-  return Array.from({ length }, (_, index) => String(min + index));
-}
-
-function parseMonthFromLabel(
-  label: string,
-  monthFormat: DateDrumPickerMonthFormat,
-  monthItems: string[]
-): number {
-  if (monthFormat === 'number') {
-    return clampMonth(Number.parseInt(label, 10));
-  }
-  const index = monthItems.indexOf(label);
-  return index >= 0 ? index + 1 : 1;
-}
 
 export function DateDrumPicker({
   mode = 'day-month-year',

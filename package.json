@@ -74,6 +74,7 @@
     "registry": "https://registry.npmjs.org/"
   },
   "devDependencies": {
+    "@babel/core": "^7.25.2",
     "@eslint/compat": "^2.0.3",
     "@eslint/eslintrc": "^3.3.5",
     "@eslint/js": "^10.0.1",
@@ -83,6 +84,7 @@
     "@react-native/jest-preset": "0.85.0",
     "@release-it/conventional-changelog": "^10.0.6",
     "@types/react": "^19.2.0",
+    "babel-jest": "^30.3.0",
     "del-cli": "^7.0.0",
     "eslint": "^9.39.4",
     "eslint-config-prettier": "^10.1.8",
@@ -139,11 +141,21 @@
     "useTabs": false
   },
   "jest": {
-    "preset": "@react-native/jest-preset",
+    "testEnvironment": "node",
     "modulePathIgnorePatterns": [
       "<rootDir>/example/node_modules",
       "<rootDir>/lib/"
-    ]
+    ],
+    "transform": {
+      "^.+\\.(js|ts|tsx)$": [
+        "babel-jest",
+        {
+          "presets": [
+            "module:@react-native/babel-preset"
+          ]
+        }
+      ]
+    }
   },
   "release-it": {
     "git": {
