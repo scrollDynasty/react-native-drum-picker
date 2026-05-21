@@ -1,38 +1,57 @@
 package com.drumpicker
 
-import android.graphics.Color
+import com.facebook.react.bridge.ReadableArray
 import com.facebook.react.module.annotations.ReactModule
 import com.facebook.react.uimanager.SimpleViewManager
 import com.facebook.react.uimanager.ThemedReactContext
 import com.facebook.react.uimanager.ViewManagerDelegate
-import com.facebook.react.uimanager.annotations.ReactProp
-import com.facebook.react.viewmanagers.DrumPickerViewManagerInterface
 import com.facebook.react.viewmanagers.DrumPickerViewManagerDelegate
+import com.facebook.react.viewmanagers.DrumPickerViewManagerInterface
 
 @ReactModule(name = DrumPickerViewManager.NAME)
-class DrumPickerViewManager : SimpleViewManager<DrumPickerView>(),
+class DrumPickerViewManager :
+  SimpleViewManager<DrumPickerView>(),
   DrumPickerViewManagerInterface<DrumPickerView> {
-  private val mDelegate: ViewManagerDelegate<DrumPickerView>
+  private val delegate: ViewManagerDelegate<DrumPickerView> =
+    DrumPickerViewManagerDelegate(this)
 
-  init {
-    mDelegate = DrumPickerViewManagerDelegate(this)
+  override fun getDelegate(): ViewManagerDelegate<DrumPickerView>? = delegate
+
+  override fun getName(): String = NAME
+
+  public override fun createViewInstance(context: ThemedReactContext): DrumPickerView =
+    DrumPickerView(context)
+
+  override fun setItems(view: DrumPickerView?, value: ReadableArray?) {
+    view?.setItems(value)
   }
 
-  override fun getDelegate(): ViewManagerDelegate<DrumPickerView>? {
-    return mDelegate
+  override fun setSelectedIndex(view: DrumPickerView?, value: Int) {
+    view?.setSelectedIndex(value)
   }
 
-  override fun getName(): String {
-    return NAME
+  override fun setItemHeight(view: DrumPickerView?, value: Float) {
+    view?.setItemHeight(value)
   }
 
-  public override fun createViewInstance(context: ThemedReactContext): DrumPickerView {
-    return DrumPickerView(context)
+  override fun setVisibleItemCount(view: DrumPickerView?, value: Int) {
+    view?.setVisibleItemCount(value)
   }
 
-  @ReactProp(name = "color")
-  override fun setColor(view: DrumPickerView?, color: Int?) {
-    view?.setBackgroundColor(color ?: Color.TRANSPARENT)
+  override fun setTextColor(view: DrumPickerView?, value: Int?) {
+    view?.setTextColor(value)
+  }
+
+  override fun setSelectedTextColor(view: DrumPickerView?, value: Int?) {
+    view?.setSelectedTextColor(value)
+  }
+
+  override fun setTextSize(view: DrumPickerView?, value: Float) {
+    view?.setTextSize(value)
+  }
+
+  override fun setSelectedTextSize(view: DrumPickerView?, value: Float) {
+    view?.setSelectedTextSize(value)
   }
 
   companion object {
