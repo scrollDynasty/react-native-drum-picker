@@ -16,11 +16,6 @@
     "src",
     "lib",
     "android",
-    "ios",
-    "cpp",
-    "*.podspec",
-    "react-native.config.js",
-    "!ios/build",
     "!android/build",
     "!android/gradle",
     "!android/gradlew",
@@ -35,7 +30,7 @@
     "example": "yarn workspace react-native-drum-picker-example",
     "clean": "del-cli android/build example/android/build example/android/app/build example/ios/build lib",
     "build": "bob build",
-    "prepare": "bob build",
+    "prepublishOnly": "bob build",
     "typecheck": "tsc",
     "lint": "eslint \"**/*.{js,ts,tsx}\"",
     "test": "jest",
@@ -43,8 +38,11 @@
   },
   "keywords": [
     "react-native",
-    "ios",
-    "android"
+    "android",
+    "picker",
+    "wheel",
+    "drum-picker",
+    "fabric"
   ],
   "repository": {
     "type": "git",
