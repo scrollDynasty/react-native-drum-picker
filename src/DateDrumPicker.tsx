@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import {
   StyleSheet,
   View,
@@ -27,6 +27,8 @@ export type DateDrumPickerValue = {
 
 export type DateDrumPickerMonthFormat = 'short' | 'long' | 'number';
 
+export type DateDrumPickerColumnKey = 'day' | 'month' | 'year';
+
 export type DateDrumPickerProps = {
   mode?: DateDrumPickerMode;
   value?: DateDrumPickerValue;
@@ -48,10 +50,13 @@ export type DateDrumPickerProps = {
   itemBackgroundColor?: string;
   containerBackgroundColor?: string;
   style?: StyleProp<ViewStyle>;
+  /** Applied to every column */
   columnStyle?: StyleProp<ViewStyle>;
+  /** Per-column style overrides (width, margin, …) */
+  columnStyles?: Partial<Record<DateDrumPickerColumnKey, StyleProp<ViewStyle>>>;
 };
 
-type DateColumnKey = 'day' | 'month' | 'year';
+type DateColumnKey = DateDrumPickerColumnKey;
 
 const COLUMN_ORDER: Record<DateDrumPickerMode, DateColumnKey[]> = {
   'day': ['day'],
@@ -73,8 +78,18 @@ const COLUMN_WIDTH: Record<DateColumnKey, number> = {
 const DEFAULT_ITEM_HEIGHT = 44;
 const DEFAULT_VISIBLE_ITEM_COUNT = 5;
 
-function clampDay(day: number): number {
-  return Math.min(31, Math.max(1, Math.round(day)));
+export function getDaysInMonth(month: number, year: number): number {
+  return new Date(year, clampMonth(month), 0).getDate();
+}
+
+export function normalizeYearRange(
+  minYear: number,
+  maxYear: number
+): { minYear: number; maxYear: number } {
+  if (minYear <= maxYear) {
+    return { minYear, maxYear };
+  }
+  return { minYear: maxYear, maxYear: minYear };
 }
 
 function clampMonth(month: number): number {
@@ -85,21 +100,27 @@ function clampYear(year: number, minYear: number, maxYear: number): number {
   return Math.min(maxYear, Math.max(minYear, Math.round(year)));
 }
 
+function clampDayForMonth(day: number, month: number, year: number): number {
+  const maxDay = getDaysInMonth(month, year);
+  return Math.min(maxDay, Math.max(1, Math.round(day)));
+}
+
 export function clampDateDrumPickerValue(
   value: DateDrumPickerValue,
   minYear: number,
   maxYear: number
 ): Required<DateDrumPickerValue> {
+  const { minYear: min, maxYear: max } = normalizeYearRange(minYear, maxYear);
   const now = new Date();
-  return {
-    day: clampDay(value.day ?? now.getDate()),
-    month: clampMonth(value.month ?? now.getMonth() + 1),
-    year: clampYear(value.year ?? now.getFullYear(), minYear, maxYear),
-  };
+  const month = clampMonth(value.month ?? now.getMonth() + 1);
+  const year = clampYear(value.year ?? now.getFullYear(), min, max);
+  const day = clampDayForMonth(value.day ?? now.getDate(), month, year);
+  return { day, month, year };
 }
 
-function buildDayItems(): string[] {
-  return Array.from({ length: 31 }, (_, index) => String(index + 1));
+function buildDayItems(month: number, year: number): string[] {
+  const count = getDaysInMonth(month, year);
+  return Array.from({ length: count }, (_, index) => String(index + 1));
 }
 
 function buildMonthItems(
@@ -120,8 +141,9 @@ function buildMonthItems(
 }
 
 function buildYearItems(minYear: number, maxYear: number): string[] {
-  const length = maxYear - minYear + 1;
-  return Array.from({ length }, (_, index) => String(minYear + index));
+  const { minYear: min, maxYear: max } = normalizeYearRange(minYear, maxYear);
+  const length = max - min + 1;
+  return Array.from({ length }, (_, index) => String(min + index));
 }
 
 function parseMonthFromLabel(
@@ -158,18 +180,35 @@ export function DateDrumPicker({
   containerBackgroundColor = 'transparent',
   style,
   columnStyle,
+  columnStyles,
 }: DateDrumPickerProps) {
   const currentYear = new Date().getFullYear();
-  const minYear = minYearProp ?? currentYear - 100;
-  const maxYear = maxYearProp ?? currentYear + 50;
-
-  const resolvedValue = useMemo(
-    () => clampDateDrumPickerValue(value ?? {}, minYear, maxYear),
-    [value, minYear, maxYear]
+  const { minYear, maxYear } = useMemo(
+    () =>
+      normalizeYearRange(
+        minYearProp ?? currentYear - 100,
+        maxYearProp ?? currentYear + 50
+      ),
+    [minYearProp, maxYearProp, currentYear]
   );
 
+  const isControlled = value !== undefined;
+  const [internalValue, setInternalValue] = useState(() =>
+    clampDateDrumPickerValue(value ?? {}, minYear, maxYear)
+  );
+
+  const resolvedValue = useMemo(() => {
+    if (isControlled) {
+      return clampDateDrumPickerValue(value, minYear, maxYear);
+    }
+    return internalValue;
+  }, [isControlled, value, internalValue, minYear, maxYear]);
+
   const columns = COLUMN_ORDER[mode];
-  const dayItems = useMemo(() => buildDayItems(), []);
+  const dayItems = useMemo(
+    () => buildDayItems(resolvedValue.month, resolvedValue.year),
+    [resolvedValue.month, resolvedValue.year]
+  );
   const monthItems = useMemo(
     () => buildMonthItems(monthFormat, locale),
     [monthFormat, locale]
@@ -183,15 +222,17 @@ export function DateDrumPicker({
 
   const emitChange = useCallback(
     (patch: Partial<DateDrumPickerValue>) => {
-      onChange?.(
-        clampDateDrumPickerValue(
-          { ...resolvedValue, ...patch },
-          minYear,
-          maxYear
-        )
+      const next = clampDateDrumPickerValue(
+        { ...resolvedValue, ...patch },
+        minYear,
+        maxYear
       );
+      if (!isControlled) {
+        setInternalValue(next);
+      }
+      onChange?.(next);
     },
-    [onChange, resolvedValue, minYear, maxYear]
+    [isControlled, onChange, resolvedValue, minYear, maxYear]
   );
 
   const sharedPickerProps = {
@@ -209,23 +250,30 @@ export function DateDrumPicker({
     containerBackgroundColor,
   };
 
-  const renderColumn = (column: DateColumnKey) => {
-    const columnWidth = COLUMN_WIDTH[column];
+  const columnContainerStyle = (
+    column: DateColumnKey
+  ): StyleProp<ViewStyle> => [
+    styles.column,
+    { width: COLUMN_WIDTH[column], height: pickerHeight },
+    columnStyle,
+    columnStyles?.[column],
+  ];
 
+  const renderColumn = (column: DateColumnKey) => {
     if (column === 'day') {
       return (
         <DrumPicker
           key="day"
           {...sharedPickerProps}
-          style={[
-            styles.column,
-            { width: columnWidth, height: pickerHeight },
-            columnStyle,
-          ]}
+          style={columnContainerStyle('day')}
           items={dayItems}
-          selectedIndex={resolvedValue.day - 1}
+          selectedIndex={Math.min(resolvedValue.day - 1, dayItems.length - 1)}
           onChange={(event: NativeSyntheticEvent<DrumPickerChangeEvent>) => {
-            const day = clampDay(event.nativeEvent.index + 1);
+            const day = clampDayForMonth(
+              event.nativeEvent.index + 1,
+              resolvedValue.month,
+              resolvedValue.year
+            );
             emitChange({ day });
           }}
         />
@@ -237,11 +285,7 @@ export function DateDrumPicker({
         <DrumPicker
           key="month"
           {...sharedPickerProps}
-          style={[
-            styles.column,
-            { width: columnWidth, height: pickerHeight },
-            columnStyle,
-          ]}
+          style={columnContainerStyle('month')}
           items={monthItems}
           selectedIndex={resolvedValue.month - 1}
           onChange={(event: NativeSyntheticEvent<DrumPickerChangeEvent>) => {
@@ -260,11 +304,7 @@ export function DateDrumPicker({
       <DrumPicker
         key="year"
         {...sharedPickerProps}
-        style={[
-          styles.column,
-          { width: columnWidth, height: pickerHeight },
-          columnStyle,
-        ]}
+        style={columnContainerStyle('year')}
         items={yearItems}
         selectedIndex={resolvedValue.year - minYear}
         onChange={(event: NativeSyntheticEvent<DrumPickerChangeEvent>) => {

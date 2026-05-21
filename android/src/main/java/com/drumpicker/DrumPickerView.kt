@@ -77,7 +77,16 @@ class DrumPickerView @JvmOverloads constructor(
           -> updateVisibleItemStyles()
           RecyclerView.SCROLL_STATE_IDLE -> {
             updateVisibleItemStyles()
-            updateCenterFromSnap()
+            if (suppressChangeEvent) {
+              val centerIndex = findSnapCenterIndex()
+              if (centerIndex != RecyclerView.NO_POSITION) {
+                selectedIndex = centerIndex
+                lastEmittedIndex = centerIndex
+              }
+              suppressChangeEvent = false
+            } else {
+              updateCenterFromSnap()
+            }
           }
         }
       }
@@ -345,7 +354,7 @@ class DrumPickerView @JvmOverloads constructor(
   }
 
   private fun applyRecyclerPadding() {
-    val verticalPadding = itemHeightPx * ((visibleItemCount - 1) / 2)
+    val verticalPadding = (itemHeightPx * (visibleItemCount - 1)) / 2
     recyclerView.setPadding(0, verticalPadding, 0, verticalPadding)
   }
 
@@ -386,7 +395,6 @@ class DrumPickerView @JvmOverloads constructor(
     val index = selectedIndex.coerceIn(0, items.size - 1)
     if (animated) {
       recyclerView.smoothScrollToPosition(index)
-      suppressChangeEvent = false
       return
     }
 

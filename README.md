@@ -91,7 +91,20 @@ Backgrounds are transparent by default. Override only if needed:
 
 Date wheels built on `DrumPicker` (TypeScript only). Renders **only columns** — no titles like `"day"` above the wheel. Add labels in your own UI if needed.
 
-`onChange` returns `{ day?, month?, year? }` (numbers). Hidden fields stay in state but are not shown.
+`onChange` returns `{ day, month, year }` as numbers. Day count follows the selected month/year (e.g. February has 28/29 days).
+
+**Controlled** — pass `value` and update it in `onChange`:
+
+```tsx
+const [date, setDate] = useState({ day: 10, month: 9, year: 2026 });
+<DateDrumPicker value={date} onChange={setDate} />
+```
+
+**Uncontrolled** — omit `value`; the picker keeps its own state and still calls `onChange`:
+
+```tsx
+<DateDrumPicker onChange={(value) => console.log(value)} />
+```
 
 ### Full date (day → month → year)
 
@@ -183,17 +196,44 @@ Defaults: `minYear = now - 100`, `maxYear = now + 50`.
 
 ### Column width
 
-Default widths: day `64`, month `110`, year `86`. Override per column:
+Default widths: day `64`, month `110`, year `86`.
 
 ```tsx
+// Same width on every column
+<DateDrumPicker columnStyle={{ width: 72 }} />
+
+// Per column
 <DateDrumPicker
-  mode="day-month-year"
-  columnStyle={{ width: 72 }}
-  style={{ alignSelf: 'center' }}
+  columnStyles={{
+    day: { width: 56 },
+    month: { width: 120 },
+    year: { width: 80 },
+  }}
 />
 ```
 
 `DateDrumPicker` also accepts DrumPicker props: `itemHeight`, `visibleItemCount`, colors, selection indicator, backgrounds.
+
+### `visibleItemCount`
+
+Use an **odd** number (default `5`) for a symmetric wheel. Even counts work but the center band is slightly less balanced.
+
+---
+
+## Troubleshooting
+
+| Issue | What to try |
+|-------|-------------|
+| Picker empty / white box | Enable New Architecture; rebuild native app; set explicit `width` and `height` on `style` |
+| Props not applied | Rebuild after install; ensure Metro resolves the app, not stale `lib/` |
+| No `onChange` | Use controlled `selectedIndex` / `value` and update state in the handler |
+| iOS | Not supported — Android only |
+
+---
+
+## Accessibility
+
+TalkBack does not announce individual wheel rows yet. Text uses `sp` (system font scale applies). Add external labels for screen readers if needed.
 
 ---
 

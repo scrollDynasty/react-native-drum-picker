@@ -37,6 +37,13 @@ To start the packager:
 yarn example start
 ```
 
+Before publishing to npm, run from the repo root:
+
+```sh
+yarn lint
+yarn build
+```
+
 To run the example app on Android:
 
 ```sh
