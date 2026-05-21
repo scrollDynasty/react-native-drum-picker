@@ -7,30 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+_No changes yet._
+
+## [0.0.1] - 2026-05-21
+
+Initial public release. See [GitHub release v0.0.1](https://github.com/scrollDynasty/react-native-drum-picker/releases/tag/v0.0.1).
+
 ### Added
 
 - Android-native `DrumPicker` Fabric view (Kotlin, `RecyclerView`, snap-to-center).
 - TypeScript public API and codegen spec (`DrumPickerView`).
-- `DateDrumPicker` wrapper with flexible modes (`day`, `month`, `year`, combinations).
+- `DateDrumPicker` wrapper with flexible modes (`day`, `month`, `year`, and combinations).
 - Transparent background support (`backgroundColor`, `containerBackgroundColor`, `itemBackgroundColor`).
 - iOS-style center selection indicator (optional).
 - Distance-based text fade and size interpolation while scrolling.
+- Date logic: days per month/year, year range normalization, controlled and uncontrolled `DateDrumPicker`.
 
-### Changed
-
-- (nothing yet)
-
-### Fixed
-
-- (nothing yet)
-
-## [0.1.0] - TBD
-
-> First public npm release when published. Replace **TBD** with the release date.
-
-### Added
-
-- Initial open-source release (Android only).
-
-[Unreleased]: https://github.com/scrollDynasty/react-native-drum-picker/compare/v0.1.0...HEAD
-[0.1.0]: https://github.com/scrollDynasty/react-native-drum-picker/releases/tag/v0.1.0
+[Unreleased]: https://github.com/scrollDynasty/react-native-drum-picker/compare/v0.0.1...HEAD
+[0.0.1]: https://github.com/scrollDynasty/react-native-drum-picker/releases/tag/v0.0.1
