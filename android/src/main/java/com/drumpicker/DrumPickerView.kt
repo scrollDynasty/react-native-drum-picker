@@ -45,6 +45,15 @@ class DrumPickerView @JvmOverloads constructor(
   private var lastEmittedIndex = -1
   private var suppressChangeEvent = false
   private var isDetached = false
+  private var styleUpdatePosted = false
+
+  private val styleUpdateRunnable =
+    Runnable {
+      styleUpdatePosted = false
+      if (!isDetached) {
+        updateVisibleItemStyles()
+      }
+    }
 
   private val scrollListener =
     object : RecyclerView.OnScrollListener() {
@@ -52,15 +61,21 @@ class DrumPickerView @JvmOverloads constructor(
         if (isDetached) {
           return
         }
-        updateVisibleItemStyles()
+        scheduleVisibleItemStyleUpdate()
       }
 
       override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
         if (isDetached) {
           return
         }
-        if (newState == RecyclerView.SCROLL_STATE_IDLE) {
-          updateCenterFromSnap()
+        when (newState) {
+          RecyclerView.SCROLL_STATE_DRAGGING,
+          RecyclerView.SCROLL_STATE_SETTLING,
+          -> updateVisibleItemStyles()
+          RecyclerView.SCROLL_STATE_IDLE -> {
+            updateVisibleItemStyles()
+            updateCenterFromSnap()
+          }
         }
       }
     }
@@ -85,24 +100,29 @@ class DrumPickerView @JvmOverloads constructor(
     addView(topIndicator, LayoutParams(LayoutParams.MATCH_PARENT, selectionIndicatorHeightPx))
     addView(bottomIndicator, LayoutParams(LayoutParams.MATCH_PARENT, selectionIndicatorHeightPx))
 
+    adapter.distanceForPosition = { position -> distanceFromCenterForPosition(position) }
     syncAdapterStyle()
     applyRecyclerPadding()
     updateIndicatorAppearance()
   }
 
   fun setItemsProp(value: Any?) {
-    items = parseItems(value)
-    adapter.items = items
-    lastEmittedIndex = -1
-
-    if (items.isEmpty()) {
+    val newItems = parseItems(value)
+    if (newItems == items) {
       return
     }
 
-    val clamped = selectedIndex.coerceIn(0, items.size - 1)
-    if (clamped != selectedIndex) {
-      selectedIndex = clamped
+    recyclerView.stopScroll()
+    items = newItems
+    adapter.updateItems(newItems)
+    lastEmittedIndex = -1
+
+    if (items.isEmpty()) {
+      selectedIndex = selectedIndex.coerceAtLeast(0)
+      return
     }
+
+    selectedIndex = selectedIndex.coerceIn(0, items.size - 1)
     runWhenAttached { scrollToSelectedIndex(animated = false, emit = false) }
   }
 
@@ -202,6 +222,8 @@ class DrumPickerView @JvmOverloads constructor(
 
   override fun onDetachedFromWindow() {
     isDetached = true
+    recyclerView.removeCallbacks(styleUpdateRunnable)
+    styleUpdatePosted = false
     removeCallbacks(null)
     recyclerView.clearOnScrollListeners()
     snapHelper.attachToRecyclerView(null)
@@ -215,7 +237,8 @@ class DrumPickerView @JvmOverloads constructor(
       return
     }
     val clamped = index.coerceIn(0, items.size - 1)
-    if (clamped == selectedIndex) {
+    val snapIndex = findSnapCenterIndex()
+    if (clamped == selectedIndex && snapIndex == clamped) {
       return
     }
     selectedIndex = clamped
@@ -229,6 +252,7 @@ class DrumPickerView @JvmOverloads constructor(
     itemHeightDp = height
     itemHeightPx = dpToPx(itemHeightDp)
     adapter.itemHeightPx = itemHeightPx
+    adapter.notifyRowMetricsChanged()
     applyRecyclerPadding()
     requestLayout()
   }
@@ -278,6 +302,16 @@ class DrumPickerView @JvmOverloads constructor(
     adapter.textSizeSp = textSizeSp
     adapter.selectedTextSizeSp = selectedTextSizeSp
     adapter.itemHeightPx = itemHeightPx
+    resetVisibleStyleBuckets()
+  }
+
+  private fun resetVisibleStyleBuckets() {
+    for (i in 0 until recyclerView.childCount) {
+      val holder =
+        recyclerView.getChildViewHolder(recyclerView.getChildAt(i))
+          as? DrumPickerAdapter.ItemViewHolder ?: continue
+      holder.lastStyleBucket = Int.MIN_VALUE
+    }
   }
 
   private fun applyRecyclerPadding() {
@@ -322,14 +356,23 @@ class DrumPickerView @JvmOverloads constructor(
     val index = selectedIndex.coerceIn(0, items.size - 1)
     if (animated) {
       recyclerView.smoothScrollToPosition(index)
-    } else {
-      layoutManager.scrollToPositionWithOffset(index, 0)
+      suppressChangeEvent = false
+      return
+    }
+
+    layoutManager.scrollToPositionWithOffset(index, 0)
+    recyclerView.post {
+      if (isDetached) {
+        return@post
+      }
       updateVisibleItemStyles()
       if (emit) {
         maybeEmitChange(index)
+      } else {
+        lastEmittedIndex = index
       }
+      suppressChangeEvent = false
     }
-    suppressChangeEvent = false
   }
 
   private fun runWhenAttached(block: () -> Unit) {
@@ -348,8 +391,7 @@ class DrumPickerView @JvmOverloads constructor(
     if (isDetached || items.isEmpty()) {
       return
     }
-    val centerView = snapHelper.findSnapView(layoutManager) ?: return
-    val centerIndex = layoutManager.getPosition(centerView)
+    val centerIndex = findSnapCenterIndex()
     if (centerIndex == RecyclerView.NO_POSITION) {
       return
     }
@@ -357,6 +399,32 @@ class DrumPickerView @JvmOverloads constructor(
     selectedIndex = centerIndex
     updateVisibleItemStyles()
     maybeEmitChange(centerIndex)
+  }
+
+  private fun findSnapCenterIndex(): Int {
+    if (items.isEmpty()) {
+      return RecyclerView.NO_POSITION
+    }
+    val centerView = snapHelper.findSnapView(layoutManager) ?: return RecyclerView.NO_POSITION
+    return layoutManager.getPosition(centerView)
+  }
+
+  private fun scheduleVisibleItemStyleUpdate() {
+    if (styleUpdatePosted || isDetached) {
+      return
+    }
+    styleUpdatePosted = true
+    recyclerView.postOnAnimation(styleUpdateRunnable)
+  }
+
+  private fun distanceFromCenterForPosition(position: Int): Float {
+    if (itemHeightPx <= 0 || recyclerView.height == 0) {
+      return 2f
+    }
+    val child = layoutManager.findViewByPosition(position) ?: return 2f
+    val pickerCenterY = recyclerView.height / 2f
+    val childCenterY = child.top + child.height / 2f
+    return abs(childCenterY - pickerCenterY) / itemHeightPx.toFloat()
   }
 
   private fun updateVisibleItemStyles() {
@@ -372,20 +440,25 @@ class DrumPickerView @JvmOverloads constructor(
         ?: continue
       val childCenterY = child.top + child.height / 2f
       val distance = abs(childCenterY - pickerCenterY) / rowHeight
-      adapter.applyItemStyle(holder.textView, distance)
+      adapter.applyItemStyle(holder, distance)
     }
   }
 
   private fun maybeEmitChange(index: Int) {
-    if (isDetached || suppressChangeEvent || index == lastEmittedIndex || items.isEmpty()) {
+    if (isDetached || suppressChangeEvent || items.isEmpty()) {
       return
     }
     if (index < 0 || index >= items.size) {
       return
     }
+    val clamped = index.coerceIn(0, items.size - 1)
+    if (clamped == lastEmittedIndex) {
+      selectedIndex = clamped
+      return
+    }
 
-    lastEmittedIndex = index
-    selectedIndex = index
+    lastEmittedIndex = clamped
+    selectedIndex = clamped
 
     val reactContext = context as? ReactContext ?: return
     val dispatcher: EventDispatcher? = UIManagerHelper.getEventDispatcher(reactContext)
@@ -393,8 +466,8 @@ class DrumPickerView @JvmOverloads constructor(
       DrumPickerChangeEvent(
         UIManagerHelper.getSurfaceId(reactContext),
         id,
-        index,
-        items[index],
+        clamped,
+        items[clamped],
       ),
     )
   }
