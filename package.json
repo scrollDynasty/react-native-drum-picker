@@ -18,6 +18,7 @@
   },
   "files": [
     "README.md",
+    "img",
     "LICENSE",
     "CHANGELOG.md",
     "react-native.config.js",

@@ -11,7 +11,7 @@ A smooth **Android-native** iOS-style drum/wheel picker for React Native (Fabric
 
 `DateDrumPicker` on Android (day · month · year):
 
-![DateDrumPicker preview — day, month, year columns](./img/image.png)
+![DateDrumPicker preview — day, month, year columns](https://raw.githubusercontent.com/scrollDynasty/react-native-drum-picker/main/img/image.png)
 
 ## Features
 
