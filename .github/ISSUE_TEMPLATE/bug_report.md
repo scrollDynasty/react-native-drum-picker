@@ -30,7 +30,7 @@ If applicable, add visuals.
 
 ## Environment
 
-- **react-native-drum-picker version:** (e.g. 0.1.1 or git SHA)
+- **react-native-drum-picker version:** (e.g. 0.1.2 or git SHA)
 - **React Native version:**
 - **Android version:**
 - **Device / emulator:**
