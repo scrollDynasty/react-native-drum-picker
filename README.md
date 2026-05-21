@@ -1,7 +1,7 @@
 # react-native-drum-picker
 
 [![npm version](https://img.shields.io/npm/v/react-native-drum-picker.svg)](https://www.npmjs.com/package/react-native-drum-picker)
-[![license](https://img.shields.io/npm/l/react-native-drum-picker.svg)](https://github.com/scrollDynasty/react-native-drum-picker/blob/main/LICENSE)
+[![license](https://img.shields.io/github/license/scrollDynasty/react-native-drum-picker.svg)](https://github.com/scrollDynasty/react-native-drum-picker/blob/main/LICENSE)
 [![platform](https://img.shields.io/badge/platform-Android-3DDC84.svg)](https://reactnative.dev)
 [![React Native](https://img.shields.io/badge/React%20Native-%E2%89%A50.76-61DAFB.svg)](https://reactnative.dev)
 
