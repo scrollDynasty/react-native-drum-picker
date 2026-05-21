@@ -101,7 +101,7 @@ Use the [pull request template](./.github/PULL_REQUEST_TEMPLATE.md).
 Open a [bug report](https://github.com/scrollDynasty/react-native-drum-picker/issues/new?template=bug_report.md) and include:
 
 - React Native version
-- Library version (`0.1.0` or git commit)
+- Library version (`0.1.1` or git commit)
 - Android version
 - Device or emulator
 - New Architecture enabled (yes/no)

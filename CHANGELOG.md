@@ -9,9 +9,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 _No changes yet._
 
-## [0.0.1] - 2026-05-21
+## [0.1.1] - 2026-05-22
 
-Initial public release. See [GitHub release v0.0.1](https://github.com/scrollDynasty/react-native-drum-picker/releases/tag/v0.0.1).
+### Added
+
+- README preview screenshot (`img/image.png`).
+- Open-source docs: `CONTRIBUTING.md`, `SECURITY.md`, GitHub issue/PR templates.
+
+### Changed
+
+- README license badge uses GitHub (not npm) when package metadata is unavailable.
+- `react-native.config.js` documents Android-only autolinking.
+
+### Fixed
+
+- CI: `gradlew` executable bit on Linux (`chmod +x`).
+- CI: `yarn typecheck` excludes `src/**/__tests__`.
+- CI: `build-library` runs `yarn build` instead of missing `yarn prepare`.
+
+## [0.1.0] - 2026-05-21
+
+First release on [npm](https://www.npmjs.com/package/react-native-drum-picker).
 
 ### Added
 
@@ -23,5 +41,11 @@ Initial public release. See [GitHub release v0.0.1](https://github.com/scrollDyn
 - Distance-based text fade and size interpolation while scrolling.
 - Date logic: days per month/year, year range normalization, controlled and uncontrolled `DateDrumPicker`.
 
-[Unreleased]: https://github.com/scrollDynasty/react-native-drum-picker/compare/v0.0.1...HEAD
+## [0.0.1] - 2026-05-21
+
+Initial GitHub release. See [v0.0.1](https://github.com/scrollDynasty/react-native-drum-picker/releases/tag/v0.0.1).
+
+[Unreleased]: https://github.com/scrollDynasty/react-native-drum-picker/compare/v0.1.1...HEAD
+[0.1.1]: https://github.com/scrollDynasty/react-native-drum-picker/releases/tag/v0.1.1
+[0.1.0]: https://github.com/scrollDynasty/react-native-drum-picker/compare/v0.0.1...v0.1.0
 [0.0.1]: https://github.com/scrollDynasty/react-native-drum-picker/releases/tag/v0.0.1
