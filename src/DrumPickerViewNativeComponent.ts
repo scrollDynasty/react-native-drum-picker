@@ -22,6 +22,9 @@ interface NativeProps extends ViewProps {
   showSelectionIndicator?: CodegenTypes.WithDefault<boolean, true>;
   selectionIndicatorColor?: ColorValue;
   selectionIndicatorHeight?: CodegenTypes.Float;
+  backgroundColor?: ColorValue;
+  containerBackgroundColor?: ColorValue;
+  itemBackgroundColor?: ColorValue;
   onValueChange?: CodegenTypes.DirectEventHandler<DrumPickerChangeEventPayload>;
 }
 

@@ -39,6 +39,9 @@ class DrumPickerView @JvmOverloads constructor(
   private var showSelectionIndicator = true
   private var selectionIndicatorColor = DrumPickerDefaults.SELECTION_INDICATOR_COLOR
   private var selectionIndicatorHeightDp = DrumPickerDefaults.SELECTION_INDICATOR_HEIGHT_DP
+  private var backgroundColor = DrumPickerDefaults.TRANSPARENT
+  private var containerBackgroundColor = DrumPickerDefaults.TRANSPARENT
+  private var itemBackgroundColor = DrumPickerDefaults.TRANSPARENT
 
   private var itemHeightPx = dpToPx(itemHeightDp)
   private var selectionIndicatorHeightPx = dpToPx(selectionIndicatorHeightDp)
@@ -81,7 +84,8 @@ class DrumPickerView @JvmOverloads constructor(
     }
 
   init {
-    recyclerView.setBackgroundColor(Color.TRANSPARENT)
+    setBackgroundColor(DrumPickerDefaults.TRANSPARENT)
+    recyclerView.setBackgroundColor(DrumPickerDefaults.TRANSPARENT)
     recyclerView.layoutManager = layoutManager
     recyclerView.adapter = adapter
     recyclerView.overScrollMode = RecyclerView.OVER_SCROLL_NEVER
@@ -102,6 +106,7 @@ class DrumPickerView @JvmOverloads constructor(
 
     adapter.distanceForPosition = { position -> distanceFromCenterForPosition(position) }
     syncAdapterStyle()
+    applyBackgroundColors()
     applyRecyclerPadding()
     updateIndicatorAppearance()
   }
@@ -181,6 +186,21 @@ class DrumPickerView @JvmOverloads constructor(
     selectionIndicatorHeightPx = dpToPx(selectionIndicatorHeightDp)
     updateIndicatorAppearance()
     requestLayout()
+  }
+
+  fun setBackgroundColorProp(value: Any?) {
+    backgroundColor = resolveBackgroundColor(value, backgroundColor)
+    applyBackgroundColors()
+  }
+
+  fun setContainerBackgroundColorProp(value: Any?) {
+    containerBackgroundColor = resolveBackgroundColor(value, containerBackgroundColor)
+    applyBackgroundColors()
+  }
+
+  fun setItemBackgroundColorProp(value: Any?) {
+    itemBackgroundColor = resolveBackgroundColor(value, itemBackgroundColor)
+    applyBackgroundColors()
   }
 
   override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
@@ -302,7 +322,17 @@ class DrumPickerView @JvmOverloads constructor(
     adapter.textSizeSp = textSizeSp
     adapter.selectedTextSizeSp = selectedTextSizeSp
     adapter.itemHeightPx = itemHeightPx
+    adapter.itemBackgroundColor = itemBackgroundColor
     resetVisibleStyleBuckets()
+  }
+
+  private fun applyBackgroundColors() {
+    setBackgroundColor(backgroundColor)
+    recyclerView.setBackgroundColor(containerBackgroundColor)
+    adapter.itemBackgroundColor = itemBackgroundColor
+    if (adapter.itemCount > 0) {
+      adapter.notifyRowMetricsChanged()
+    }
   }
 
   private fun resetVisibleStyleBuckets() {
@@ -501,6 +531,16 @@ class DrumPickerView @JvmOverloads constructor(
       null -> fallback
       else -> ColorPropConverter.getColor(value, context) ?: fallback
     }
+
+  private fun resolveBackgroundColor(value: Any?, fallback: Int): Int {
+    if (value == null) {
+      return fallback
+    }
+    if (value is String && value.equals("transparent", ignoreCase = true)) {
+      return Color.TRANSPARENT
+    }
+    return resolveColor(value, fallback)
+  }
 
   private fun toBoolean(value: Any?, fallback: Boolean): Boolean =
     when (value) {

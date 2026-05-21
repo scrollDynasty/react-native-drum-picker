@@ -15,4 +15,5 @@ internal object DrumPickerDefaults {
   val TEXT_COLOR: Int = Color.parseColor("#8E8E93")
   val SELECTED_TEXT_COLOR: Int = Color.parseColor("#1C1C1E")
   val SELECTION_INDICATOR_COLOR: Int = Color.parseColor("#D1D1D6")
+  val TRANSPARENT: Int = Color.TRANSPARENT
 }

@@ -21,6 +21,7 @@ internal class DrumPickerAdapter(
   var selectedTextColor: Int = DrumPickerDefaults.SELECTED_TEXT_COLOR
   var textSizeSp: Float = DrumPickerDefaults.TEXT_SIZE_SP
   var selectedTextSizeSp: Float = DrumPickerDefaults.SELECTED_TEXT_SIZE_SP
+  var itemBackgroundColor: Int = DrumPickerDefaults.TRANSPARENT
 
   var distanceForPosition: ((position: Int) -> Float)? = null
 
@@ -59,6 +60,7 @@ internal class DrumPickerAdapter(
       TextView(parent.context).apply {
         gravity = Gravity.CENTER
         includeFontPadding = false
+        setBackgroundColor(itemBackgroundColor)
         layoutParams =
           RecyclerView.LayoutParams(
             ViewGroup.LayoutParams.MATCH_PARENT,
@@ -74,6 +76,7 @@ internal class DrumPickerAdapter(
     textView.layoutParams =
       (textView.layoutParams as RecyclerView.LayoutParams).apply { this.height = height }
     textView.text = items[position]
+    textView.setBackgroundColor(itemBackgroundColor)
     holder.lastStyleBucket = Int.MIN_VALUE
     val distance = distanceForPosition?.invoke(position) ?: 2f
     applyItemStyle(holder, distance)

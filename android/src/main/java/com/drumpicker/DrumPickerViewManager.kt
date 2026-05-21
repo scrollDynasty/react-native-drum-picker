@@ -37,6 +37,9 @@ class DrumPickerViewManager :
         "showSelectionIndicator" -> view.setShowSelectionIndicatorProp(value)
         "selectionIndicatorColor" -> view.setSelectionIndicatorColorProp(value)
         "selectionIndicatorHeight" -> view.setSelectionIndicatorHeightProp(value)
+        "backgroundColor" -> view.setBackgroundColorProp(value)
+        "containerBackgroundColor" -> view.setContainerBackgroundColorProp(value)
+        "itemBackgroundColor" -> view.setItemBackgroundColorProp(value)
         else -> delegate.setProperty(view, key, value)
       }
     }
@@ -85,6 +88,18 @@ class DrumPickerViewManager :
 
   override fun setSelectionIndicatorHeight(view: DrumPickerView?, value: Float) {
     view?.setSelectionIndicatorHeightProp(value)
+  }
+
+  override fun setBackgroundColor(view: DrumPickerView?, value: Int?) {
+    view?.setBackgroundColorProp(value)
+  }
+
+  override fun setContainerBackgroundColor(view: DrumPickerView?, value: Int?) {
+    view?.setContainerBackgroundColorProp(value)
+  }
+
+  override fun setItemBackgroundColor(view: DrumPickerView?, value: Int?) {
+    view?.setItemBackgroundColorProp(value)
   }
 
   companion object {

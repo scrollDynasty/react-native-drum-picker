@@ -53,8 +53,29 @@ const items = ['Mon 7 Sep', 'Tue 8 Sep', 'Wed 9 Sep'];
 | `showSelectionIndicator` | `boolean` | `true` | Center selection lines |
 | `selectionIndicatorColor` | `string` | `#D1D1D6` | Line color |
 | `selectionIndicatorHeight` | `number` | `1` | Line thickness (dp) |
+| `backgroundColor` | `string` | `transparent` | Root native view background |
+| `containerBackgroundColor` | `string` | `transparent` | RecyclerView background |
+| `itemBackgroundColor` | `string` | `transparent` | Row label background |
 | `onChange` | `function` | — | Fires when centered value changes |
 | `style` | `ViewStyle` | — | Container size (`width`, `height`, …) |
+
+### DateDrumPicker
+
+Higher-level date columns built on `DrumPicker` (TypeScript only):
+
+```tsx
+import { DateDrumPicker } from 'react-native-drum-picker';
+
+<DateDrumPicker
+  mode="day-month-year"
+  value={{ day: 21, month: 5, year: 2026 }}
+  onChange={(value) => console.log(value)}
+/>;
+```
+
+Modes: `day`, `month`, `year`, `day-month`, `month-year`, `day-month-year`, `month-day-year`, `year-month-day`.
+
+`DateDrumPicker` renders only picker columns (day / month / year wheels). It does **not** render mode labels such as `"day"` or `"day-month"`. Add any captions in your own layout outside the component.
 
 ## Contributing
 

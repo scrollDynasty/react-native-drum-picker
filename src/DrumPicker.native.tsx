@@ -13,6 +13,9 @@ const DEFAULTS = {
   showSelectionIndicator: true,
   selectionIndicatorColor: '#D1D1D6',
   selectionIndicatorHeight: 1,
+  backgroundColor: 'transparent',
+  itemBackgroundColor: 'transparent',
+  containerBackgroundColor: 'transparent',
 } as const;
 
 export function DrumPicker({
@@ -27,6 +30,9 @@ export function DrumPicker({
   showSelectionIndicator = DEFAULTS.showSelectionIndicator,
   selectionIndicatorColor = DEFAULTS.selectionIndicatorColor,
   selectionIndicatorHeight = DEFAULTS.selectionIndicatorHeight,
+  backgroundColor = DEFAULTS.backgroundColor,
+  itemBackgroundColor = DEFAULTS.itemBackgroundColor,
+  containerBackgroundColor = DEFAULTS.containerBackgroundColor,
   onChange,
   style,
 }: DrumPickerProps) {
@@ -52,6 +58,9 @@ export function DrumPicker({
       showSelectionIndicator={showSelectionIndicator}
       selectionIndicatorColor={selectionIndicatorColor}
       selectionIndicatorHeight={selectionIndicatorHeight}
+      backgroundColor={backgroundColor}
+      itemBackgroundColor={itemBackgroundColor}
+      containerBackgroundColor={containerBackgroundColor}
       onValueChange={onChange}
       style={pickerStyle}
     />

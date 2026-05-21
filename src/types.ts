@@ -1,4 +1,4 @@
-import type { NativeSyntheticEvent, ViewStyle } from 'react-native';
+import type { NativeSyntheticEvent, StyleProp, ViewStyle } from 'react-native';
 
 export type DrumPickerChangeEvent = {
   index: number;
@@ -17,6 +17,9 @@ export type DrumPickerProps = {
   showSelectionIndicator?: boolean;
   selectionIndicatorColor?: string;
   selectionIndicatorHeight?: number;
+  backgroundColor?: string;
+  itemBackgroundColor?: string;
+  containerBackgroundColor?: string;
   onChange?: (event: NativeSyntheticEvent<DrumPickerChangeEvent>) => void;
-  style?: ViewStyle;
+  style?: StyleProp<ViewStyle>;
 };
