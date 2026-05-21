@@ -1,9 +1,13 @@
 {
   "name": "react-native-drum-picker",
   "version": "0.1.0",
-  "description": "Android native iOS-style drum picker for React Native",
+  "description": "Android-native iOS-style drum/wheel picker for React Native (Fabric)",
   "main": "./lib/module/index.js",
+  "module": "./lib/module/index.js",
   "types": "./lib/typescript/src/index.d.ts",
+  "react-native": "./src/index.tsx",
+  "source": "./src/index.tsx",
+  "sideEffects": false,
   "exports": {
     ".": {
       "source": "./src/index.tsx",
@@ -13,6 +17,10 @@
     "./package.json": "./package.json"
   },
   "files": [
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md",
+    "react-native.config.js",
     "src",
     "lib",
     "android",
@@ -21,9 +29,12 @@
     "!android/gradlew",
     "!android/gradlew.bat",
     "!android/local.properties",
+    "!example",
+    "!ios",
     "!**/__tests__",
     "!**/__fixtures__",
     "!**/__mocks__",
+    "!**/*.map",
     "!**/.*"
   ],
   "scripts": {
@@ -38,11 +49,16 @@
   },
   "keywords": [
     "react-native",
+    "react-native-library",
     "android",
+    "kotlin",
+    "fabric",
+    "new-architecture",
     "picker",
-    "wheel",
+    "wheel-picker",
     "drum-picker",
-    "fabric"
+    "date-picker",
+    "ios-style"
   ],
   "repository": {
     "type": "git",

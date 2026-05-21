@@ -1,8 +1,8 @@
 blank_issues_enabled: false
 contact_links:
-  - name: Feature Request 💡
-    url: https://github.com/scrollDynasty/react-native-drum-picker/discussions/new?category=ideas
-    about: If you have a feature request, please create a new discussion on GitHub.
-  - name: Discussions on GitHub 💬
+  - name: Questions & help
     url: https://github.com/scrollDynasty/react-native-drum-picker/discussions
-    about: If this library works as promised but you need help, please ask questions there.
+    about: Usage questions and integration help
+  - name: Ideas & feature discussion
+    url: https://github.com/scrollDynasty/react-native-drum-picker/discussions/new?category=ideas
+    about: Discuss feature ideas before opening a PR

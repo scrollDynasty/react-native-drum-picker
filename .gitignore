@@ -54,6 +54,19 @@ node_modules/
 npm-debug.log
 yarn-debug.log
 yarn-error.log
+.env
+.env.*
+!.env.example
+
+# Android build outputs (example + library)
+example/android/app/build/
+example/android/build/
+example/android/.gradle/
+example/android/local.properties
+android/build/
+
+# Pack artifacts
+*.tgz
 
 # BUCK
 buck-out/

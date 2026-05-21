@@ -1,129 +1,179 @@
 # react-native-drum-picker
 
-Android-native iOS-style wheel picker for React Native (Fabric). **Android only** — React Native 0.76+, New Architecture.
+[![npm version](https://img.shields.io/npm/v/react-native-drum-picker.svg)](https://www.npmjs.com/package/react-native-drum-picker)
+[![license](https://img.shields.io/npm/l/react-native-drum-picker.svg)](https://github.com/scrollDynasty/react-native-drum-picker/blob/main/LICENSE)
+[![platform](https://img.shields.io/badge/platform-Android-3DDC84.svg)](https://reactnative.dev)
+[![React Native](https://img.shields.io/badge/React%20Native-%E2%89%A50.76-61DAFB.svg)](https://reactnative.dev)
 
-## Install
+A smooth **Android-native** iOS-style drum/wheel picker for React Native (Fabric / New Architecture).
+
+## Preview
+
+> Add a GIF or screenshot here.
+
+## Features
+
+- Android-native implementation (Kotlin + `RecyclerView`)
+- iOS-style wheel / drum picker with smooth snapping
+- Center selection indicator (optional)
+- Transparent background by default
+- Custom text colors and sizes
+- TypeScript API
+- Flexible `DateDrumPicker` wrapper (day / month / year columns)
+- Fabric View / New Architecture
+
+## Installation
+
+```sh
+yarn add react-native-drum-picker
+```
 
 ```sh
 npm install react-native-drum-picker
 ```
 
-Rebuild the Android app after install.
+This package includes **native Android code**. Rebuild your app after installing:
 
----
+```sh
+cd android && ./gradlew clean && cd ..
+npx react-native run-android
+```
 
-## DrumPicker
+On Windows:
 
-Generic wheel for any `string[]`. You provide `items`; the library does not ship preset lists.
+```sh
+cd android
+.\gradlew clean
+cd ..
+npx react-native run-android
+```
 
-### Basic
+## Platform support
+
+| Platform | Status |
+|----------|--------|
+| Android | Supported |
+| iOS | Not supported yet |
+| Web | Not supported |
+
+Requires **React Native 0.76+** with the **New Architecture** enabled.
+
+## Basic usage
 
 ```tsx
 import { DrumPicker } from 'react-native-drum-picker';
 
-<DrumPicker
-  items={['Mon', 'Tue', 'Wed']}
-  selectedIndex={0}
-  onChange={({ nativeEvent }) => {
-    console.log(nativeEvent.index, nativeEvent.value);
-  }}
-  style={{ width: 150, height: 220 }}
-/>
+export function Example() {
+  return (
+    <DrumPicker
+      items={['Mon 7 Sep', 'Tue 8 Sep', 'Wed 9 Sep']}
+      selectedIndex={1}
+      itemHeight={44}
+      visibleItemCount={5}
+      onChange={(event) => {
+        console.log(event.nativeEvent.index, event.nativeEvent.value);
+      }}
+      style={{ width: 150, height: 220 }}
+    />
+  );
+}
 ```
 
-`height` ≈ `itemHeight * visibleItemCount` (default `44 * 5 = 220`).
-
-### Controlled value
-
-```tsx
-const [index, setIndex] = useState(0);
-
-<DrumPicker
-  items={hours}
-  selectedIndex={index}
-  onChange={(e) => setIndex(e.nativeEvent.index)}
-/>
-```
-
-### Time columns (hour + minute)
-
-```tsx
-const hours = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, '0'));
-const minutes = Array.from({ length: 60 }, (_, i) => String(i).padStart(2, '0'));
-
-<View style={{ flexDirection: 'row' }}>
-  <DrumPicker items={hours} selectedIndex={hour} onChange={onHourChange} style={{ width: 64, height: 220 }} />
-  <DrumPicker items={minutes} selectedIndex={minute} onChange={onMinuteChange} style={{ width: 64, height: 220 }} />
-</View>
-```
-
-### Transparent background (default)
-
-Backgrounds are transparent by default. Override only if needed:
-
-```tsx
-<DrumPicker
-  items={items}
-  backgroundColor="transparent"
-  containerBackgroundColor="transparent"
-  itemBackgroundColor="transparent"
-/>
-```
-
-### Styling
-
-```tsx
-<DrumPicker
-  items={items}
-  textColor="#8E8E93"
-  selectedTextColor="#1C1C1E"
-  textSize={20}
-  selectedTextSize={22}
-  showSelectionIndicator
-  selectionIndicatorColor="#D1D1D6"
-  selectionIndicatorHeight={1}
-/>
-```
-
----
+Set `style.height` ≈ `itemHeight * visibleItemCount` (default `44 × 5 = 220`).
 
 ## DateDrumPicker
 
-Date wheels built on `DrumPicker` (TypeScript only). Renders **only columns** — no titles like `"day"` above the wheel. Add labels in your own UI if needed.
-
-`onChange` returns `{ day, month, year }` as numbers. Day count follows the selected month/year (e.g. February has 28/29 days).
-
-**Controlled** — pass `value` and update it in `onChange`:
+Higher-level date columns (TypeScript only). Renders **wheels only** — no built-in titles; add labels in your app if needed.
 
 ```tsx
-const [date, setDate] = useState({ day: 10, month: 9, year: 2026 });
-<DateDrumPicker value={date} onChange={setDate} />
-```
-
-**Uncontrolled** — omit `value`; the picker keeps its own state and still calls `onChange`:
-
-```tsx
-<DateDrumPicker onChange={(value) => console.log(value)} />
-```
-
-### Full date (day → month → year)
-
-```tsx
+import { useState } from 'react';
 import { DateDrumPicker } from 'react-native-drum-picker';
 
-const [date, setDate] = useState({ day: 10, month: 9, year: 2026 });
+export function DateExample() {
+  const [date, setDate] = useState({ day: 21, month: 5, year: 2026 });
 
+  return (
+    <DateDrumPicker
+      mode="day-month-year"
+      value={date}
+      onChange={setDate}
+    />
+  );
+}
+```
+
+```tsx
 <DateDrumPicker
-  mode="day-month-year"
-  value={date}
-  onChange={setDate}
+  mode="month-year"
+  monthFormat="long"
+  minYear={2020}
+  maxYear={2035}
+  value={{ month: 5, year: 2026 }}
+  onChange={(value) => console.log(value)}
 />
 ```
 
-### Modes (column order)
+**Controlled:** pass `value` and update in `onChange`.  
+**Uncontrolled:** omit `value`; internal state updates and `onChange` still fires.
 
-| `mode` | Columns shown (left → right) |
-|--------|------------------------------|
+Day count follows month/year (e.g. February has 28/29 days).
+
+## API reference
+
+### `DrumPicker`
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `items` | `string[]` | required | Wheel labels |
+| `selectedIndex` | `number` | `0` | Selected row index |
+| `itemHeight` | `number` | `44` | Row height (dp) |
+| `visibleItemCount` | `number` | `5` | Visible rows (odd recommended) |
+| `textColor` | `string` | `#8E8E93` | Unselected text |
+| `selectedTextColor` | `string` | `#1C1C1E` | Selected text |
+| `textSize` | `number` | `20` | Unselected size (sp) |
+| `selectedTextSize` | `number` | `22` | Selected size (sp) |
+| `backgroundColor` | `string` | `transparent` | Root view background |
+| `containerBackgroundColor` | `string` | `transparent` | `RecyclerView` background |
+| `itemBackgroundColor` | `string` | `transparent` | Row background |
+| `showSelectionIndicator` | `boolean` | `true` | Center lines |
+| `selectionIndicatorColor` | `string` | `#D1D1D6` | Line color |
+| `selectionIndicatorHeight` | `number` | `1` | Line thickness (dp) |
+| `onChange` | `function` | — | `nativeEvent: { index, value }` |
+| `style` | `ViewStyle` | — | Size and layout |
+
+### `DateDrumPicker`
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `mode` | `DateDrumPickerMode` | `day-month-year` | Which columns to show |
+| `value` | `{ day?, month?, year? }` | — | Controlled value |
+| `onChange` | `function` | — | `{ day, month, year }` |
+| `minYear` | `number` | now − 100 | Year range start |
+| `maxYear` | `number` | now + 50 | Year range end |
+| `monthFormat` | `'short' \| 'long' \| 'number'` | `short` | Month labels |
+| `locale` | `string` | `en` | `Intl` locale for month names |
+| `itemHeight` | `number` | `44` | Passed to each column |
+| `visibleItemCount` | `number` | `5` | Passed to each column |
+| `textColor` | `string` | — | Passed to each column |
+| `selectedTextColor` | `string` | — | Passed to each column |
+| `textSize` | `number` | — | Passed to each column |
+| `selectedTextSize` | `number` | — | Passed to each column |
+| `showSelectionIndicator` | `boolean` | — | Passed to each column |
+| `selectionIndicatorColor` | `string` | — | Passed to each column |
+| `selectionIndicatorHeight` | `number` | — | Passed to each column |
+| `backgroundColor` | `string` | `transparent` | Passed to each column |
+| `itemBackgroundColor` | `string` | `transparent` | Passed to each column |
+| `containerBackgroundColor` | `string` | `transparent` | Passed to each column |
+| `style` | `ViewStyle` | — | Row container |
+| `columnStyle` | `ViewStyle` | — | All columns |
+| `columnStyles` | `object` | — | Per column: `day`, `month`, `year` |
+
+### `DateDrumPicker` modes
+
+Column order is left → right:
+
+| `mode` | Columns |
+|--------|---------|
 | `day` | day |
 | `month` | month |
 | `year` | year |
@@ -133,110 +183,70 @@ const [date, setDate] = useState({ day: 10, month: 9, year: 2026 });
 | `month-day-year` | month, day, year |
 | `year-month-day` | year, month, day |
 
-**Day only**
-
-```tsx
-<DateDrumPicker mode="day" value={{ day: 21 }} onChange={setDate} />
+```ts
+type DateDrumPickerMode =
+  | 'day'
+  | 'month'
+  | 'year'
+  | 'day-month'
+  | 'month-year'
+  | 'day-month-year'
+  | 'month-day-year'
+  | 'year-month-day';
 ```
 
-**Day + month**
+## Styling
+
+Backgrounds are **transparent by default**. Only text and optional indicator lines are visible.
 
 ```tsx
-<DateDrumPicker mode="day-month" value={{ day: 21, month: 5 }} onChange={setDate} />
-```
-
-**Month + year**
-
-```tsx
-<DateDrumPicker
-  mode="month-year"
-  value={{ month: 5, year: 2026 }}
-  onChange={setDate}
+<DrumPicker
+  items={['Small', 'Medium', 'Large']}
+  selectedTextColor="#111827"
+  textColor="#9CA3AF"
+  selectionIndicatorColor="#D1D1D6"
+  backgroundColor="transparent"
+  style={{ width: 120, height: 220 }}
 />
 ```
 
-**Month, day, year (US order)**
-
-```tsx
-<DateDrumPicker mode="month-day-year" value={date} onChange={setDate} />
-```
-
-**Year, month, day**
-
-```tsx
-<DateDrumPicker mode="year-month-day" value={date} onChange={setDate} />
-```
-
-### Month labels
-
-```tsx
-// Jan, Feb, Mar … (default)
-<DateDrumPicker monthFormat="short" locale="en" />
-
-// January, February …
-<DateDrumPicker monthFormat="long" locale="en" />
-
-// 01, 02, 03 …
-<DateDrumPicker monthFormat="number" />
-```
-
-### Year range
-
-```tsx
-<DateDrumPicker
-  mode="day-month-year"
-  minYear={2020}
-  maxYear={2035}
-  value={{ day: 1, month: 1, year: 2024 }}
-  onChange={setDate}
-/>
-```
-
-Defaults: `minYear = now - 100`, `maxYear = now + 50`.
-
-### Column width
-
-Default widths: day `64`, month `110`, year `86`.
-
-```tsx
-// Same width on every column
-<DateDrumPicker columnStyle={{ width: 72 }} />
-
-// Per column
-<DateDrumPicker
-  columnStyles={{
-    day: { width: 56 },
-    month: { width: 120 },
-    year: { width: 80 },
-  }}
-/>
-```
-
-`DateDrumPicker` also accepts DrumPicker props: `itemHeight`, `visibleItemCount`, colors, selection indicator, backgrounds.
-
-### `visibleItemCount`
-
-Use an **odd** number (default `5`) for a symmetric wheel. Even counts work but the center band is slightly less balanced.
-
----
+Use an **odd** `visibleItemCount` (e.g. `5`) for a symmetric wheel.
 
 ## Troubleshooting
 
 | Issue | What to try |
 |-------|-------------|
-| Picker empty / white box | Enable New Architecture; rebuild native app; set explicit `width` and `height` on `style` |
-| Props not applied | Rebuild after install; ensure Metro resolves the app, not stale `lib/` |
-| No `onChange` | Use controlled `selectedIndex` / `value` and update state in the handler |
+| Must rebuild after install | Native library — run a full Android rebuild |
+| Metro shows old code | `npx react-native start --reset-cache` |
+| Gradle / build errors | `cd android && ./gradlew clean` (Windows: `.\gradlew clean`) |
+| `adb` not found | Install Android SDK Platform-Tools; add to `PATH` |
+| Empty or white picker | Enable New Architecture; set explicit `width` / `height` in `style` |
+| Props not applied | Rebuild app after native changes; run `yarn build` in the library before packing |
 | iOS | Not supported — Android only |
 
----
+**New Architecture:** This library is a Fabric view. Ensure New Architecture is enabled in your app (required for RN 0.76+).
 
-## Accessibility
+## Development
 
-TalkBack does not announce individual wheel rows yet. Text uses `sp` (system font scale applies). Add external labels for screen readers if needed.
+```sh
+git clone https://github.com/scrollDynasty/react-native-drum-picker.git
+cd react-native-drum-picker
+yarn
+yarn build
+cd example
+yarn android
+```
 
----
+From the repo root:
+
+```sh
+yarn lint
+yarn build
+yarn typecheck
+```
+
+See [CONTRIBUTING.md](./CONTRIBUTING.md).
 
 ## License
 
-MIT — see [CONTRIBUTING.md](CONTRIBUTING.md).
+[MIT](./LICENSE) © Umar Matyokubov
