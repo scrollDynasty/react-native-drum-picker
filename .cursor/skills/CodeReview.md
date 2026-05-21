@@ -62,11 +62,10 @@ Check for:
 - anonymous inner classes causing leaks
 - missing cleanup when view is detached from window
 
-Check if the view needs:
-- override fun onDetachedFromWindow()
-- recyclerView.clearOnScrollListeners()
-- recyclerView.adapter = null
-- snapHelper.attachToRecyclerView(null)
+Check if the view needs safe `onDetachedFromWindow()` cleanup:
+- remove only scroll listeners / callbacks owned by the view
+- do **not** set `recyclerView.adapter = null` during detach (crashes with react-native-screens)
+- do **not** call `clearOnScrollListeners()` or `snapHelper.attachToRecyclerView(null)` on detach
 
 2. Android performance
 Check for:

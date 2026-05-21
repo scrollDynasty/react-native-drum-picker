@@ -76,6 +76,7 @@ internal class DrumPickerAdapter(
     textView.layoutParams =
       (textView.layoutParams as RecyclerView.LayoutParams).apply { this.height = height }
     textView.text = items[position]
+    textView.contentDescription = items[position]
     textView.setBackgroundColor(itemBackgroundColor)
     holder.lastStyleBucket = Int.MIN_VALUE
     val distance = distanceForPosition?.invoke(position) ?: 2f

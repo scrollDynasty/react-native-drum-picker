@@ -1,5 +1,5 @@
-import { StyleSheet } from 'react-native';
 import DrumPickerNative from './DrumPickerViewNativeComponent';
+import { resolveDrumPickerStyle } from './drumPickerLayout';
 import type { DrumPickerProps } from './types';
 
 const DEFAULTS = {
@@ -36,13 +36,11 @@ export function DrumPicker({
   onChange,
   style,
 }: DrumPickerProps) {
-  const pickerHeight = itemHeight * visibleItemCount;
-  const pickerStyle = StyleSheet.flatten([
-    {
-      height: pickerHeight,
-    },
-    style,
-  ]);
+  const pickerStyle = resolveDrumPickerStyle(
+    itemHeight,
+    visibleItemCount,
+    style
+  );
 
   return (
     <DrumPickerNative

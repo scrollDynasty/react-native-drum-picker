@@ -67,22 +67,27 @@ Requires **React Native 0.76+** with the **New Architecture** enabled.
 | React Native New Architecture | **Required** |
 | Fabric | **Required** |
 | Android | Supported |
-| iOS | Not supported yet |
-| Expo SDK 54 | Supported via **prebuild** / development build |
-| React Native 0.81+ | Supported |
-| Expo Go | **Not supported** (native module) |
+| iOS | **Not supported yet** |
+| Expo Go | **Not supported** (native Android library) |
+| Expo SDK 54 + dev build / prebuild | Tested |
+| `react-native-screens` navigation | Tested (use **0.1.4+** for detach safety) |
 
-This package is an **Android Fabric View** library. New Architecture must be enabled (`newArchEnabled: true` in Expo, or equivalent in bare React Native).
+### Tested with
 
-Recommended: **React Native >= 0.76**. Use a **development build** or `expo run:android` after `expo prebuild` — not Expo Go.
+| Tool | Version |
+|------|---------|
+| Expo SDK | 54 |
+| React Native | 0.81.5, 0.85.0 (example app) |
+| New Architecture | enabled |
+| Android | emulator / device |
+
+**Intended range:** `react-native >= 0.76` with New Architecture. The package is **actively tested on RN 0.81.x / 0.85.x**. Older 0.76–0.80 may work but are not CI-guaranteed.
+
+This package is an **Android Fabric View** library. Use a **development build** or `expo run:android` after `expo prebuild` — not Expo Go.
 
 ### React Native 0.81+ event dispatch
 
-If Android Kotlin compile fails with:
-
-`No value passed for parameter 'uiManagerType'`
-
-upgrade to a release that dispatches Fabric events with `UIManagerType.FABRIC` (0.1.3+).
+If Android Kotlin compile fails with `No value passed for parameter 'uiManagerType'`, upgrade to **0.1.3+** (Fabric `UIManagerType.FABRIC`).
 
 ## Basic usage
 
@@ -105,7 +110,73 @@ export function Example() {
 }
 ```
 
-Set `style.height` ≈ `itemHeight * visibleItemCount` (default `44 × 5 = 220`).
+### Layout defaults (0.1.5+)
+
+The JS wrapper applies **`minWidth: 64`** and, unless you use flex or pass `height` / `minHeight`, **`height: itemHeight * visibleItemCount`** (default **220**). Native Android also sets matching `minimumWidth` / `minimumHeight`.
+
+For production layouts, still pass explicit dimensions:
+
+```tsx
+style={{ width: 120, height: itemHeight * visibleItemCount }}
+```
+
+In `__DEV__`, a **one-time** warning is logged if neither height nor flex sizing is provided.
+
+## Examples
+
+### Time picker (hour · minute)
+
+```tsx
+const hours = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, '0'));
+const minutes = Array.from({ length: 60 }, (_, i) => String(i).padStart(2, '0'));
+
+<View style={{ flexDirection: 'row', alignItems: 'center' }}>
+  <DrumPicker items={hours} style={{ width: 72, height: 220 }} />
+  <DrumPicker items={minutes} style={{ width: 72, height: 220 }} />
+</View>
+```
+
+### Height / weight row (onboarding style)
+
+```tsx
+<View style={{ flexDirection: 'row', alignItems: 'center' }}>
+  <DrumPicker items={heightsCm} style={{ width: 90, height: 220 }} />
+  <DrumPicker items={weightsKg} style={{ width: 96, height: 220 }} />
+</View>
+```
+
+### Controlled `selectedIndex`
+
+```tsx
+const [index, setIndex] = useState(1);
+
+<DrumPicker
+  items={items}
+  selectedIndex={index}
+  onChange={(e) => setIndex(e.nativeEvent.index)}
+  style={{ width: 120, height: 220 }}
+/>
+```
+
+### `onChange` and expensive side effects
+
+Native emits `onChange` when the wheel **snaps to idle** and the **centered index changes** (duplicate indices are ignored). Use it for UI state. For AsyncStorage, APIs, or analytics, **debounce** in your app:
+
+```tsx
+const save = useMemo(() => {
+  let t: ReturnType<typeof setTimeout> | undefined;
+  return (value: string) => {
+    if (t) clearTimeout(t);
+    t = setTimeout(() => {
+      // persist value
+    }, 300);
+  };
+}, []);
+
+<DrumPicker onChange={(e) => save(e.nativeEvent.value)} ... />
+```
+
+See the **example** app (`example/src/App.tsx`) for basic, time, height/weight, date, controlled, and debounced demos.
 
 ## DateDrumPicker
 
@@ -246,7 +317,8 @@ Use an **odd** `visibleItemCount` (e.g. `5`) for a symmetric wheel.
 | Metro shows old code | `npx react-native start --reset-cache` |
 | Gradle / build errors | `cd android && ./gradlew clean` (Windows: `.\gradlew clean`) |
 | `adb` not found | Install Android SDK Platform-Tools; add to `PATH` |
-| Empty or white picker | Enable New Architecture; set explicit `width` / `height` in `style` |
+| Empty or white picker | Enable New Architecture; upgrade to **0.1.5+** for layout defaults; or set `style={{ width, height: itemHeight * visibleItemCount }}` |
+| Wrong initial row / off-center | Upgrade to **0.1.5+**; avoid `key` remount hacks unless needed for other reasons |
 | Props not applied | Rebuild app after native changes; run `yarn build` in the library before packing |
 | iOS | Not supported — Android only |
 | Expo Go | Use prebuild + dev build; this library is not in Expo Go |

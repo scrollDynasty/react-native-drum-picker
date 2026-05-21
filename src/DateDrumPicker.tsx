@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   StyleSheet,
   View,
@@ -163,6 +163,24 @@ export function DateDrumPicker({
     },
     [isControlled, onChange, resolvedValue, minYear, maxYear]
   );
+
+  // Controlled: parent may pass day 31 + April — clamp and notify once.
+  useEffect(() => {
+    if (!isControlled || !onChange || value === undefined) {
+      return;
+    }
+    const clamped = clampDateDrumPickerValue(value, minYear, maxYear);
+    const day = value.day ?? clamped.day;
+    const month = value.month ?? clamped.month;
+    const year = value.year ?? clamped.year;
+    if (
+      day !== clamped.day ||
+      month !== clamped.month ||
+      year !== clamped.year
+    ) {
+      onChange(clamped);
+    }
+  }, [isControlled, onChange, value, minYear, maxYear]);
 
   const sharedPickerProps = {
     itemHeight,

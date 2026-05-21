@@ -9,6 +9,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 _No changes yet._
 
+## [0.1.5] - 2026-05-22
+
+### Fixed
+
+- Center `selectedIndex` reliably using `scrollToPositionWithOffset` with a computed center offset (after items, layout, and metric changes).
+- Cancel pending scroll work and `stopScroll()` on detach; broader lifecycle guards for navigation transitions.
+
+### Changed
+
+- JS `DrumPicker` applies default `minWidth` / `height` (or `minHeight` with flex) so the picker is visible without manual sizing.
+- Android native `minimumWidth` / `minimumHeight` aligned with `itemHeight * visibleItemCount`.
+- One-time `__DEV__` warning when layout dimensions are missing.
+
+### Documentation
+
+- README: tested compatibility matrix, practical examples, `onChange` / debounce guidance.
+- Example app: basic, time, height/weight, date, controlled, debounced demos.
+- Bug report template: Expo, react-native-screens, navigation crash, empty picker.
+
 ## [0.1.4] - 2026-05-22
 
 ### Fixed
@@ -63,7 +82,8 @@ First release on [npm](https://www.npmjs.com/package/react-native-drum-picker).
 
 Initial GitHub release. See [v0.0.1](https://github.com/scrollDynasty/react-native-drum-picker/releases/tag/v0.0.1).
 
-[Unreleased]: https://github.com/scrollDynasty/react-native-drum-picker/compare/v0.1.4...HEAD
+[Unreleased]: https://github.com/scrollDynasty/react-native-drum-picker/compare/v0.1.5...HEAD
+[0.1.5]: https://github.com/scrollDynasty/react-native-drum-picker/releases/tag/v0.1.5
 [0.1.4]: https://github.com/scrollDynasty/react-native-drum-picker/releases/tag/v0.1.4
 [0.1.2]: https://github.com/scrollDynasty/react-native-drum-picker/releases/tag/v0.1.2
 [0.1.1]: https://github.com/scrollDynasty/react-native-drum-picker/releases/tag/v0.1.1

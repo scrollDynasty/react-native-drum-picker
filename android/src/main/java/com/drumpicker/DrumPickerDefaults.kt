@@ -8,6 +8,7 @@ import android.graphics.Color
 internal object DrumPickerDefaults {
   const val ITEM_HEIGHT_DP = 44f
   const val VISIBLE_ITEM_COUNT = 5
+  const val MIN_WIDTH_DP = 64f
   const val TEXT_SIZE_SP = 20f
   const val SELECTED_TEXT_SIZE_SP = 22f
   const val SELECTION_INDICATOR_HEIGHT_DP = 1f

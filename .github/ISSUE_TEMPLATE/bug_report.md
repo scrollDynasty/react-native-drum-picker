@@ -30,11 +30,21 @@ If applicable, add visuals.
 
 ## Environment
 
-- **react-native-drum-picker version:** (e.g. 0.1.4 or git SHA)
+- **react-native-drum-picker version:** (e.g. 0.1.5 or git SHA)
 - **React Native version:**
+- **Expo SDK version:** (if applicable)
+- **New Architecture enabled:** yes / no
+- **react-native-screens version:** (if using navigation)
 - **Android version:**
 - **Device / emulator:**
-- **New Architecture enabled:** yes / no
+
+## Symptom checklist
+
+- [ ] Crashes when navigating away from a screen with the picker
+- [ ] Picker renders empty / invisible
+- [ ] `selectedIndex` not centered on first render
+- [ ] `onChange` fires unexpectedly often
+- [ ] Android build / Kotlin compile error
 
 ## Logs
 
