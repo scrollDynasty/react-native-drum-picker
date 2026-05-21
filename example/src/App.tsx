@@ -72,6 +72,10 @@ export default function App() {
             selectedIndex={dateIndex}
             itemHeight={ITEM_HEIGHT}
             visibleItemCount={VISIBLE_ITEM_COUNT}
+            textColor="#9CA3AF"
+            selectedTextColor="#111827"
+            textSize={18}
+            selectedTextSize={22}
             onChange={onDateChange}
           />
         </View>
@@ -83,6 +87,10 @@ export default function App() {
             selectedIndex={hourIndex}
             itemHeight={ITEM_HEIGHT}
             visibleItemCount={VISIBLE_ITEM_COUNT}
+            textColor="#9CA3AF"
+            selectedTextColor="#111827"
+            textSize={18}
+            selectedTextSize={22}
             onChange={onHourChange}
           />
         </View>
@@ -94,6 +102,10 @@ export default function App() {
             selectedIndex={minuteIndex}
             itemHeight={ITEM_HEIGHT}
             visibleItemCount={VISIBLE_ITEM_COUNT}
+            textColor="#9CA3AF"
+            selectedTextColor="#111827"
+            textSize={18}
+            selectedTextSize={22}
             onChange={onMinuteChange}
           />
         </View>

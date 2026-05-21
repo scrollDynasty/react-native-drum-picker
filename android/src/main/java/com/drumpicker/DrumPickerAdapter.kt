@@ -1,6 +1,7 @@
 package com.drumpicker
 
 import android.graphics.Color
+import android.util.Log
 import android.util.TypedValue
 import android.view.Gravity
 import android.view.ViewGroup
@@ -14,6 +15,7 @@ internal class DrumPickerAdapter(
   var items: List<String> = emptyList()
     set(value) {
       field = value
+      Log.d(TAG, "adapter.items count=${value.size}")
       notifyDataSetChanged()
     }
 
@@ -26,7 +28,7 @@ internal class DrumPickerAdapter(
     }
 
   var itemHeightPx: Int = 0
-  var textColor: Int = Color.GRAY
+  var textColor: Int = Color.BLACK
   var selectedTextColor: Int = Color.BLACK
   var textSizeSp: Float = 18f
   var selectedTextSizeSp: Float = 22f
@@ -41,6 +43,7 @@ internal class DrumPickerAdapter(
     val textView =
       TextView(parent.context).apply {
         gravity = Gravity.CENTER
+        setBackgroundColor(Color.TRANSPARENT)
         layoutParams =
           RecyclerView.LayoutParams(
             ViewGroup.LayoutParams.MATCH_PARENT,
@@ -56,14 +59,20 @@ internal class DrumPickerAdapter(
     val height = rowHeightPx()
     textView.layoutParams =
       (textView.layoutParams as RecyclerView.LayoutParams).apply { this.height = height }
-    textView.text = items[position]
+    val label = items[position]
+    textView.text = label
     textView.setTextColor(if (isSelected) selectedTextColor else textColor)
     textView.setTextSize(
       TypedValue.COMPLEX_UNIT_SP,
       if (isSelected) selectedTextSizeSp else textSizeSp,
     )
     textView.alpha = if (isSelected) 1f else 0.45f
+    Log.d(TAG, "onBind position=$position text=$label height=$height")
   }
 
   class ItemViewHolder(val textView: TextView) : RecyclerView.ViewHolder(textView)
+
+  companion object {
+    private const val TAG = "DrumPicker"
+  }
 }

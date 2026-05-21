@@ -3,12 +3,15 @@ package com.drumpicker
 import android.content.Context
 import android.graphics.Color
 import android.util.AttributeSet
+import android.util.Log
 import android.widget.FrameLayout
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.LinearSnapHelper
 import androidx.recyclerview.widget.RecyclerView
-import com.facebook.react.bridge.ReactContext
+import com.facebook.react.bridge.ColorPropConverter
 import com.facebook.react.bridge.ReadableArray
+import com.facebook.react.bridge.ReadableType
+import com.facebook.react.bridge.ReactContext
 import com.facebook.react.uimanager.UIManagerHelper
 import com.facebook.react.uimanager.events.EventDispatcher
 
@@ -26,8 +29,8 @@ class DrumPickerView @JvmOverloads constructor(
   private var selectedIndex = 0
   private var itemHeightDp = 44f
   private var visibleItemCount = 5
-  private var textColor = Color.parseColor("#9CA3AF")
-  private var selectedTextColor = Color.parseColor("#111827")
+  private var textColor = Color.BLACK
+  private var selectedTextColor = Color.BLACK
   private var textSizeSp = 18f
   private var selectedTextSizeSp = 22f
 
@@ -36,6 +39,9 @@ class DrumPickerView @JvmOverloads constructor(
   private var suppressChangeEvent = false
 
   init {
+    Log.d(TAG, "DrumPickerView init")
+
+    recyclerView.setBackgroundColor(Color.parseColor("#F3F4F6"))
     recyclerView.layoutManager = layoutManager
     recyclerView.adapter = adapter
     recyclerView.overScrollMode = RecyclerView.OVER_SCROLL_NEVER
@@ -66,9 +72,66 @@ class DrumPickerView @JvmOverloads constructor(
     adapter.textSizeSp = textSizeSp
     adapter.selectedTextSizeSp = selectedTextSizeSp
     adapter.itemHeightPx = itemHeightPx
+    adapter.items = fallbackDebugItems()
 
     applyRecyclerPadding()
     post { scrollToSelectedIndex(animated = false, emit = false) }
+  }
+
+  fun setItemsProp(value: Any?) {
+    Log.d(TAG, "setItemsProp type=${value?.javaClass?.name}")
+    items = parseItems(value)
+    Log.d(TAG, "setItemsProp parsedCount=${items.size} first=${items.firstOrNull()}")
+    adapter.items = displayItems()
+    val clamped = selectedIndex.coerceIn(0, (displayItems().size - 1).coerceAtLeast(0))
+    if (clamped != selectedIndex) {
+      selectedIndex = clamped
+    }
+    post { scrollToSelectedIndex(animated = false, emit = false) }
+  }
+
+  fun setSelectedIndexProp(value: Any?) {
+    val index = toInt(value, selectedIndex)
+    Log.d(TAG, "setSelectedIndexProp=$index")
+    setSelectedIndex(index)
+  }
+
+  fun setItemHeightProp(value: Any?) {
+    val height = toFloat(value, itemHeightDp)
+    Log.d(TAG, "setItemHeightProp=$height")
+    setItemHeight(height)
+  }
+
+  fun setVisibleItemCountProp(value: Any?) {
+    val count = toInt(value, visibleItemCount)
+    Log.d(TAG, "setVisibleItemCountProp=$count")
+    setVisibleItemCount(count)
+  }
+
+  fun setTextColorProp(value: Any?) {
+    val color =
+      when (value) {
+        is Int -> value
+        else -> ColorPropConverter.getColor(value, context)
+      }
+    setTextColor(color)
+  }
+
+  fun setSelectedTextColorProp(value: Any?) {
+    val color =
+      when (value) {
+        is Int -> value
+        else -> ColorPropConverter.getColor(value, context)
+      }
+    setSelectedTextColor(color)
+  }
+
+  fun setTextSizeProp(value: Any?) {
+    setTextSize(toFloat(value, textSizeSp))
+  }
+
+  fun setSelectedTextSizeProp(value: Any?) {
+    setSelectedTextSize(toFloat(value, selectedTextSizeSp))
   }
 
   override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
@@ -83,6 +146,7 @@ class DrumPickerView @JvmOverloads constructor(
     val childHeightSpec = MeasureSpec.makeMeasureSpec(height, MeasureSpec.EXACTLY)
     recyclerView.measure(childWidthSpec, childHeightSpec)
     setMeasuredDimension(width, height)
+    Log.d(TAG, "onMeasure width=$width height=$height itemHeightPx=$itemHeightPx")
   }
 
   override fun onLayout(changed: Boolean, left: Int, top: Int, right: Int, bottom: Int) {
@@ -94,27 +158,44 @@ class DrumPickerView @JvmOverloads constructor(
     }
   }
 
-  fun setItems(value: ReadableArray?) {
-    items =
-      if (value == null) {
-        emptyList()
-      } else {
-        buildList(value.size()) { for (i in 0 until value.size()) add(value.getString(i) ?: "") }
+  private fun displayItems(): List<String> =
+    if (items.isEmpty()) fallbackDebugItems() else items
+
+  private fun parseItems(value: Any?): List<String> {
+    when (value) {
+      null -> return emptyList()
+      is ReadableArray -> {
+        val parsed = ArrayList<String>(value.size())
+        for (i in 0 until value.size()) {
+          parsed.add(readArrayString(value, i))
+        }
+        return parsed
       }
-    adapter.items = items
-    val clamped = selectedIndex.coerceIn(0, (items.size - 1).coerceAtLeast(0))
-    if (clamped != selectedIndex) {
-      selectedIndex = clamped
+      is List<*> -> return value.mapNotNull { it?.toString() }
+      is Array<*> -> return value.mapNotNull { it?.toString() }
+      else -> {
+        Log.w(TAG, "parseItems unsupported type=${value.javaClass.name}")
+        return emptyList()
+      }
     }
-    post { scrollToSelectedIndex(animated = false, emit = false) }
   }
 
+  private fun readArrayString(array: ReadableArray, index: Int): String =
+    when (array.getType(index)) {
+      ReadableType.String -> array.getString(index) ?: ""
+      ReadableType.Number -> array.getDouble(index).toInt().toString()
+      else -> array.getDynamic(index).asString() ?: ""
+    }
+
+  private fun fallbackDebugItems(): List<String> =
+    listOf("DEBUG 1", "DEBUG 2", "DEBUG 3")
+
   fun setSelectedIndex(index: Int) {
-    if (items.isEmpty()) {
+    if (displayItems().isEmpty()) {
       selectedIndex = index
       return
     }
-    val clamped = index.coerceIn(0, items.size - 1)
+    val clamped = index.coerceIn(0, displayItems().size - 1)
     if (clamped == selectedIndex) {
       return
     }
@@ -143,7 +224,7 @@ class DrumPickerView @JvmOverloads constructor(
   }
 
   fun setTextColor(color: Int?) {
-    textColor = color ?: Color.GRAY
+    textColor = color ?: Color.BLACK
     adapter.textColor = textColor
     adapter.notifyDataSetChanged()
   }
@@ -178,11 +259,12 @@ class DrumPickerView @JvmOverloads constructor(
   }
 
   private fun scrollToSelectedIndex(animated: Boolean, emit: Boolean) {
-    if (items.isEmpty()) {
+    val display = displayItems()
+    if (display.isEmpty()) {
       return
     }
     suppressChangeEvent = !emit
-    val index = selectedIndex.coerceIn(0, items.size - 1)
+    val index = selectedIndex.coerceIn(0, display.size - 1)
     if (animated) {
       recyclerView.smoothScrollToPosition(index)
     } else {
@@ -216,10 +298,11 @@ class DrumPickerView @JvmOverloads constructor(
   }
 
   private fun maybeEmitChange(index: Int) {
-    if (suppressChangeEvent || index == lastEmittedIndex || items.isEmpty()) {
+    val display = displayItems()
+    if (suppressChangeEvent || index == lastEmittedIndex || display.isEmpty()) {
       return
     }
-    if (index < 0 || index >= items.size) {
+    if (index < 0 || index >= display.size) {
       return
     }
 
@@ -233,11 +316,35 @@ class DrumPickerView @JvmOverloads constructor(
         UIManagerHelper.getSurfaceId(reactContext),
         id,
         index,
-        items[index],
+        display[index],
       ),
     )
   }
 
+  private fun toInt(value: Any?, fallback: Int): Int =
+    when (value) {
+      null -> fallback
+      is Int -> value
+      is Double -> value.toInt()
+      is Float -> value.toInt()
+      is Number -> value.toInt()
+      else -> fallback
+    }
+
+  private fun toFloat(value: Any?, fallback: Float): Float =
+    when (value) {
+      null -> fallback
+      is Float -> value
+      is Double -> value.toFloat()
+      is Int -> value.toFloat()
+      is Number -> value.toFloat()
+      else -> fallback
+    }
+
   private fun dpToPx(dp: Float): Int =
     (dp * resources.displayMetrics.density + 0.5f).toInt()
+
+  companion object {
+    private const val TAG = "DrumPicker"
+  }
 }
