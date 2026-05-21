@@ -43,10 +43,15 @@ yarn typecheck
 Before publishing (maintainers):
 
 ```sh
+yarn install
 yarn lint
 yarn build
 npm pack --dry-run
 ```
+
+Confirm `npm pack --dry-run` lists `package/README.md`. If you changed `package.json` (especially `peerDependencies`), commit the updated **`yarn.lock`** — CI runs `yarn install --immutable` and fails when the lockfile is out of sync.
+
+**npm page shows “This package does not have a README”** but `npm view react-native-drum-picker readme` prints content: that is usually an npmjs.com UI/cache glitch right after publish. Hard-refresh (Ctrl+F5) or wait a few minutes; the README is still in the tarball.
 
 ## Branch naming
 

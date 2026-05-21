@@ -252,6 +252,7 @@ Use an **odd** `visibleItemCount` (e.g. `5`) for a symmetric wheel.
 | Expo Go | Use prebuild + dev build; this library is not in Expo Go |
 | RN 0.81 `uiManagerType` compile error | Upgrade to 0.1.3+ |
 | Crash when leaving a screen | Upgrade to 0.1.4+ (safe `onDetachedFromWindow` with react-native-screens) |
+| npm shows “no README” | Often a registry UI lag; run `npm view react-native-drum-picker readme` — if content appears, hard-refresh the package page |
 
 ### Android build fails in Expo / React Native 0.81+
 
