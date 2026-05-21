@@ -60,6 +60,30 @@ npx react-native run-android
 
 Requires **React Native 0.76+** with the **New Architecture** enabled.
 
+## Compatibility
+
+| Environment | Status |
+|-------------|--------|
+| React Native New Architecture | **Required** |
+| Fabric | **Required** |
+| Android | Supported |
+| iOS | Not supported yet |
+| Expo SDK 54 | Supported via **prebuild** / development build |
+| React Native 0.81+ | Supported |
+| Expo Go | **Not supported** (native module) |
+
+This package is an **Android Fabric View** library. New Architecture must be enabled (`newArchEnabled: true` in Expo, or equivalent in bare React Native).
+
+Recommended: **React Native >= 0.76**. Use a **development build** or `expo run:android` after `expo prebuild` — not Expo Go.
+
+### React Native 0.81+ event dispatch
+
+If Android Kotlin compile fails with:
+
+`No value passed for parameter 'uiManagerType'`
+
+upgrade to a release that dispatches Fabric events with `UIManagerType.FABRIC` (0.1.3+).
+
 ## Basic usage
 
 ```tsx
@@ -225,6 +249,29 @@ Use an **odd** `visibleItemCount` (e.g. `5`) for a symmetric wheel.
 | Empty or white picker | Enable New Architecture; set explicit `width` / `height` in `style` |
 | Props not applied | Rebuild app after native changes; run `yarn build` in the library before packing |
 | iOS | Not supported — Android only |
+| Expo Go | Use prebuild + dev build; this library is not in Expo Go |
+| RN 0.81 `uiManagerType` compile error | Upgrade to 0.1.3+ |
+| Crash when leaving a screen | Upgrade to 0.1.4+ (safe `onDetachedFromWindow` with react-native-screens) |
+
+### Android build fails in Expo / React Native 0.81+
+
+```sh
+cd android
+./gradlew clean
+```
+
+Windows:
+
+```sh
+cd android
+.\gradlew clean
+```
+
+Then rebuild the native app (`npx expo run:android` or `npx react-native run-android`).
+
+### Crash when leaving a screen
+
+If the app crashes when navigating away from a screen with `DrumPicker` (especially with `react-native-screens` transitions), upgrade to **0.1.4+**, which avoids unsafe RecyclerView cleanup during `onDetachedFromWindow`.
 
 **New Architecture:** This library is a Fabric view. Ensure New Architecture is enabled in your app (required for RN 0.76+).
 

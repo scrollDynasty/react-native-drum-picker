@@ -91,7 +91,7 @@ Use the [pull request template](./.github/PULL_REQUEST_TEMPLATE.md).
 ### Kotlin (`android/`)
 
 - No **Android `NumberPicker`** and no third-party wheel libraries.
-- Clean up in `onDetachedFromWindow` (listeners, adapter, snap helper).
+- In `onDetachedFromWindow`, remove only listeners/callbacks this view owns. Do **not** set `recyclerView.adapter = null` or detach `SnapHelper` during screen transitions (react-native-screens).
 - Avoid heavy work every scroll frame; prefer throttled style updates.
 - Keep `RecyclerView` recycling efficient; avoid full `notifyDataSetChanged()` when a smaller update works.
 - Do not store `Activity` references on the view.
@@ -101,7 +101,7 @@ Use the [pull request template](./.github/PULL_REQUEST_TEMPLATE.md).
 Open a [bug report](https://github.com/scrollDynasty/react-native-drum-picker/issues/new?template=bug_report.md) and include:
 
 - React Native version
-- Library version (`0.1.2` or git commit)
+- Library version (`0.1.4` or git commit)
 - Android version
 - Device or emulator
 - New Architecture enabled (yes/no)

@@ -9,6 +9,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 _No changes yet._
 
+## [0.1.4] - 2026-05-22
+
+### Fixed
+
+- Fixed a crash during screen unmount/navigation by avoiding unsafe RecyclerView cleanup in `onDetachedFromWindow` (`adapter = null`, `clearOnScrollListeners`, SnapHelper detach during react-native-screens transitions).
+- Prevented `onChange` events from dispatching after the view is detached.
+- Fixed Android Kotlin compilation on React Native 0.81+ by dispatching Fabric events with `UIManagerType.FABRIC`.
+
+### Documentation
+
+- Added compatibility and troubleshooting notes for React Native 0.81+, Expo SDK 54, Expo Go, and navigation crashes.
+
 ## [0.1.2] - 2026-05-22
 
 ### Fixed
@@ -51,7 +63,8 @@ First release on [npm](https://www.npmjs.com/package/react-native-drum-picker).
 
 Initial GitHub release. See [v0.0.1](https://github.com/scrollDynasty/react-native-drum-picker/releases/tag/v0.0.1).
 
-[Unreleased]: https://github.com/scrollDynasty/react-native-drum-picker/compare/v0.1.2...HEAD
+[Unreleased]: https://github.com/scrollDynasty/react-native-drum-picker/compare/v0.1.4...HEAD
+[0.1.4]: https://github.com/scrollDynasty/react-native-drum-picker/releases/tag/v0.1.4
 [0.1.2]: https://github.com/scrollDynasty/react-native-drum-picker/releases/tag/v0.1.2
 [0.1.1]: https://github.com/scrollDynasty/react-native-drum-picker/releases/tag/v0.1.1
 [0.1.0]: https://github.com/scrollDynasty/react-native-drum-picker/compare/v0.0.1...v0.1.0

@@ -1,6 +1,6 @@
 {
   "name": "react-native-drum-picker",
-  "version": "0.1.2",
+  "version": "0.1.4",
   "description": "Android-native iOS-style drum/wheel picker for React Native (Fabric)",
   "main": "./lib/module/index.js",
   "module": "./lib/module/index.js",
@@ -101,8 +101,8 @@
     "typescript": "^6.0.2"
   },
   "peerDependencies": {
-    "react": ">=18.0.0",
-    "react-native": ">=0.76.0"
+    "react": "*",
+    "react-native": ">=0.76"
   },
   "workspaces": [
     "example"

@@ -13,6 +13,7 @@ import com.facebook.react.bridge.ReadableArray
 import com.facebook.react.bridge.ReadableType
 import com.facebook.react.bridge.ReactContext
 import com.facebook.react.uimanager.UIManagerHelper
+import com.facebook.react.uimanager.common.UIManagerType
 import com.facebook.react.uimanager.events.EventDispatcher
 import kotlin.math.abs
 
@@ -47,13 +48,14 @@ class DrumPickerView @JvmOverloads constructor(
   private var selectionIndicatorHeightPx = dpToPx(selectionIndicatorHeightDp)
   private var lastEmittedIndex = -1
   private var suppressChangeEvent = false
-  private var isDetached = false
+  private var isAttachedToWindow = false
+  private var isDisposed = false
   private var styleUpdatePosted = false
 
   private val styleUpdateRunnable =
     Runnable {
       styleUpdatePosted = false
-      if (!isDetached) {
+      if (isLifecycleActive()) {
         updateVisibleItemStyles()
       }
     }
@@ -61,14 +63,14 @@ class DrumPickerView @JvmOverloads constructor(
   private val scrollListener =
     object : RecyclerView.OnScrollListener() {
       override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
-        if (isDetached) {
+        if (!isLifecycleActive()) {
           return
         }
         scheduleVisibleItemStyleUpdate()
       }
 
       override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
-        if (isDetached) {
+        if (!isLifecycleActive()) {
           return
         }
         when (newState) {
@@ -241,24 +243,26 @@ class DrumPickerView @JvmOverloads constructor(
 
   override fun onAttachedToWindow() {
     super.onAttachedToWindow()
-    isDetached = false
-    if (recyclerView.adapter == null) {
-      recyclerView.adapter = adapter
-    }
-    snapHelper.attachToRecyclerView(recyclerView)
+    isAttachedToWindow = true
+    isDisposed = false
+    recyclerView.removeOnScrollListener(scrollListener)
     recyclerView.addOnScrollListener(scrollListener)
   }
 
   override fun onDetachedFromWindow() {
-    isDetached = true
-    recyclerView.removeCallbacks(styleUpdateRunnable)
+    isAttachedToWindow = false
+    isDisposed = true
     styleUpdatePosted = false
+    recyclerView.removeCallbacks(styleUpdateRunnable)
     removeCallbacks(null)
-    recyclerView.clearOnScrollListeners()
-    snapHelper.attachToRecyclerView(null)
-    recyclerView.adapter = null
+    recyclerView.removeCallbacks(null)
+    recyclerView.removeOnScrollListener(scrollListener)
+    // Do not null adapter or detach SnapHelper here — react-native-screens may
+    // detach during transitions while RecyclerView is still laying out/scrolling.
     super.onDetachedFromWindow()
   }
+
+  private fun isLifecycleActive(): Boolean = isAttachedToWindow && !isDisposed
 
   fun setSelectedIndex(index: Int) {
     if (items.isEmpty()) {
@@ -388,7 +392,7 @@ class DrumPickerView @JvmOverloads constructor(
   }
 
   private fun scrollToSelectedIndex(animated: Boolean, emit: Boolean) {
-    if (isDetached || items.isEmpty()) {
+    if (!isLifecycleActive() || items.isEmpty()) {
       return
     }
     suppressChangeEvent = !emit
@@ -400,7 +404,7 @@ class DrumPickerView @JvmOverloads constructor(
 
     layoutManager.scrollToPositionWithOffset(index, 0)
     recyclerView.post {
-      if (isDetached) {
+      if (!isLifecycleActive()) {
         return@post
       }
       updateVisibleItemStyles()
@@ -414,11 +418,11 @@ class DrumPickerView @JvmOverloads constructor(
   }
 
   private fun runWhenAttached(block: () -> Unit) {
-    if (isDetached) {
+    if (!isLifecycleActive()) {
       return
     }
     post {
-      if (isDetached) {
+      if (!isLifecycleActive()) {
         return@post
       }
       block()
@@ -426,7 +430,7 @@ class DrumPickerView @JvmOverloads constructor(
   }
 
   private fun updateCenterFromSnap() {
-    if (isDetached || items.isEmpty()) {
+    if (!isLifecycleActive() || items.isEmpty()) {
       return
     }
     val centerIndex = findSnapCenterIndex()
@@ -448,7 +452,7 @@ class DrumPickerView @JvmOverloads constructor(
   }
 
   private fun scheduleVisibleItemStyleUpdate() {
-    if (styleUpdatePosted || isDetached) {
+    if (styleUpdatePosted || !isLifecycleActive()) {
       return
     }
     styleUpdatePosted = true
@@ -466,7 +470,7 @@ class DrumPickerView @JvmOverloads constructor(
   }
 
   private fun updateVisibleItemStyles() {
-    if (isDetached || recyclerView.height == 0 || itemHeightPx <= 0) {
+    if (!isLifecycleActive() || recyclerView.height == 0 || itemHeightPx <= 0) {
       return
     }
 
@@ -483,7 +487,7 @@ class DrumPickerView @JvmOverloads constructor(
   }
 
   private fun maybeEmitChange(index: Int) {
-    if (isDetached || suppressChangeEvent || items.isEmpty()) {
+    if (!isLifecycleActive() || suppressChangeEvent || items.isEmpty()) {
       return
     }
     if (index < 0 || index >= items.size) {
@@ -499,7 +503,12 @@ class DrumPickerView @JvmOverloads constructor(
     selectedIndex = clamped
 
     val reactContext = context as? ReactContext ?: return
-    val dispatcher: EventDispatcher? = UIManagerHelper.getEventDispatcher(reactContext)
+    if (!reactContext.hasActiveReactInstance()) {
+      return
+    }
+    // Fabric-only: RN 0.81+ requires uiManagerType when resolving the event dispatcher.
+    val dispatcher: EventDispatcher? =
+      UIManagerHelper.getEventDispatcher(reactContext, UIManagerType.FABRIC)
     dispatcher?.dispatchEvent(
       DrumPickerChangeEvent(
         UIManagerHelper.getSurfaceId(reactContext),
