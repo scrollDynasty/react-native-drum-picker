@@ -6,10 +6,13 @@ const DEFAULTS = {
   selectedIndex: 0,
   itemHeight: 44,
   visibleItemCount: 5,
-  textColor: '#9CA3AF',
-  selectedTextColor: '#111827',
-  textSize: 18,
+  textColor: '#8E8E93',
+  selectedTextColor: '#1C1C1E',
+  textSize: 20,
   selectedTextSize: 22,
+  showSelectionIndicator: true,
+  selectionIndicatorColor: '#D1D1D6',
+  selectionIndicatorHeight: 1,
 } as const;
 
 export function DrumPicker({
@@ -21,6 +24,9 @@ export function DrumPicker({
   selectedTextColor = DEFAULTS.selectedTextColor,
   textSize = DEFAULTS.textSize,
   selectedTextSize = DEFAULTS.selectedTextSize,
+  showSelectionIndicator = DEFAULTS.showSelectionIndicator,
+  selectionIndicatorColor = DEFAULTS.selectionIndicatorColor,
+  selectionIndicatorHeight = DEFAULTS.selectionIndicatorHeight,
   onChange,
   style,
 }: DrumPickerProps) {
@@ -43,6 +49,9 @@ export function DrumPicker({
       selectedTextColor={selectedTextColor}
       textSize={textSize}
       selectedTextSize={selectedTextSize}
+      showSelectionIndicator={showSelectionIndicator}
+      selectionIndicatorColor={selectionIndicatorColor}
+      selectionIndicatorHeight={selectionIndicatorHeight}
       onValueChange={onChange}
       style={pickerStyle}
     />

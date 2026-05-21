@@ -1,6 +1,5 @@
 package com.drumpicker
 
-import android.util.Log
 import com.facebook.react.bridge.ReadableArray
 import com.facebook.react.module.annotations.ReactModule
 import com.facebook.react.uimanager.ReactStylesDiffMap
@@ -21,10 +20,8 @@ class DrumPickerViewManager :
 
   override fun getName(): String = NAME
 
-  public override fun createViewInstance(context: ThemedReactContext): DrumPickerView {
-    Log.d(TAG, "createViewInstance")
-    return DrumPickerView(context)
-  }
+  public override fun createViewInstance(context: ThemedReactContext): DrumPickerView =
+    DrumPickerView(context)
 
   override fun updateProperties(view: DrumPickerView, props: ReactStylesDiffMap) {
     for ((key, value) in props.toMap()) {
@@ -37,6 +34,9 @@ class DrumPickerViewManager :
         "selectedTextColor" -> view.setSelectedTextColorProp(value)
         "textSize" -> view.setTextSizeProp(value)
         "selectedTextSize" -> view.setSelectedTextSizeProp(value)
+        "showSelectionIndicator" -> view.setShowSelectionIndicatorProp(value)
+        "selectionIndicatorColor" -> view.setSelectionIndicatorColorProp(value)
+        "selectionIndicatorHeight" -> view.setSelectionIndicatorHeightProp(value)
         else -> delegate.setProperty(view, key, value)
       }
     }
@@ -75,8 +75,19 @@ class DrumPickerViewManager :
     view?.setSelectedTextSizeProp(value)
   }
 
+  override fun setShowSelectionIndicator(view: DrumPickerView?, value: Boolean) {
+    view?.setShowSelectionIndicatorProp(value)
+  }
+
+  override fun setSelectionIndicatorColor(view: DrumPickerView?, value: Int?) {
+    view?.setSelectionIndicatorColorProp(value)
+  }
+
+  override fun setSelectionIndicatorHeight(view: DrumPickerView?, value: Float) {
+    view?.setSelectionIndicatorHeightProp(value)
+  }
+
   companion object {
     const val NAME = "DrumPickerView"
-    private const val TAG = "DrumPicker"
   }
 }

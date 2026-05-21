@@ -1,12 +1,12 @@
 package com.drumpicker
 
-import android.graphics.Color
-import android.util.Log
+import android.graphics.Typeface
 import android.util.TypedValue
 import android.view.Gravity
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
+import kotlin.math.abs
 
 internal class DrumPickerAdapter(
   private val defaultItemHeightPx: () -> Int,
@@ -15,23 +15,17 @@ internal class DrumPickerAdapter(
   var items: List<String> = emptyList()
     set(value) {
       field = value
-      Log.d(TAG, "adapter.items count=${value.size}")
       notifyDataSetChanged()
     }
 
-  var centerPosition: Int = 0
-    set(value) {
-      if (field != value) {
-        field = value
-        notifyDataSetChanged()
-      }
-    }
-
   var itemHeightPx: Int = 0
-  var textColor: Int = Color.BLACK
-  var selectedTextColor: Int = Color.BLACK
-  var textSizeSp: Float = 18f
-  var selectedTextSizeSp: Float = 22f
+  var textColor: Int = DrumPickerDefaults.TEXT_COLOR
+  var selectedTextColor: Int = DrumPickerDefaults.SELECTED_TEXT_COLOR
+  var textSizeSp: Float = DrumPickerDefaults.TEXT_SIZE_SP
+  var selectedTextSizeSp: Float = DrumPickerDefaults.SELECTED_TEXT_SIZE_SP
+
+  private val regularTypeface = Typeface.create(Typeface.SANS_SERIF, Typeface.NORMAL)
+  private val selectedTypeface = Typeface.create(Typeface.SANS_SERIF, Typeface.BOLD)
 
   private fun rowHeightPx(): Int =
     if (itemHeightPx > 0) itemHeightPx else defaultItemHeightPx()
@@ -43,7 +37,7 @@ internal class DrumPickerAdapter(
     val textView =
       TextView(parent.context).apply {
         gravity = Gravity.CENTER
-        setBackgroundColor(Color.TRANSPARENT)
+        includeFontPadding = false
         layoutParams =
           RecyclerView.LayoutParams(
             ViewGroup.LayoutParams.MATCH_PARENT,
@@ -54,25 +48,26 @@ internal class DrumPickerAdapter(
   }
 
   override fun onBindViewHolder(holder: ItemViewHolder, position: Int) {
-    val isSelected = position == centerPosition
     val textView = holder.textView
     val height = rowHeightPx()
     textView.layoutParams =
       (textView.layoutParams as RecyclerView.LayoutParams).apply { this.height = height }
-    val label = items[position]
-    textView.text = label
-    textView.setTextColor(if (isSelected) selectedTextColor else textColor)
+    textView.text = items[position]
+    applyItemStyle(textView, 2f)
+  }
+
+  fun applyItemStyle(textView: TextView, distanceFromCenter: Float) {
+    val clampedDistance = abs(distanceFromCenter).coerceIn(0f, 3f)
+    val focus = (1f - clampedDistance / 3f).coerceIn(0f, 1f)
+
+    textView.alpha = 0.28f + 0.72f * focus
+    textView.setTextColor(if (focus >= 0.65f) selectedTextColor else textColor)
     textView.setTextSize(
       TypedValue.COMPLEX_UNIT_SP,
-      if (isSelected) selectedTextSizeSp else textSizeSp,
+      textSizeSp + (selectedTextSizeSp - textSizeSp) * focus,
     )
-    textView.alpha = if (isSelected) 1f else 0.45f
-    Log.d(TAG, "onBind position=$position text=$label height=$height")
+    textView.typeface = if (focus >= 0.65f) selectedTypeface else regularTypeface
   }
 
   class ItemViewHolder(val textView: TextView) : RecyclerView.ViewHolder(textView)
-
-  companion object {
-    private const val TAG = "DrumPicker"
-  }
 }

@@ -14,6 +14,9 @@ export type DrumPickerProps = {
   selectedTextColor?: string;
   textSize?: number;
   selectedTextSize?: number;
+  showSelectionIndicator?: boolean;
+  selectionIndicatorColor?: string;
+  selectionIndicatorHeight?: number;
   onChange?: (event: NativeSyntheticEvent<DrumPickerChangeEvent>) => void;
   style?: ViewStyle;
 };
