@@ -1,5 +1,3 @@
-# CodeQL for react-native-drum-picker (Android Fabric library + TypeScript API).
-# Languages: JavaScript/TypeScript (src/), Kotlin (android/), GitHub Actions workflows.
 
 name: CodeQL
 
@@ -14,7 +12,6 @@ on:
     types:
       - checks_requested
   schedule:
-    # Weekly security scan (Saturday 09:19 UTC).
     - cron: '19 9 * * 6'
 
 concurrency:
@@ -22,8 +19,35 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  codeql-default-setup:
+    name: Prepare CodeQL (advanced)
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+    steps:
+      - name: Disable CodeQL default setup
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          API="repos/${GITHUB_REPOSITORY}/code-scanning/default-setup"
+          STATE=$(gh api "$API" --jq .state 2>/dev/null || echo "not-configured")
+          echo "CodeQL default setup state: $STATE"
+          if [ "$STATE" = "configured" ]; then
+            echo "Disabling default setup so the advanced workflow can upload SARIF..."
+            if ! gh api "$API" --method PATCH -f state='not-configured'; then
+              echo "::error::Could not disable CodeQL default setup via API."
+              echo "A repository admin must disable it manually:"
+              echo "Settings → Code security → CodeQL analysis → Disable CodeQL"
+              echo "See .github/CODEQL.md"
+              exit 1
+            fi
+            echo "Default setup disabled."
+          fi
+
   analyze:
     name: Analyze (${{ matrix.language }})
+    needs: codeql-default-setup
     runs-on: ubuntu-latest
     timeout-minutes: 60
 

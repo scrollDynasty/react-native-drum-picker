@@ -40,6 +40,10 @@ yarn build
 yarn typecheck
 ```
 
+## CodeQL
+
+This repo uses **advanced** CodeQL (`.github/workflows/codeql.yml`). If the CodeQL workflow fails with *default setup is enabled*, see [.github/CODEQL.md](./.github/CODEQL.md).
+
 Before publishing (maintainers):
 
 ```sh
