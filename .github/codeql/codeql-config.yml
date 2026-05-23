@@ -1,0 +1,11 @@
+name: react-native-drum-picker
+
+paths-ignore:
+  - '**/node_modules/**'
+  - '**/lib/**'
+  - '**/android/build/**'
+  - '**/example/android/build/**'
+  - '**/example/android/app/build/**'
+  - '**/example/ios/**'
+  - '**/.yarn/**'
+  - '**/coverage/**'
