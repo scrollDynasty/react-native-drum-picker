@@ -81,11 +81,20 @@ public final class DrumPickerWheelView: UIView, UIPickerViewDataSource, UIPicker
     attachScrollHapticObserver()
   }
 
+  public override var accessibilityIdentifier: String? {
+    didSet {
+      picker.accessibilityIdentifier = accessibilityIdentifier
+    }
+  }
+
   public override func layoutSubviews() {
     super.layoutSubviews()
     updatePickerFrame()
     updateIndicators()
     attachScrollHapticObserver()
+    if picker.accessibilityIdentifier != accessibilityIdentifier {
+      picker.accessibilityIdentifier = accessibilityIdentifier
+    }
   }
 
   private func attachScrollHapticObserver() {

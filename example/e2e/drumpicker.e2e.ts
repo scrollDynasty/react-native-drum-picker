@@ -35,6 +35,42 @@ async function scrollToElement(testID: string) {
   await waitFor(target).toBeVisible().withTimeout(5000);
 }
 
+/**
+ * Move a DrumPicker wheel to another row.
+ * Android: native RecyclerView supports Detox scroll().
+ * iOS: UIPickerView is not a UIScrollView — use setColumnToValue or swipe.
+ */
+async function moveDrumPicker(
+  testID: string,
+  options: {
+    direction?: 'down' | 'up';
+    offset?: number;
+    /** When set on iOS, uses setColumnToValue(0, value) for a deterministic selection. */
+    iosSelectValue?: string;
+  } = {}
+) {
+  const picker = element(by.id(testID));
+  const direction = options.direction ?? 'down';
+  const offset = options.offset ?? 100;
+
+  if (device.getPlatform() === 'ios') {
+    if (options.iosSelectValue != null) {
+      try {
+        await picker.setColumnToValue(0, options.iosSelectValue);
+      } catch {
+        // GREY needs a UIPickerView; fall back to swipe if setColumnToValue cannot match.
+        await picker.swipe('up', 'fast', 0.6);
+      }
+      return;
+    }
+    // Swipe up on the wheel selects the next row (same as scrolling "down" on Android).
+    await picker.swipe(direction === 'down' ? 'up' : 'down', 'fast', 0.6);
+    return;
+  }
+
+  await picker.scroll(offset, direction);
+}
+
 async function openE2eTabIfNeeded() {
   await waitFor(element(by.text('react-native-drum-picker')))
     .toBeVisible()
@@ -70,11 +106,17 @@ describe('DrumPicker', () => {
   });
 
   it('snaps to correct item after scroll', async () => {
-    const picker = element(by.id('drum-picker-basic'));
-    await picker.scroll(100, 'down');
-    await waitFor(element(by.id('selected-value-label')))
-      .toHaveText(/Mon|Tue|Wed|Thu|Fri|Sat|Sun/)
-      .withTimeout(3000);
+    if (device.getPlatform() === 'ios') {
+      await moveDrumPicker('drum-picker-basic', { iosSelectValue: 'Tue' });
+      await waitFor(element(by.id('selected-value-label')))
+        .toHaveText(/Tue|Wed|Thu|Fri|Sat|Sun/)
+        .withTimeout(3000);
+    } else {
+      await moveDrumPicker('drum-picker-basic', { direction: 'down' });
+      await waitFor(element(by.id('selected-value-label')))
+        .toHaveText(/Mon|Tue|Wed|Thu|Fri|Sat|Sun/)
+        .withTimeout(3000);
+    }
   });
 
   it('controlled selectedIndex updates picker position', async () => {
@@ -87,9 +129,8 @@ describe('DrumPicker', () => {
 
   it('hapticFeedback prop does not crash', async () => {
     await scrollToElement('drum-picker-haptic');
-    const picker = element(by.id('drum-picker-haptic'));
-    await picker.scroll(80, 'down');
-    await expect(picker).toBeVisible();
+    await moveDrumPicker('drum-picker-haptic', { direction: 'down', offset: 80 });
+    await expect(element(by.id('drum-picker-haptic'))).toBeVisible();
   });
 
   it('DateDrumPicker shows day, month, year columns', async () => {
@@ -101,8 +142,11 @@ describe('DrumPicker', () => {
 
   it('DateDrumPicker onChange returns valid date object', async () => {
     await scrollToElement('date-picker-day');
-    const dayPicker = element(by.id('date-picker-day'));
-    await dayPicker.scroll(50, 'down');
+    if (device.getPlatform() === 'ios') {
+      await moveDrumPicker('date-picker-day', { iosSelectValue: '11' });
+    } else {
+      await moveDrumPicker('date-picker-day', { direction: 'down', offset: 50 });
+    }
     await waitFor(element(by.id('date-value-label')))
       .toHaveText(/day:\d+, month:\d+, year:\d+/)
       .withTimeout(3000);
