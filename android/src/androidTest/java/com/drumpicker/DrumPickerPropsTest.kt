@@ -25,11 +25,19 @@ class DrumPickerPropsTest {
         activity.picker.requestLayout()
       }
       instrumentation.waitForIdleSync()
+
+      val latch = CountDownLatch(1)
+      var textColor = 0
       scenario.onActivity { activity ->
-        val recycler = activity.picker.getChildAt(0) as RecyclerView
-        val row = recycler.getChildAt(0) as TextView
-        assertEquals(Color.RED, row.currentTextColor)
+        activity.picker.post {
+          val recycler = activity.picker.getChildAt(0) as RecyclerView
+          val row = recycler.getChildAt(0) as TextView
+          textColor = row.currentTextColor
+          latch.countDown()
+        }
       }
+      assertTrue(latch.await(2, TimeUnit.SECONDS))
+      assertEquals(Color.RED, textColor)
     }
   }
 

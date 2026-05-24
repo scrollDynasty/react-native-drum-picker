@@ -13,7 +13,7 @@ import org.junit.runner.RunWith
 @RunWith(AndroidJUnit4::class)
 class DrumPickerScrollTest {
   @Test
-  fun programmaticIndexSelectionCentersCorrectRow() {
+  fun programmaticIndexSelectionCentersRow() {
     val instrumentation = InstrumentationRegistry.getInstrumentation()
     ActivityScenario.launch(TestActivity::class.java).use { scenario ->
       scenario.onActivity { activity ->

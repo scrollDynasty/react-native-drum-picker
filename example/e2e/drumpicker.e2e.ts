@@ -1,14 +1,17 @@
 import { device, element, by, expect, waitFor } from 'detox';
 
+async function scrollToElement(testID: string) {
+  await waitFor(element(by.id(testID)))
+    .toBeVisible()
+    .whileElement(by.id('e2e-scroll'))
+    .scroll(200, 'down');
+}
+
 describe('DrumPicker', () => {
   beforeAll(async () => {
     await device.launchApp({ newInstance: true });
-    await element(by.text('E2E')).tap();
-  });
-
-  beforeEach(async () => {
     await device.reloadReactNative();
-    await element(by.text('E2E')).tap();
+    await element(by.id('tab-e2e')).tap();
   });
 
   it('renders the picker on screen', async () => {
@@ -24,12 +27,16 @@ describe('DrumPicker', () => {
   });
 
   it('DateDrumPicker shows day, month, year columns', async () => {
+    await scrollToElement('date-picker-day');
     await expect(element(by.id('date-picker-day'))).toBeVisible();
+    await scrollToElement('date-picker-month');
     await expect(element(by.id('date-picker-month'))).toBeVisible();
+    await scrollToElement('date-picker-year');
     await expect(element(by.id('date-picker-year'))).toBeVisible();
   });
 
   it('DateDrumPicker onChange returns valid date object', async () => {
+    await scrollToElement('date-picker-day');
     const dayPicker = element(by.id('date-picker-day'));
     await dayPicker.scroll(50, 'down');
     await waitFor(element(by.id('date-value-label')))
@@ -38,13 +45,15 @@ describe('DrumPicker', () => {
   });
 
   it('controlled selectedIndex updates picker position', async () => {
+    await scrollToElement('btn-set-index-3');
     await element(by.id('btn-set-index-3')).tap();
     await waitFor(element(by.id('controlled-selected-label')))
-      .toHaveText('3')
-      .withTimeout(2000);
+      .toHaveText('L')
+      .withTimeout(3000);
   });
 
   it('hapticFeedback prop does not crash', async () => {
+    await scrollToElement('drum-picker-haptic');
     await expect(element(by.id('drum-picker-haptic'))).toBeVisible();
     const picker = element(by.id('drum-picker-haptic'));
     await picker.scroll(80, 'down');

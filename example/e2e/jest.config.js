@@ -1,6 +1,5 @@
 module.exports = {
   rootDir: '..',
-  preset: 'react-native',
   testMatch: ['<rootDir>/e2e/**/*.e2e.{ts,tsx}'],
   testTimeout: 120000,
   maxWorkers: 1,
@@ -8,5 +7,6 @@ module.exports = {
   globalTeardown: 'detox/runners/jest/globalTeardown',
   reporters: ['detox/runners/jest/reporter'],
   testEnvironment: 'detox/runners/jest/testEnvironment',
+  preset: '@react-native/jest-preset',
   verbose: true,
 };

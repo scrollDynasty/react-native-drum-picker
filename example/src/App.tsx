@@ -11,6 +11,7 @@ const VISIBLE_COUNT = 5;
 const PICKER_HEIGHT = ITEM_HEIGHT * VISIBLE_COUNT;
 
 const SIZES = ['Small', 'Medium', 'Large'];
+const CONTROLLED_ITEMS = ['XS', 'S', 'M', 'L', 'XL'];
 const WEEK_DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 const HOURS = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, '0'));
 const MINUTES = Array.from({ length: 60 }, (_, i) =>
@@ -86,6 +87,7 @@ export default function App() {
         {tabs.map(([key, label]) => (
           <Pressable
             key={key}
+            testID={key === 'e2e' ? 'tab-e2e' : undefined}
             onPress={() => setExample(key)}
             style={[styles.tab, example === key && styles.tabActive]}
           >
@@ -225,61 +227,67 @@ export default function App() {
       )}
 
       {example === 'e2e' && (
-        <View style={styles.section}>
-          <Text style={styles.label}>E2E fixtures</Text>
-          <DrumPicker
-            testID="drum-picker-basic"
-            items={WEEK_DAYS}
-            selectedIndex={weekDayIndex}
-            onChange={(e) => setWeekDayIndex(e.nativeEvent.index)}
-            style={styles.pickerW120}
-          />
-          <Text testID="selected-value-label" style={styles.value}>
-            {WEEK_DAYS[weekDayIndex]}
-          </Text>
+        <ScrollView
+          testID="e2e-scroll"
+          contentContainerStyle={styles.e2eScroll}
+          keyboardShouldPersistTaps="handled"
+        >
+          <View style={styles.section}>
+            <Text style={styles.label}>E2E fixtures</Text>
+            <DrumPicker
+              testID="drum-picker-basic"
+              items={WEEK_DAYS}
+              selectedIndex={weekDayIndex}
+              onChange={(e) => setWeekDayIndex(e.nativeEvent.index)}
+              style={styles.pickerW120}
+            />
+            <Text testID="selected-value-label" style={styles.value}>
+              {WEEK_DAYS[weekDayIndex]}
+            </Text>
 
-          <DateDrumPicker
-            mode="day-month-year"
-            value={date}
-            onChange={setDate}
-            monthFormat="short"
-            columnTestIDs={{
-              day: 'date-picker-day',
-              month: 'date-picker-month',
-              year: 'date-picker-year',
-            }}
-          />
-          <Text testID="date-value-label" style={styles.value}>
-            {`day:${date.day}, month:${date.month}, year:${date.year}`}
-          </Text>
+            <DateDrumPicker
+              mode="day-month-year"
+              value={date}
+              onChange={setDate}
+              monthFormat="short"
+              columnTestIDs={{
+                day: 'date-picker-day',
+                month: 'date-picker-month',
+                year: 'date-picker-year',
+              }}
+            />
+            <Text testID="date-value-label" style={styles.value}>
+              {`day:${date.day}, month:${date.month}, year:${date.year}`}
+            </Text>
 
-          <DrumPicker
-            testID="drum-picker-controlled"
-            items={SIZES}
-            selectedIndex={controlledIndex}
-            onChange={(e) => setControlledIndex(e.nativeEvent.index)}
-            style={styles.pickerW120}
-          />
-          <Pressable
-            testID="btn-set-index-3"
-            style={styles.button}
-            onPress={() => setControlledIndex(3)}
-          >
-            <Text>Set index 3</Text>
-          </Pressable>
-          <Text testID="controlled-selected-label" style={styles.value}>
-            {String(controlledIndex)}
-          </Text>
+            <DrumPicker
+              testID="drum-picker-controlled"
+              items={CONTROLLED_ITEMS}
+              selectedIndex={controlledIndex}
+              onChange={(e) => setControlledIndex(e.nativeEvent.index)}
+              style={styles.pickerW120}
+            />
+            <Pressable
+              testID="btn-set-index-3"
+              style={styles.button}
+              onPress={() => setControlledIndex(3)}
+            >
+              <Text>Set index 3</Text>
+            </Pressable>
+            <Text testID="controlled-selected-label" style={styles.value}>
+              {CONTROLLED_ITEMS[controlledIndex]}
+            </Text>
 
-          <DrumPicker
-            testID="drum-picker-haptic"
-            hapticFeedback
-            items={WEEK_DAYS}
-            selectedIndex={weekDayIndex}
-            onChange={(e) => setWeekDayIndex(e.nativeEvent.index)}
-            style={styles.pickerW120}
-          />
-        </View>
+            <DrumPicker
+              testID="drum-picker-haptic"
+              hapticFeedback
+              items={WEEK_DAYS}
+              selectedIndex={weekDayIndex}
+              onChange={(e) => setWeekDayIndex(e.nativeEvent.index)}
+              style={styles.pickerW120}
+            />
+          </View>
+        </ScrollView>
       )}
     </ScrollView>
   );
@@ -292,6 +300,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     backgroundColor: '#F2F2F7',
     alignItems: 'center',
+  },
+  e2eScroll: {
+    flexGrow: 1,
+    alignItems: 'center',
+    paddingBottom: 48,
   },
   title: {
     fontSize: 18,

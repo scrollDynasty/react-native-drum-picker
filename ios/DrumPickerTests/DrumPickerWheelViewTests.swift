@@ -22,6 +22,8 @@ final class DrumPickerWheelViewTests: XCTestCase {
 
   func testEmptyItems() {
     view.setItems([])
+    view.layoutIfNeeded()
+    RunLoop.main.run(until: Date(timeIntervalSinceNow: 0.01))
     XCTAssertEqual(view.pickerView(picker, numberOfRowsInComponent: 0), 0)
   }
 
@@ -44,7 +46,9 @@ final class DrumPickerWheelViewTests: XCTestCase {
     let delegate = MockWheelDelegate()
     view.wheelDelegate = delegate
     view.setSelectedIndex(3, animated: false)
-    RunLoop.main.run(until: Date(timeIntervalSinceNow: 0.1))
+    let exp = expectation(description: "main queue flush")
+    DispatchQueue.main.async { exp.fulfill() }
+    wait(for: [exp], timeout: 2.0)
     XCTAssertEqual(delegate.userInitiatedCount, 0)
   }
 
