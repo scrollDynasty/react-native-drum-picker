@@ -14,6 +14,11 @@ fi
 PRODUCTS_DIR="$(dirname "$APP_PATH")"
 PACKAGER_BUNDLE="$PRODUCTS_DIR/DetoxPackagerOutput.jsbundle"
 
+# Library must be built so Metro can resolve the workspace package.
+if [ -f "$ROOT/../package.json" ]; then
+  (cd "$ROOT/.." && yarn build)
+fi
+
 echo "Bundling JS for Detox → $APP_PATH"
 npx react-native bundle \
   --platform ios \

@@ -12,6 +12,7 @@ const PICKER_HEIGHT = ITEM_HEIGHT * VISIBLE_COUNT;
 /** Compact pickers on the E2E tab so fixtures fit one screen (Detox). */
 const E2E_ITEM_HEIGHT = 36;
 const E2E_VISIBLE_COUNT = 3;
+const E2E_PICKER_HEIGHT = E2E_ITEM_HEIGHT * E2E_VISIBLE_COUNT;
 
 const SIZES = ['Small', 'Medium', 'Large'];
 const CONTROLLED_ITEMS = ['XS', 'S', 'M', 'L', 'XL'];
@@ -85,6 +86,7 @@ export default function App() {
   return (
     <ScrollView
       testID="app-scroll"
+      collapsable={false}
       contentContainerStyle={styles.scroll}
       keyboardShouldPersistTaps="handled"
     >
@@ -234,7 +236,7 @@ export default function App() {
       )}
 
       {example === 'e2e' && (
-        <View testID="e2e-screen" style={styles.e2eScreen}>
+        <View testID="e2e-screen" collapsable={false} style={styles.e2eScreen}>
           <Text testID="e2e-heading" style={styles.label}>
             E2E fixtures
           </Text>
@@ -245,7 +247,7 @@ export default function App() {
             itemHeight={E2E_ITEM_HEIGHT}
             visibleItemCount={E2E_VISIBLE_COUNT}
             onChange={(e) => setWeekDayIndex(e.nativeEvent.index)}
-            style={styles.pickerW120}
+            style={styles.pickerE2E}
           />
           <Text testID="selected-value-label" style={styles.value}>
             {WEEK_DAYS[weekDayIndex]}
@@ -258,7 +260,7 @@ export default function App() {
             itemHeight={E2E_ITEM_HEIGHT}
             visibleItemCount={E2E_VISIBLE_COUNT}
             onChange={(e) => setE2eControlledIndex(e.nativeEvent.index)}
-            style={styles.pickerW120}
+            style={styles.pickerE2E}
           />
           <Pressable
             testID="btn-set-index-3"
@@ -279,7 +281,7 @@ export default function App() {
             itemHeight={E2E_ITEM_HEIGHT}
             visibleItemCount={E2E_VISIBLE_COUNT}
             onChange={(e) => setWeekDayIndex(e.nativeEvent.index)}
-            style={styles.pickerW120}
+            style={styles.pickerE2E}
           />
 
           <DateDrumPicker
@@ -289,6 +291,7 @@ export default function App() {
             monthFormat="short"
             itemHeight={E2E_ITEM_HEIGHT}
             visibleItemCount={E2E_VISIBLE_COUNT}
+            columnStyle={styles.pickerE2EColumn}
             columnTestIDs={{
               day: 'date-picker-day',
               month: 'date-picker-month',
@@ -403,5 +406,12 @@ const styles = StyleSheet.create({
   pickerW120: {
     width: 120,
     height: PICKER_HEIGHT,
+  },
+  pickerE2E: {
+    width: 120,
+    height: E2E_PICKER_HEIGHT,
+  },
+  pickerE2EColumn: {
+    height: E2E_PICKER_HEIGHT,
   },
 });

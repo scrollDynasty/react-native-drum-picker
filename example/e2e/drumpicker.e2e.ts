@@ -3,13 +3,13 @@ import { device, element, by, expect, waitFor } from 'detox';
 const SCROLL_STEP = 200;
 const SCROLL_ATTEMPTS = 12;
 
-async function waitForE2eScreen() {
-  await waitFor(element(by.id('e2e-screen')))
+async function waitForE2eReady() {
+  await waitFor(element(by.text('E2E fixtures')))
     .toBeVisible()
     .withTimeout(60000);
   await waitFor(element(by.id('drum-picker-basic')))
     .toBeVisible()
-    .withTimeout(10000);
+    .withTimeout(15000);
 }
 
 async function scrollAppTo(position: 'top' | 'bottom') {
@@ -31,16 +31,18 @@ async function scrollToElement(testID: string) {
 }
 
 async function openE2eTabIfNeeded() {
-  try {
-    await waitForE2eScreen();
-    return;
-  } catch {
-    // App may have launched on another tab (older bundle) or tabs off-screen.
-  }
-
   await waitFor(element(by.text('react-native-drum-picker')))
     .toBeVisible()
-    .withTimeout(30000);
+    .withTimeout(90000);
+
+  try {
+    await waitFor(element(by.id('drum-picker-basic')))
+      .toBeVisible()
+      .withTimeout(5000);
+    return;
+  } catch {
+    // Not on the E2E tab yet.
+  }
 
   try {
     await element(by.text('E2E')).tap();
@@ -48,12 +50,13 @@ async function openE2eTabIfNeeded() {
     await element(by.id('tab-e2e')).tap();
   }
 
-  await waitForE2eScreen();
+  await waitForE2eReady();
 }
 
 describe('DrumPicker', () => {
   beforeAll(async () => {
     await device.launchApp({ newInstance: true });
+    await device.disableSynchronization();
     await openE2eTabIfNeeded();
   });
 
