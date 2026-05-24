@@ -9,6 +9,10 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+  actions: write
+
 jobs:
   lint-and-typecheck:
     name: lint-and-typecheck
@@ -149,12 +153,11 @@ jobs:
         uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
         with:
           path: example/ios/Pods
-          key: ${{ runner.os }}-pods-${{ hashFiles('example/ios/Podfile', 'example/Gemfile', 'yarn.lock') }}
+          key: ${{ runner.os }}-pods-${{ hashFiles('example/ios/Podfile', 'DrumPicker.podspec', 'example/Gemfile') }}
           restore-keys: |
             ${{ runner.os }}-pods-
 
       - name: Install CocoaPods
-        if: steps.cocoapods-cache.outputs.cache-hit != 'true'
         working-directory: example/ios
         run: |
           bundle install --gemfile=../Gemfile
@@ -220,11 +223,7 @@ jobs:
           force-avd-creation: false
           emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim
           disable-animations: true
-          script: |
-            cd example/android
-            ./gradlew -p ../../android connectedDebugAndroidTest \
-              --no-daemon \
-              -Pandroid.testInstrumentationRunnerArguments.package=com.drumpicker
+          script: bash -c "cd example/android && chmod +x ./gradlew && ./gradlew -p ../../android connectedDebugAndroidTest --no-daemon -Pandroid.testInstrumentationRunnerArguments.package=com.drumpicker"
 
       - name: Upload Android test results
         if: failure()
@@ -322,12 +321,11 @@ jobs:
         uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
         with:
           path: example/ios/Pods
-          key: ${{ runner.os }}-pods-${{ hashFiles('example/ios/Podfile.lock') }}
+          key: ${{ runner.os }}-pods-${{ hashFiles('example/ios/Podfile', 'DrumPicker.podspec', 'example/Gemfile') }}
           restore-keys: |
             ${{ runner.os }}-pods-
 
       - name: Pod install
-        if: steps.pods-cache.outputs.cache-hit != 'true'
         working-directory: example/ios
         run: |
           bundle install --gemfile=../Gemfile
@@ -335,17 +333,20 @@ jobs:
 
       - name: Ensure simulator exists
         run: |
-          UDID=$(xcrun simctl list devices available | \
-            grep "iPhone 16 (" | head -1 | \
-            sed 's/.*(\([A-F0-9-]*\)).*/\1/')
-          if [ -z "$UDID" ]; then
-            echo "Creating iPhone 16 simulator..."
+          if ! xcrun simctl list devices available | grep -q "iPhone 16 ("; then
+            RUNTIME_ID=$(xcrun simctl list runtimes available -j | \
+              python3 -c "import sys,json; r=json.load(sys.stdin)['runtimes']; i=[x for x in r if x.get('isAvailable') and 'iOS' in x.get('name','')]; print(i[-1]['identifier'] if i else '')")
+            if [ -z "$RUNTIME_ID" ]; then
+              echo "No available iOS runtime found"
+              xcrun simctl list runtimes available
+              exit 1
+            fi
+            echo "Creating iPhone 16 simulator with runtime $RUNTIME_ID"
             xcrun simctl create "iPhone 16" \
-              "com.apple.CoreSimulator.SimDeviceType.iPhone-16" \
-              $(xcrun simctl list runtimes | grep "iOS 18" | \
-                tail -1 | awk '{print $NF}')
+              com.apple.CoreSimulator.SimDeviceType.iPhone-16 \
+              "$RUNTIME_ID"
           fi
-          xcrun simctl list devices | grep "iPhone 16"
+          xcrun simctl list devices available | grep "iPhone 16"
 
       - name: Build iOS app for Detox
         working-directory: example
@@ -420,12 +421,7 @@ jobs:
           force-avd-creation: false
           emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim
           disable-animations: true
-          script: |
-            cd example
-            npx detox test --configuration android.emu.debug \
-              --loglevel warn \
-              --record-logs failing \
-              --take-screenshots failing
+          script: bash -c "cd example && npx detox test --configuration android.emu.debug --loglevel warn --record-logs failing --take-screenshots failing"
 
       - name: Upload Detox artifacts on failure
         if: failure()

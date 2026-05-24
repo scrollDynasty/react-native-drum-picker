@@ -21,7 +21,6 @@ Pod::Spec.new do |s|
   s.test_spec "Tests" do |ts|
     ts.source_files = "ios/DrumPickerTests/**/*.swift"
     ts.framework = "XCTest"
-    ts.dependency "DrumPicker"
   end
 
   install_modules_dependencies(s)
