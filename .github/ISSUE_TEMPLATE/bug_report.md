@@ -30,13 +30,18 @@ If applicable, add visuals.
 
 ## Environment
 
-- **react-native-drum-picker version:** (e.g. 0.1.5 or git SHA)
+- **react-native-drum-picker version:** (e.g. 0.2.0 or git SHA)
 - **React Native version:**
+- **Platform:** Android / iOS / both
 - **Expo SDK version:** (if applicable)
 - **New Architecture enabled:** yes / no
 - **react-native-screens version:** (if using navigation)
-- **Android version:**
+- **OS version:**
 - **Device / emulator:**
+
+## Contributing a fix?
+
+See [CONTRIBUTING.md](../../CONTRIBUTING.md). A PR with a test in the matching folder (`src/__tests__/`, `android/src/androidTest/`, or `ios/DrumPickerTests/`) is especially helpful.
 
 ## Symptom checklist
 

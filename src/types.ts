@@ -23,4 +23,5 @@ export type DrumPickerProps = {
   hapticFeedback?: boolean;
   onChange?: (event: NativeSyntheticEvent<DrumPickerChangeEvent>) => void;
   style?: StyleProp<ViewStyle>;
+  testID?: string;
 };

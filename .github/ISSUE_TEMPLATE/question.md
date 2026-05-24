@@ -18,5 +18,10 @@ Steps, docs, or code you already tried.
 
 - React Native version:
 - react-native-drum-picker version:
-- Android version:
+- Platform: Android / iOS
+- OS version:
 - New Architecture: yes / no
+
+## Want to contribute code?
+
+See [CONTRIBUTING.md](../../CONTRIBUTING.md) for setup, PR workflow, and how CI runs on pull requests.

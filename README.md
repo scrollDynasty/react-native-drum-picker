@@ -321,7 +321,7 @@ Use an **odd** `visibleItemCount` (e.g. `5`) for a symmetric wheel.
 | Empty or white picker | Enable New Architecture; upgrade to **0.1.5+** for layout defaults; or set `style={{ width, height: itemHeight * visibleItemCount }}` |
 | Wrong initial row / off-center | Upgrade to **0.1.5+**; avoid `key` remount hacks unless needed for other reasons |
 | Props not applied | Rebuild app after native changes; run `yarn build` in the library before packing |
-| iOS | Not supported — Android only |
+| iOS build issues | Run `pod install` in `example/ios`; use New Architecture; see [CONTRIBUTING.md](./CONTRIBUTING.md) |
 | Expo Go | Use prebuild + dev build; this library is not in Expo Go |
 | RN 0.81 `uiManagerType` compile error | Upgrade to 0.1.3+ |
 | Crash when leaving a screen | Upgrade to 0.1.4+ (safe `onDetachedFromWindow` with react-native-screens) |
@@ -349,7 +349,7 @@ If the app crashes when navigating away from a screen with `DrumPicker` (especia
 
 **New Architecture:** This library is a Fabric view. Ensure New Architecture is enabled in your app (required for RN 0.76+).
 
-## Development
+## Development & contributing
 
 ```sh
 git clone https://github.com/scrollDynasty/react-native-drum-picker.git
@@ -357,18 +357,20 @@ cd react-native-drum-picker
 yarn
 yarn build
 cd example
-yarn android
+yarn android   # or yarn ios
 ```
 
-From the repo root:
+Before a pull request:
 
 ```sh
 yarn lint
 yarn build
 yarn typecheck
+yarn test
 ```
 
-See [CONTRIBUTING.md](./CONTRIBUTING.md).
+**Contributing:** [CONTRIBUTING.md](./CONTRIBUTING.md) — setup, where to put code and tests, what CI runs on every PR, and review checklist.  
+**Example app:** [example/README.md](./example/README.md).
 
 ## License
 
