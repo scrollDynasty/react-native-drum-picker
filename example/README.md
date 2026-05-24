@@ -48,7 +48,7 @@ Optional local run (emulator/simulator required):
 
 ```sh
 yarn build:e2e:android && yarn test:e2e:android
-yarn build:e2e:ios && yarn test:e2e:ios
+yarn build:e2e:ios && yarn test:e2e:ios   # embeds main.jsbundle via scripts/bundle-ios-for-detox.sh
 ```
 
 Full contributor workflow: [CONTRIBUTING.md](../CONTRIBUTING.md).
