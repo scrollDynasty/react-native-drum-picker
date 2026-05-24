@@ -456,6 +456,9 @@ jobs:
         working-directory: example
         run: npx detox build --configuration android.emu.debug
 
+      - name: Install emulator host libraries for Detox CLI
+        run: sudo apt-get update && sudo apt-get install -y libpulse0
+
       # android-emulator-runner creates test_avd_34 on first run.
       # force-avd-creation: false reuses it on cached runners.
       # If the job fails with "No AVD found", set to true temporarily.

@@ -1,23 +1,40 @@
 import { device, element, by, expect, waitFor } from 'detox';
 
-async function scrollToElement(testID: string) {
-  await waitFor(element(by.id(testID)))
-    .toBeVisible()
-    .whileElement(by.id('e2e-scroll'))
-    .scroll(200, 'down');
-}
+const SCROLL_STEP = 150;
+const SCROLL_ATTEMPTS = 10;
 
-async function openE2eTab() {
-  await waitFor(element(by.text('E2E')))
-    .toBeVisible()
-    .withTimeout(15000);
-  await element(by.text('E2E')).tap();
+async function scrollToElement(
+  testID: string,
+  direction: 'down' | 'up' = 'down'
+) {
+  const target = element(by.id(testID));
+  for (let attempt = 0; attempt < SCROLL_ATTEMPTS; attempt += 1) {
+    try {
+      await waitFor(target).toBeVisible().withTimeout(1500);
+      return;
+    } catch {
+      await element(by.id('e2e-scroll')).scroll(SCROLL_STEP, direction);
+    }
+  }
+  await waitFor(target).toBeVisible().withTimeout(5000);
 }
 
 describe('DrumPicker', () => {
   beforeAll(async () => {
     await device.launchApp({ newInstance: true });
-    await openE2eTab();
+    try {
+      await waitFor(element(by.id('drum-picker-basic')))
+        .toBeVisible()
+        .withTimeout(60000);
+    } catch {
+      await waitFor(element(by.id('tab-e2e')))
+        .toBeVisible()
+        .withTimeout(10000);
+      await element(by.id('tab-e2e')).tap();
+      await waitFor(element(by.id('drum-picker-basic')))
+        .toBeVisible()
+        .withTimeout(30000);
+    }
   });
 
   it('renders the picker on screen', async () => {
@@ -35,9 +52,7 @@ describe('DrumPicker', () => {
   it('DateDrumPicker shows day, month, year columns', async () => {
     await scrollToElement('date-picker-day');
     await expect(element(by.id('date-picker-day'))).toBeVisible();
-    await scrollToElement('date-picker-month');
     await expect(element(by.id('date-picker-month'))).toBeVisible();
-    await scrollToElement('date-picker-year');
     await expect(element(by.id('date-picker-year'))).toBeVisible();
   });
 
@@ -60,7 +75,6 @@ describe('DrumPicker', () => {
 
   it('hapticFeedback prop does not crash', async () => {
     await scrollToElement('drum-picker-haptic');
-    await expect(element(by.id('drum-picker-haptic'))).toBeVisible();
     const picker = element(by.id('drum-picker-haptic'));
     await picker.scroll(80, 'down');
     await expect(picker).toBeVisible();

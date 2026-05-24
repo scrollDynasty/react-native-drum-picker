@@ -41,9 +41,10 @@ function useDebouncedCallback<T extends (...args: never[]) => void>(
 }
 
 export default function App() {
+  // Default to E2E tab so Detox does not depend on tab bar visibility (CI simulators).
   const [example, setExample] = useState<
     'basic' | 'time' | 'hw' | 'date' | 'controlled' | 'debounce' | 'e2e'
-  >('basic');
+  >('e2e');
 
   const [sizeIndex, setSizeIndex] = useState(1);
   const [weekDayIndex, setWeekDayIndex] = useState(0);
@@ -246,21 +247,6 @@ export default function App() {
               {WEEK_DAYS[weekDayIndex]}
             </Text>
 
-            <DateDrumPicker
-              mode="day-month-year"
-              value={date}
-              onChange={setDate}
-              monthFormat="short"
-              columnTestIDs={{
-                day: 'date-picker-day',
-                month: 'date-picker-month',
-                year: 'date-picker-year',
-              }}
-            />
-            <Text testID="date-value-label" style={styles.value}>
-              {`day:${date.day}, month:${date.month}, year:${date.year}`}
-            </Text>
-
             <DrumPicker
               testID="drum-picker-controlled"
               items={CONTROLLED_ITEMS}
@@ -287,6 +273,21 @@ export default function App() {
               onChange={(e) => setWeekDayIndex(e.nativeEvent.index)}
               style={styles.pickerW120}
             />
+
+            <DateDrumPicker
+              mode="day-month-year"
+              value={date}
+              onChange={setDate}
+              monthFormat="short"
+              columnTestIDs={{
+                day: 'date-picker-day',
+                month: 'date-picker-month',
+                year: 'date-picker-year',
+              }}
+            />
+            <Text testID="date-value-label" style={styles.value}>
+              {`day:${date.day}, month:${date.month}, year:${date.year}`}
+            </Text>
           </View>
         </ScrollView>
       )}
