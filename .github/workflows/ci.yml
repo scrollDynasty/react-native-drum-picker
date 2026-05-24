@@ -223,7 +223,7 @@ jobs:
           force-avd-creation: false
           emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim
           disable-animations: true
-          script: bash -c "cd example/android && chmod +x ./gradlew && ./gradlew -p ../../android connectedDebugAndroidTest --no-daemon -Pandroid.testInstrumentationRunnerArguments.package=com.drumpicker"
+          script: bash -c "cd example/android && chmod +x ./gradlew && ./gradlew :react-native-drum-picker:connectedDebugAndroidTest --no-daemon -Pandroid.testInstrumentationRunnerArguments.package=com.drumpicker"
 
       - name: Upload Android test results
         if: failure()
@@ -347,6 +347,10 @@ jobs:
               "$RUNTIME_ID"
           fi
           xcrun simctl list devices available | grep "iPhone 16"
+
+      - name: Prepare Detox iOS framework
+        working-directory: example
+        run: npx detox build-framework-cache
 
       - name: Build iOS app for Detox
         working-directory: example

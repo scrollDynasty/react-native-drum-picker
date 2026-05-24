@@ -19,3 +19,18 @@ buildscript {
 }
 
 apply plugin: "com.facebook.react.rootproject"
+
+def detoxAndroidMaven = [
+    "$rootDir/../node_modules/detox/Detox-android",
+    "$rootDir/../../node_modules/detox/Detox-android",
+].find { new File(it).exists() }
+
+allprojects {
+    repositories {
+        google()
+        mavenCentral()
+        if (detoxAndroidMaven != null) {
+            maven { url(detoxAndroidMaven) }
+        }
+    }
+}
