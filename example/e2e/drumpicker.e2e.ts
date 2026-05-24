@@ -12,19 +12,24 @@ async function waitForE2eReady() {
     .withTimeout(15000);
 }
 
-async function scrollAppTo(position: 'top' | 'bottom') {
-  await element(by.id('app-scroll')).scrollTo(position);
-}
-
+/** Scroll down until testID is visible. Avoid scrollTo(top) — it hangs on iOS ScrollView in Detox. */
 async function scrollToElement(testID: string) {
   const target = element(by.id(testID));
-  await scrollAppTo('top');
+  const scroller = element(by.id('app-scroll'));
+
+  try {
+    await waitFor(target).toBeVisible().withTimeout(2000);
+    return;
+  } catch {
+    // Element not on screen yet.
+  }
+
   for (let attempt = 0; attempt < SCROLL_ATTEMPTS; attempt += 1) {
     try {
       await waitFor(target).toBeVisible().withTimeout(1500);
       return;
     } catch {
-      await element(by.id('app-scroll')).scroll(SCROLL_STEP, 'down');
+      await scroller.scroll(SCROLL_STEP, 'down');
     }
   }
   await waitFor(target).toBeVisible().withTimeout(5000);
@@ -58,10 +63,6 @@ describe('DrumPicker', () => {
     await device.launchApp({ newInstance: true });
     await device.disableSynchronization();
     await openE2eTabIfNeeded();
-  });
-
-  beforeEach(async () => {
-    await scrollAppTo('top');
   });
 
   it('renders the picker on screen', async () => {
