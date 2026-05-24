@@ -12,9 +12,11 @@ A smooth **cross-platform native** iOS-style drum/wheel picker for React Native 
 
 ## Preview
 
-`DateDrumPicker` on Android (day · month · year):
+`DateDrumPicker` preview (Android) (day · month · year):
 
 ![DateDrumPicker preview — day, month, year columns](https://raw.githubusercontent.com/scrollDynasty/react-native-drum-picker/main/img/image.png)
+
+iOS preview coming soon — see the `ios-build` CI job for validation status.
 
 ## Features
 
@@ -64,6 +66,7 @@ Requires **React Native 0.76+** with the **New Architecture** enabled.
 | Fabric | **Required** |
 | Android | Supported |
 | iOS | Supported |
+| iOS Old Architecture (Paper) | Not supported — Fabric required |
 | Expo Go | **Not supported** (native library) |
 | Expo SDK 54 + dev build / prebuild | Tested |
 | `react-native-screens` navigation | Tested (use **0.1.4+** for detach safety) |

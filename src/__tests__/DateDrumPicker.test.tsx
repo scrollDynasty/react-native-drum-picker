@@ -1,4 +1,4 @@
-import { render } from '@testing-library/react-native';
+import { act, render, screen } from '@testing-library/react-native';
 import React from 'react';
 import {
   fireNativeDrumPickerChange,
@@ -18,6 +18,10 @@ const MODES = [
   'month-day-year',
   'year-month-day',
 ] as const;
+
+function getNativePickers() {
+  return screen.getAllByTestId('drum-picker-native');
+}
 
 describe('DateDrumPicker', () => {
   beforeEach(() => {
@@ -61,16 +65,28 @@ describe('DateDrumPicker', () => {
     );
   });
 
-  it('allows 29 days in February for leap year', () => {
-    const onChange = jest.fn();
+  it('renders 28 days for February in non-leap year', () => {
     render(
       <DateDrumPicker
         mode="day-month-year"
-        value={{ day: 29, month: 2, year: 2024 }}
-        onChange={onChange}
+        value={{ day: 1, month: 2, year: 2023 }}
+        onChange={() => {}}
       />
     );
-    expect(getLatestNativeDrumPickerProps()).toBeDefined();
+    const dayPicker = getNativePickers()[0];
+    expect(dayPicker.props.items).toHaveLength(28);
+  });
+
+  it('renders 29 days for February in leap year', () => {
+    render(
+      <DateDrumPicker
+        mode="day-month-year"
+        value={{ day: 1, month: 2, year: 2024 }}
+        onChange={() => {}}
+      />
+    );
+    const dayPicker = getNativePickers()[0];
+    expect(dayPicker.props.items).toHaveLength(29);
   });
 
   it('renders short, long, and number month formats', () => {
@@ -87,6 +103,40 @@ describe('DateDrumPicker', () => {
     expect(ru[0]).not.toBe('Jan');
   });
 
+  it('passes ru locale to month column in rendered DateDrumPicker', () => {
+    render(
+      <DateDrumPicker
+        mode="month-year"
+        value={{ month: 1, year: 2024 }}
+        locale="ru"
+        onChange={() => {}}
+      />
+    );
+    const monthPicker = getNativePickers()[0];
+    const items = monthPicker.props.items as string[];
+    expect(items[0]).not.toBe('Jan');
+  });
+
+  it('month-year mode onChange updates month from month column', () => {
+    const onChange = jest.fn();
+    render(
+      <DateDrumPicker
+        mode="month-year"
+        value={{ month: 1, year: 2024 }}
+        onChange={onChange}
+      />
+    );
+    const monthPicker = getNativePickers()[0];
+    act(() => {
+      monthPicker.props.onValueChange?.({
+        nativeEvent: { index: 2, value: 'Mar' },
+      });
+    });
+    expect(onChange).toHaveBeenCalledWith(
+      expect.objectContaining({ month: 3, year: 2024 })
+    );
+  });
+
   it('updates internal state in uncontrolled mode', () => {
     const onChange = jest.fn();
     render(
@@ -97,7 +147,9 @@ describe('DateDrumPicker', () => {
         onChange={onChange}
       />
     );
-    fireNativeDrumPickerChange(0, '2020');
+    act(() => {
+      fireNativeDrumPickerChange(0, '2020');
+    });
     expect(onChange).toHaveBeenCalledWith(
       expect.objectContaining({ year: 2020 })
     );

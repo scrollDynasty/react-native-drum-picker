@@ -36,10 +36,23 @@ using namespace facebook::react;
   return self;
 }
 
+- (void)prepareForRecycle
+{
+  [super prepareForRecycle];
+  _wheelView.wheelDelegate = nil;
+}
+
 - (void)updateProps:(Props::Shared const &)props oldProps:(Props::Shared const &)oldProps
 {
-  const auto &oldViewProps = *std::static_pointer_cast<DrumPickerViewProps const>(_props);
-  const auto &newViewProps = *std::static_pointer_cast<DrumPickerViewProps const>(props);
+  if (_wheelView.wheelDelegate != self) {
+    _wheelView.wheelDelegate = self;
+  }
+
+  const auto &newViewProps = *std::static_pointer_cast<const DrumPickerViewProps const>(props);
+  const auto &oldViewProps =
+      oldProps != nullptr
+          ? *std::static_pointer_cast<const DrumPickerViewProps const>(oldProps)
+          : *std::static_pointer_cast<const DrumPickerViewProps const>(_props);
 
   if (oldViewProps.items != newViewProps.items) {
     NSMutableArray<NSString *> *items = [NSMutableArray arrayWithCapacity:newViewProps.items.size()];

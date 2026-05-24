@@ -9,6 +9,17 @@ import UIKit
   )
 }
 
+private enum DrumPickerDefaults {
+  static let itemHeight: CGFloat = 44
+  static let visibleItemCount: Int = 5
+  static let textSize: CGFloat = 20
+  static let selectedTextSize: CGFloat = 22
+  static let textColor = UIColor(red: 0.556, green: 0.556, blue: 0.576, alpha: 1)
+  static let selectedTextColor = UIColor(red: 0.110, green: 0.110, blue: 0.118, alpha: 1)
+  static let indicatorColor = UIColor(red: 0.820, green: 0.820, blue: 0.839, alpha: 1)
+  static let indicatorHeight: CGFloat = 1
+}
+
 @objc(DrumPickerWheelView)
 public final class DrumPickerWheelView: UIView, UIPickerViewDataSource, UIPickerViewDelegate {
   @objc public weak var wheelDelegate: DrumPickerWheelViewDelegate?
@@ -17,23 +28,24 @@ public final class DrumPickerWheelView: UIView, UIPickerViewDataSource, UIPicker
   private let topIndicator = UIView()
   private let bottomIndicator = UIView()
   private var selectionGenerator: UISelectionFeedbackGenerator?
+  private weak var pickerScrollView: UIScrollView?
 
   private var items: [String] = []
   private var selectedIndex: Int = 0
   private var suppressSelectionEvents = false
+  private var isProgrammaticSelection = false
   private var lastSelectedIndex = -1
 
-  private var itemHeight: CGFloat = 44
-  private var visibleItemCount: Int = 5
-  private var textColor: UIColor = UIColor(red: 0.56, green: 0.56, blue: 0.58, alpha: 1)
-  private var selectedTextColor: UIColor = UIColor(red: 0.11, green: 0.11, blue: 0.12, alpha: 1)
-  private var textSize: CGFloat = 20
-  private var selectedTextSize: CGFloat = 22
+  private var itemHeight: CGFloat = DrumPickerDefaults.itemHeight
+  private var visibleItemCount: Int = DrumPickerDefaults.visibleItemCount
+  private var textColor: UIColor = DrumPickerDefaults.textColor
+  private var selectedTextColor: UIColor = DrumPickerDefaults.selectedTextColor
+  private var textSize: CGFloat = DrumPickerDefaults.textSize
+  private var selectedTextSize: CGFloat = DrumPickerDefaults.selectedTextSize
   private var showSelectionIndicator = true
-  private var selectionIndicatorColor: UIColor = UIColor(red: 0.82, green: 0.82, blue: 0.84, alpha: 1)
-  private var selectionIndicatorHeight: CGFloat = 1
+  private var selectionIndicatorColor: UIColor = DrumPickerDefaults.indicatorColor
+  private var selectionIndicatorHeight: CGFloat = DrumPickerDefaults.indicatorHeight
   private var itemBackgroundColor: UIColor = .clear
-  private var containerBackgroundColor: UIColor = .clear
   private var hapticFeedback = false
 
   public override init(frame: CGRect) {
@@ -64,10 +76,34 @@ public final class DrumPickerWheelView: UIView, UIPickerViewDataSource, UIPicker
     updateIndicators()
   }
 
+  public override func didMoveToWindow() {
+    super.didMoveToWindow()
+    attachScrollHapticObserver()
+  }
+
   public override func layoutSubviews() {
     super.layoutSubviews()
     updatePickerFrame()
     updateIndicators()
+    attachScrollHapticObserver()
+  }
+
+  private func attachScrollHapticObserver() {
+    guard pickerScrollView == nil else { return }
+    for subview in picker.subviews {
+      guard let scrollView = subview as? UIScrollView else { continue }
+      pickerScrollView = scrollView
+      scrollView.panGestureRecognizer.addTarget(
+        self,
+        action: #selector(handlePickerPanBegan(_:))
+      )
+      break
+    }
+  }
+
+  @objc private func handlePickerPanBegan(_ recognizer: UIGestureRecognizer) {
+    guard recognizer.state == .began, hapticFeedback else { return }
+    ensureSelectionGenerator()
   }
 
   private func updatePickerFrame() {
@@ -102,8 +138,18 @@ public final class DrumPickerWheelView: UIView, UIPickerViewDataSource, UIPicker
 
   @objc public func setItems(_ items: [String]) {
     self.items = items
-    picker.reloadAllComponents()
-    applySelectedIndex(selectedIndex, userInitiated: false)
+    performProgrammaticUpdate {
+      self.picker.reloadAllComponents()
+      guard !self.items.isEmpty else {
+        self.selectedIndex = 0
+        self.lastSelectedIndex = -1
+        return
+      }
+      let clamped = min(max(self.selectedIndex, 0), self.items.count - 1)
+      self.selectedIndex = clamped
+      self.picker.selectRow(clamped, inComponent: 0, animated: false)
+      self.lastSelectedIndex = clamped
+    }
   }
 
   @objc public func setSelectedIndex(_ index: Int, animated: Bool) {
@@ -125,22 +171,22 @@ public final class DrumPickerWheelView: UIView, UIPickerViewDataSource, UIPicker
 
   @objc public func setTextColor(_ color: UIColor) {
     textColor = color
-    picker.reloadAllComponents()
+    picker.reloadComponent(0)
   }
 
   @objc public func setSelectedTextColor(_ color: UIColor) {
     selectedTextColor = color
-    picker.reloadAllComponents()
+    picker.reloadComponent(0)
   }
 
   @objc public func setTextSize(_ value: CGFloat) {
     textSize = max(1, value)
-    picker.reloadAllComponents()
+    picker.reloadComponent(0)
   }
 
   @objc public func setSelectedTextSize(_ value: CGFloat) {
     selectedTextSize = max(1, value)
-    picker.reloadAllComponents()
+    picker.reloadComponent(0)
   }
 
   @objc public func setShowSelectionIndicator(_ value: Bool) {
@@ -160,11 +206,11 @@ public final class DrumPickerWheelView: UIView, UIPickerViewDataSource, UIPicker
 
   @objc public func setItemBackgroundColor(_ color: UIColor) {
     itemBackgroundColor = color
-    picker.reloadAllComponents()
+    picker.reloadComponent(0)
   }
 
+  /// UIPickerView has no separate container layer — applied to this UIView's background.
   @objc public func setContainerBackgroundColor(_ color: UIColor) {
-    containerBackgroundColor = color
     backgroundColor = color
   }
 
@@ -183,6 +229,16 @@ public final class DrumPickerWheelView: UIView, UIPickerViewDataSource, UIPicker
     CGSize(width: UIView.noIntrinsicMetric, height: itemHeight * CGFloat(max(visibleItemCount, 1)))
   }
 
+  private func performProgrammaticUpdate(_ block: () -> Void) {
+    isProgrammaticSelection = true
+    suppressSelectionEvents = true
+    block()
+    suppressSelectionEvents = false
+    DispatchQueue.main.async {
+      self.isProgrammaticSelection = false
+    }
+  }
+
   private func applySelectedIndex(
     _ index: Int,
     animated: Bool = false,
@@ -193,17 +249,22 @@ public final class DrumPickerWheelView: UIView, UIPickerViewDataSource, UIPicker
       lastSelectedIndex = -1
       return
     }
+
     let clamped = min(max(index, 0), items.count - 1)
     selectedIndex = clamped
-    suppressSelectionEvents = true
-    picker.selectRow(clamped, inComponent: 0, animated: animated)
-    suppressSelectionEvents = false
+
     if userInitiated {
+      picker.selectRow(clamped, inComponent: 0, animated: animated)
+      picker.reloadComponent(0)
       notifySelection(row: clamped, userInitiated: true)
-    } else {
-      lastSelectedIndex = clamped
+      return
     }
-    picker.reloadAllComponents()
+
+    performProgrammaticUpdate {
+      self.picker.selectRow(clamped, inComponent: 0, animated: animated)
+      self.picker.reloadAllComponents()
+      self.lastSelectedIndex = clamped
+    }
   }
 
   private func notifySelection(row: Int, userInitiated: Bool) {
@@ -267,16 +328,19 @@ public final class DrumPickerWheelView: UIView, UIPickerViewDataSource, UIPicker
   }
 
   public func pickerView(_ pickerView: UIPickerView, didSelectRow row: Int, inComponent component: Int) {
-    selectedIndex = row
-    pickerView.reloadAllComponents()
-    if suppressSelectionEvents {
+    guard !suppressSelectionEvents, !isProgrammaticSelection else {
       lastSelectedIndex = row
+      selectedIndex = row
       return
     }
+
     if row == lastSelectedIndex {
       return
     }
+
+    selectedIndex = row
     lastSelectedIndex = row
+    pickerView.reloadComponent(0)
     notifySelection(row: row, userInitiated: true)
   }
 }

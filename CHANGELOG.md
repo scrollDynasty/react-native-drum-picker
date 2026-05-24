@@ -13,15 +13,36 @@ _No changes yet._
 
 ### Added
 
-- **iOS support** — native `UIPickerView` implementation (Swift + Fabric) with the same props and `onChange` payload as Android.
-- **`hapticFeedback`** prop on `DrumPicker` and `DateDrumPicker` (default `false`) — light selection haptic on snap (Android + iOS).
-- Jest unit tests, snapshot tests, and Android instrumented tests (Espresso).
-- CI: Codecov upload; job names `lint-and-typecheck`, `js-tests`, `android-build`, `ios-build`.
+#### iOS Native Support
+
+- `DrumPicker` and `DateDrumPicker` work on iOS via `UIPickerView` (Swift + Fabric).
+- Full prop parity with the Android implementation and the same `onChange` payload.
+
+#### Tests
+
+- Jest unit and snapshot tests for `DrumPicker` and `DateDrumPicker`.
+- Android instrumented tests (Espresso) for props and programmatic selection.
+
+#### CI/CD
+
+- GitHub Actions: `lint-and-typecheck`, `js-tests`, `android-build`, `ios-build`.
+- Codecov upload and README badges.
+
+#### Haptic Feedback
+
+- New `hapticFeedback` prop (default `false`) on `DrumPicker` and `DateDrumPicker`.
+- Android: `performHapticFeedback` when the centered index changes after scroll idle.
+- iOS: `UISelectionFeedbackGenerator` on user selection.
 
 ### Changed
 
 - Library description and README platform tables: iOS is supported.
 - `DrumPicker` JS wrapper deduplicates `onChange` when the index is unchanged (aligned with native behavior).
+
+### Fixed
+
+- iOS programmatic `selectedIndex` updates no longer emit spurious `onChange` events.
+- CI: CocoaPods cache step and job timeouts for native builds.
 
 ## [0.1.5] - 2026-05-22
 

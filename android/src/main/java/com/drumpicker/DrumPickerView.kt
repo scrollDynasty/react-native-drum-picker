@@ -139,6 +139,7 @@ class DrumPickerView @JvmOverloads constructor(
     items = newItems
     adapter.updateItems(newItems)
     lastEmittedIndex = -1
+    lastHapticIndex = -1
 
     if (items.isEmpty()) {
       selectedIndex = selectedIndex.coerceAtLeast(0)
