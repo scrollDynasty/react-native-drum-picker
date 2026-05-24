@@ -220,7 +220,6 @@ export default function App() {
           <Text style={styles.hint}>Debounced save: {debouncedLog}</Text>
         </View>
       )}
-
     </ScrollView>
   );
 }
