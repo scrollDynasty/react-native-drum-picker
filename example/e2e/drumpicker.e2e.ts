@@ -7,11 +7,17 @@ async function scrollToElement(testID: string) {
     .scroll(200, 'down');
 }
 
+async function openE2eTab() {
+  await waitFor(element(by.text('E2E')))
+    .toBeVisible()
+    .withTimeout(15000);
+  await element(by.text('E2E')).tap();
+}
+
 describe('DrumPicker', () => {
   beforeAll(async () => {
     await device.launchApp({ newInstance: true });
-    await device.reloadReactNative();
-    await element(by.id('tab-e2e')).tap();
+    await openE2eTab();
   });
 
   it('renders the picker on screen', async () => {

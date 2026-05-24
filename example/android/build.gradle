@@ -27,10 +27,17 @@ def detoxAndroidMaven = [
 
 allprojects {
     repositories {
+        if (detoxAndroidMaven != null) {
+            exclusiveContent {
+                forRepository {
+                    maven { url(detoxAndroidMaven) }
+                }
+                filter {
+                    includeGroup("com.wix")
+                }
+            }
+        }
         google()
         mavenCentral()
-        if (detoxAndroidMaven != null) {
-            maven { url(detoxAndroidMaven) }
-        }
     }
 }
