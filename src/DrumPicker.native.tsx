@@ -39,6 +39,7 @@ export function DrumPicker({
   hapticFeedback = DEFAULTS.hapticFeedback,
   onChange,
   style,
+  testID,
 }: DrumPickerProps) {
   const pickerStyle = resolveDrumPickerStyle(
     itemHeight,
@@ -65,6 +66,7 @@ export function DrumPicker({
 
   return (
     <DrumPickerNative
+      {...(testID != null ? { testID } : {})}
       collapsable={false}
       items={items}
       selectedIndex={selectedIndex}

@@ -64,6 +64,7 @@ export type DateDrumPickerProps = {
   style?: StyleProp<ViewStyle>;
   columnStyle?: StyleProp<ViewStyle>;
   columnStyles?: Partial<Record<DateDrumPickerColumnKey, StyleProp<ViewStyle>>>;
+  columnTestIDs?: Partial<Record<DateDrumPickerColumnKey, string>>;
 };
 
 type DateColumnKey = DateDrumPickerColumnKey;
@@ -112,6 +113,7 @@ export function DateDrumPicker({
   style,
   columnStyle,
   columnStyles,
+  columnTestIDs,
 }: DateDrumPickerProps) {
   const currentYear = new Date().getFullYear();
   const { minYear, maxYear } = useMemo(
@@ -215,6 +217,7 @@ export function DateDrumPicker({
         <DrumPicker
           key="day"
           {...sharedPickerProps}
+          testID={columnTestIDs?.day}
           style={columnContainerStyle('day')}
           items={dayItems}
           selectedIndex={Math.min(resolvedValue.day - 1, dayItems.length - 1)}
@@ -235,6 +238,7 @@ export function DateDrumPicker({
         <DrumPicker
           key="month"
           {...sharedPickerProps}
+          testID={columnTestIDs?.month}
           style={columnContainerStyle('month')}
           items={monthItems}
           selectedIndex={resolvedValue.month - 1}
@@ -254,6 +258,7 @@ export function DateDrumPicker({
       <DrumPicker
         key="year"
         {...sharedPickerProps}
+        testID={columnTestIDs?.year}
         style={columnContainerStyle('year')}
         items={yearItems}
         selectedIndex={resolvedValue.year - minYear}

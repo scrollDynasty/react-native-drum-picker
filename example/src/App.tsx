@@ -11,6 +11,7 @@ const VISIBLE_COUNT = 5;
 const PICKER_HEIGHT = ITEM_HEIGHT * VISIBLE_COUNT;
 
 const SIZES = ['Small', 'Medium', 'Large'];
+const WEEK_DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 const HOURS = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, '0'));
 const MINUTES = Array.from({ length: 60 }, (_, i) =>
   String(i).padStart(2, '0')
@@ -40,10 +41,11 @@ function useDebouncedCallback<T extends (...args: never[]) => void>(
 
 export default function App() {
   const [example, setExample] = useState<
-    'basic' | 'time' | 'hw' | 'date' | 'controlled' | 'debounce'
+    'basic' | 'time' | 'hw' | 'date' | 'controlled' | 'debounce' | 'e2e'
   >('basic');
 
   const [sizeIndex, setSizeIndex] = useState(1);
+  const [weekDayIndex, setWeekDayIndex] = useState(0);
   const [hourIndex, setHourIndex] = useState(9);
   const [minuteIndex, setMinuteIndex] = useState(30);
   const [heightIndex, setHeightIndex] = useState(75);
@@ -69,6 +71,7 @@ export default function App() {
         ['date', 'Date'],
         ['controlled', 'Controlled'],
         ['debounce', 'Debounce'],
+        ['e2e', 'E2E'],
       ] as const,
     []
   );
@@ -218,6 +221,64 @@ export default function App() {
           />
           <Text style={styles.value}>UI: {SIZES[sizeIndex]}</Text>
           <Text style={styles.hint}>Debounced save: {debouncedLog}</Text>
+        </View>
+      )}
+
+      {example === 'e2e' && (
+        <View style={styles.section}>
+          <Text style={styles.label}>E2E fixtures</Text>
+          <DrumPicker
+            testID="drum-picker-basic"
+            items={WEEK_DAYS}
+            selectedIndex={weekDayIndex}
+            onChange={(e) => setWeekDayIndex(e.nativeEvent.index)}
+            style={styles.pickerW120}
+          />
+          <Text testID="selected-value-label" style={styles.value}>
+            {WEEK_DAYS[weekDayIndex]}
+          </Text>
+
+          <DateDrumPicker
+            mode="day-month-year"
+            value={date}
+            onChange={setDate}
+            monthFormat="short"
+            columnTestIDs={{
+              day: 'date-picker-day',
+              month: 'date-picker-month',
+              year: 'date-picker-year',
+            }}
+          />
+          <Text testID="date-value-label" style={styles.value}>
+            {`day:${date.day}, month:${date.month}, year:${date.year}`}
+          </Text>
+
+          <DrumPicker
+            testID="drum-picker-controlled"
+            items={SIZES}
+            selectedIndex={controlledIndex}
+            onChange={(e) => setControlledIndex(e.nativeEvent.index)}
+            style={styles.pickerW120}
+          />
+          <Pressable
+            testID="btn-set-index-3"
+            style={styles.button}
+            onPress={() => setControlledIndex(3)}
+          >
+            <Text>Set index 3</Text>
+          </Pressable>
+          <Text testID="controlled-selected-label" style={styles.value}>
+            {String(controlledIndex)}
+          </Text>
+
+          <DrumPicker
+            testID="drum-picker-haptic"
+            hapticFeedback
+            items={WEEK_DAYS}
+            selectedIndex={weekDayIndex}
+            onChange={(e) => setWeekDayIndex(e.nativeEvent.index)}
+            style={styles.pickerW120}
+          />
         </View>
       )}
     </ScrollView>
