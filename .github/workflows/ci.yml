@@ -395,6 +395,16 @@ jobs:
         working-directory: example
         run: npx detox build --configuration ios.sim.debug
 
+      - name: Verify iOS JS bundle is embedded
+        run: |
+          APP=example/ios/build/Build/Products/Release-iphonesimulator/DrumPickerExample.app
+          if [ ! -f "$APP/main.jsbundle" ]; then
+            echo "main.jsbundle missing in $APP"
+            ls -la "$APP" || true
+            exit 1
+          fi
+          echo "main.jsbundle OK ($(wc -c < "$APP/main.jsbundle") bytes)"
+
       - name: Run Detox iOS tests
         working-directory: example
         run: |

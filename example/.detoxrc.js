@@ -10,15 +10,16 @@ module.exports = {
     },
   },
   apps: {
-    'ios.debug': {
+    // Release + embedded bundle (CI has no Metro). Use Debug locally with Metro.
+    'ios.sim': {
       type: 'ios.app',
       binaryPath:
-        'ios/build/Build/Products/Debug-iphonesimulator/DrumPickerExample.app',
+        'ios/build/Build/Products/Release-iphonesimulator/DrumPickerExample.app',
       build:
         'export SKIP_BUNDLING=0 RCT_NO_LAUNCH_PACKAGER=1 && ' +
         'xcodebuild -workspace ios/DrumPickerExample.xcworkspace ' +
         '-scheme DrumPickerExample ' +
-        '-configuration Debug ' +
+        '-configuration Release ' +
         '-sdk iphonesimulator ' +
         '-derivedDataPath ios/build ' +
         'CODE_SIGNING_ALLOWED=NO',
@@ -49,7 +50,7 @@ module.exports = {
   configurations: {
     'ios.sim.debug': {
       device: 'simulator',
-      app: 'ios.debug',
+      app: 'ios.sim',
     },
     'android.emu.debug': {
       device: 'emulator',

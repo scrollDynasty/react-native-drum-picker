@@ -94,6 +94,7 @@ export default function App() {
           <Pressable
             key={key}
             testID={key === 'e2e' ? 'tab-e2e' : undefined}
+            accessibilityLabel={key === 'e2e' ? 'tab-e2e' : undefined}
             onPress={() => setExample(key)}
             style={[styles.tab, example === key && styles.tabActive]}
           >
