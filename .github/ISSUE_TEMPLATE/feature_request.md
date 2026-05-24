@@ -31,4 +31,4 @@ Screenshots, links, or related issues.
 ## Contributing
 
 For large API changes, please wait for maintainer feedback on this issue before opening a PR.  
-When you implement the feature, follow [CONTRIBUTING.md](../../CONTRIBUTING.md) — tests in `src/__tests__/`, native tests under `android/` / `ios/`, and E2E in `example/e2e/` if needed.
+When you implement the feature, follow [CONTRIBUTING.md](../../CONTRIBUTING.md) — tests in `src/__tests__/`, and native tests under `android/` / `ios/` if needed.

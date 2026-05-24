@@ -9,14 +9,8 @@ import {
 const ITEM_HEIGHT = 44;
 const VISIBLE_COUNT = 5;
 const PICKER_HEIGHT = ITEM_HEIGHT * VISIBLE_COUNT;
-/** Compact pickers on the E2E tab so fixtures fit one screen (Detox). */
-const E2E_ITEM_HEIGHT = 36;
-const E2E_VISIBLE_COUNT = 3;
-const E2E_PICKER_HEIGHT = E2E_ITEM_HEIGHT * E2E_VISIBLE_COUNT;
 
 const SIZES = ['Small', 'Medium', 'Large'];
-const CONTROLLED_ITEMS = ['XS', 'S', 'M', 'L', 'XL'];
-const WEEK_DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 const HOURS = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, '0'));
 const MINUTES = Array.from({ length: 60 }, (_, i) =>
   String(i).padStart(2, '0')
@@ -45,19 +39,16 @@ function useDebouncedCallback<T extends (...args: never[]) => void>(
 }
 
 export default function App() {
-  // Default to E2E tab so Detox does not depend on tab bar visibility (CI simulators).
   const [example, setExample] = useState<
-    'basic' | 'time' | 'hw' | 'date' | 'controlled' | 'debounce' | 'e2e'
-  >('e2e');
+    'basic' | 'time' | 'hw' | 'date' | 'controlled' | 'debounce'
+  >('basic');
 
   const [sizeIndex, setSizeIndex] = useState(1);
-  const [weekDayIndex, setWeekDayIndex] = useState(0);
   const [hourIndex, setHourIndex] = useState(9);
   const [minuteIndex, setMinuteIndex] = useState(30);
   const [heightIndex, setHeightIndex] = useState(75);
   const [weightIndex, setWeightIndex] = useState(90);
   const [controlledIndex, setControlledIndex] = useState(2);
-  const [e2eControlledIndex, setE2eControlledIndex] = useState(2);
   const [debouncedLog, setDebouncedLog] = useState('—');
   const [date, setDate] = useState<DateDrumPickerValue>({
     day: 10,
@@ -78,15 +69,12 @@ export default function App() {
         ['date', 'Date'],
         ['controlled', 'Controlled'],
         ['debounce', 'Debounce'],
-        ['e2e', 'E2E'],
       ] as const,
     []
   );
 
   return (
     <ScrollView
-      testID="app-scroll"
-      collapsable={false}
       contentContainerStyle={styles.scroll}
       keyboardShouldPersistTaps="handled"
     >
@@ -95,8 +83,6 @@ export default function App() {
         {tabs.map(([key, label]) => (
           <Pressable
             key={key}
-            testID={key === 'e2e' ? 'tab-e2e' : undefined}
-            accessibilityLabel={key === 'e2e' ? 'tab-e2e' : undefined}
             onPress={() => setExample(key)}
             style={[styles.tab, example === key && styles.tabActive]}
           >
@@ -235,74 +221,6 @@ export default function App() {
         </View>
       )}
 
-      {example === 'e2e' && (
-        <View testID="e2e-screen" collapsable={false} style={styles.e2eScreen}>
-          <Text testID="e2e-heading" style={styles.label}>
-            E2E fixtures
-          </Text>
-          <DrumPicker
-            testID="drum-picker-basic"
-            items={WEEK_DAYS}
-            selectedIndex={weekDayIndex}
-            itemHeight={E2E_ITEM_HEIGHT}
-            visibleItemCount={E2E_VISIBLE_COUNT}
-            onChange={(e) => setWeekDayIndex(e.nativeEvent.index)}
-            style={styles.pickerE2E}
-          />
-          <Text testID="selected-value-label" style={styles.value}>
-            {WEEK_DAYS[weekDayIndex]}
-          </Text>
-
-          <DrumPicker
-            testID="drum-picker-controlled"
-            items={CONTROLLED_ITEMS}
-            selectedIndex={e2eControlledIndex}
-            itemHeight={E2E_ITEM_HEIGHT}
-            visibleItemCount={E2E_VISIBLE_COUNT}
-            onChange={(e) => setE2eControlledIndex(e.nativeEvent.index)}
-            style={styles.pickerE2E}
-          />
-          <Pressable
-            testID="btn-set-index-3"
-            style={styles.button}
-            onPress={() => setE2eControlledIndex(3)}
-          >
-            <Text>Set index 3</Text>
-          </Pressable>
-          <Text testID="controlled-selected-label" style={styles.value}>
-            {CONTROLLED_ITEMS[e2eControlledIndex]}
-          </Text>
-
-          <DrumPicker
-            testID="drum-picker-haptic"
-            hapticFeedback
-            items={WEEK_DAYS}
-            selectedIndex={weekDayIndex}
-            itemHeight={E2E_ITEM_HEIGHT}
-            visibleItemCount={E2E_VISIBLE_COUNT}
-            onChange={(e) => setWeekDayIndex(e.nativeEvent.index)}
-            style={styles.pickerE2E}
-          />
-
-          <DateDrumPicker
-            mode="day-month-year"
-            value={date}
-            onChange={setDate}
-            monthFormat="short"
-            itemHeight={E2E_ITEM_HEIGHT}
-            visibleItemCount={E2E_VISIBLE_COUNT}
-            columnStyle={styles.pickerE2EColumn}
-            columnTestIDs={{
-              day: 'date-picker-day',
-              month: 'date-picker-month',
-              year: 'date-picker-year',
-            }}
-          />
-          <Text testID="date-value-label" style={styles.value}>
-            {`day:${date.day}, month:${date.month}, year:${date.year}`}
-          </Text>
-        </View>
-      )}
     </ScrollView>
   );
 }
@@ -314,11 +232,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     backgroundColor: '#F2F2F7',
     alignItems: 'center',
-  },
-  e2eScreen: {
-    width: '100%',
-    alignItems: 'center',
-    paddingBottom: 24,
   },
   title: {
     fontSize: 18,
@@ -406,12 +319,5 @@ const styles = StyleSheet.create({
   pickerW120: {
     width: 120,
     height: PICKER_HEIGHT,
-  },
-  pickerE2E: {
-    width: 120,
-    height: E2E_PICKER_HEIGHT,
-  },
-  pickerE2EColumn: {
-    height: E2E_PICKER_HEIGHT,
   },
 });

@@ -38,11 +38,10 @@ You do **not** need to run every CI job locally. At minimum, run lint, build, an
 | [`android/src/androidTest/`](./android/src/androidTest/) | Android instrumented (Espresso) tests | Native behavior you want verified on device |
 | [`ios/`](./ios/) | iOS native view (Swift) | Native iOS changes |
 | [`ios/DrumPickerTests/`](./ios/DrumPickerTests/) | iOS unit (XCTest) tests | Native iOS behavior |
-| [`example/`](./example/) | Demo React Native app (workspaces) | UI demos, manual QA, **E2E fixtures** |
-| [`example/e2e/`](./example/e2e/) | Detox end-to-end tests | Flows that need a full app |
+| [`example/`](./example/) | Demo React Native app (workspaces) | UI demos, manual QA |
 | [`.github/workflows/ci.yml`](./.github/workflows/ci.yml) | CI pipeline | Only when changing **how** CI runs |
 
-**Rule of thumb:** library code and tests live in the **package root** (`src/`, `android/`, `ios/`). Demo labels, tabs, and E2E-only UI stay in **`example/`** — do not hardcode sample data in `src/` or native library sources.
+**Rule of thumb:** library code and tests live in the **package root** (`src/`, `android/`, `ios/`). Demo labels and tabs stay in **`example/`** — do not hardcode sample data in `src/` or native library sources.
 
 ## Project setup
 
@@ -73,7 +72,7 @@ bundle exec pod install
 - `src/` — Metro Fast Refresh in the example app (or reload).
 - `android/` or `ios/` — rebuild the example app (`yarn android` / `yarn ios`).
 
-See [example/README.md](./example/README.md) for the demo tabs and E2E tab.
+See [example/README.md](./example/README.md) for the demo tabs.
 
 ## Development workflow
 
@@ -96,11 +95,9 @@ Every PR and push to `main` triggers the [**CI** workflow](https://github.com/sc
 | `ios-build` | Build iOS / pods | Fix Swift / pod errors |
 | `android-instrumented` | Espresso on emulator | Add `*Test.kt` under `android/src/androidTest/` |
 | `ios-unit-tests` | XCTest via CocoaPods test spec | Add `*.swift` under `ios/DrumPickerTests/` |
-| `detox-android` | Detox on Android emulator | Add `example/e2e/*.e2e.ts` + UI in example app |
-| `detox-ios` | Detox on iOS simulator | Same as Android E2E |
 | `all-checks-passed` | Gate — all above must be green | — |
 
-**When you do *not* need to edit CI:** new Jest files, new Espresso/XCTest files, new Detox specs in `example/e2e/`, or example-only UI — CI discovers them automatically.
+**When you do *not* need to edit CI:** new Jest files, new Espresso/XCTest files, or example-only UI — CI discovers them automatically.
 
 **When you *do* need to edit CI:** new job type, different Gradle task, new emulator/OS version, or new package that requires install steps in the workflow.
 
@@ -111,13 +108,6 @@ Every PR and push to `main` triggers the [**CI** workflow](https://github.com/sc
 | TypeScript API / logic | `src/__tests__/**/*.test.ts(x)` | `js-tests` |
 | Android native view | `android/src/androidTest/java/com/drumpicker/*Test.kt` | `android-instrumented` |
 | iOS native view | `ios/DrumPickerTests/*.swift` | `ios-unit-tests` |
-| Full app flow (RN + native together) | `example/e2e/*.e2e.ts` + `testID`s on **E2E** tab in `example/src/App.tsx` | `detox-android`, `detox-ios` |
-
-**Detox notes:**
-
-- New `*.e2e.ts` files under `example/e2e/` are picked up by Jest `testMatch` in `example/e2e/jest.config.js`.
-- The example app opens the **E2E** tab by default for automation; add `testID` props for anything Detox must tap or scroll to.
-- Do not put E2E-only business logic in `src/` — keep fixtures in `example/`.
 
 **Android instrumented notes:**
 
@@ -147,11 +137,6 @@ cd example/android
 # iOS unit tests (macOS)
 cd example/ios
 bundle exec pod lib lint ../../DrumPicker.podspec --test-specs=Tests --platforms=ios --allow-warnings
-
-# Detox (after building)
-cd example
-yarn build:e2e:android && yarn test:e2e:android
-yarn build:e2e:ios && yarn test:e2e:ios
 ```
 
 ## How CI checks your work (plain overview)
@@ -162,7 +147,6 @@ Think of CI as **layers**, from fast to slow:
 2. **Jest** — Does the TypeScript API behave as expected in Node (with mocks)? Fast, no emulator.
 3. **Native compile** — Do Android and iOS native projects still build?
 4. **Native unit tests** — Android Espresso and iOS XCTest run the **native view only** (scroll, props, selection) on emulators/simulators.
-5. **Detox E2E** — Builds the **example app**, installs it on a simulator/emulator, and drives the UI like a user (tap, scroll, wait for labels). This catches integration issues between JS and native.
 
 GitHub runs these jobs on a clean machine with your PR branch. If you add `src/__tests__/MyFeature.test.tsx`, job `js-tests` runs it automatically — no YAML change.
 
