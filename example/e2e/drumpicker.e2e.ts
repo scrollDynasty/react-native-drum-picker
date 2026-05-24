@@ -1,40 +1,46 @@
 import { device, element, by, expect, waitFor } from 'detox';
 
-const SCROLL_STEP = 150;
-const SCROLL_ATTEMPTS = 10;
+async function waitForE2eScreen() {
+  await waitFor(element(by.id('e2e-screen')))
+    .toBeVisible()
+    .withTimeout(60000);
+  await waitFor(element(by.id('drum-picker-basic')))
+    .toBeVisible()
+    .withTimeout(10000);
+}
 
-async function scrollToElement(
-  testID: string,
-  direction: 'down' | 'up' = 'down'
-) {
+async function scrollAppTo(position: 'top' | 'bottom') {
+  await element(by.id('app-scroll')).scrollTo(position);
+}
+
+async function scrollToElement(testID: string) {
   const target = element(by.id(testID));
-  for (let attempt = 0; attempt < SCROLL_ATTEMPTS; attempt += 1) {
-    try {
-      await waitFor(target).toBeVisible().withTimeout(1500);
-      return;
-    } catch {
-      await element(by.id('e2e-scroll')).scroll(SCROLL_STEP, direction);
-    }
+  try {
+    await waitFor(target).toBeVisible().withTimeout(2000);
+    return;
+  } catch {
+    // Fall through — element may be below the fold on smaller screens.
   }
-  await waitFor(target).toBeVisible().withTimeout(5000);
+  await scrollAppTo('bottom');
+  await waitFor(target).toBeVisible().withTimeout(10000);
 }
 
 describe('DrumPicker', () => {
   beforeAll(async () => {
     await device.launchApp({ newInstance: true });
     try {
-      await waitFor(element(by.id('drum-picker-basic')))
-        .toBeVisible()
-        .withTimeout(60000);
+      await waitForE2eScreen();
     } catch {
       await waitFor(element(by.id('tab-e2e')))
         .toBeVisible()
         .withTimeout(10000);
       await element(by.id('tab-e2e')).tap();
-      await waitFor(element(by.id('drum-picker-basic')))
-        .toBeVisible()
-        .withTimeout(30000);
+      await waitForE2eScreen();
     }
+  });
+
+  beforeEach(async () => {
+    await scrollAppTo('top');
   });
 
   it('renders the picker on screen', async () => {
@@ -66,7 +72,9 @@ describe('DrumPicker', () => {
   });
 
   it('controlled selectedIndex updates picker position', async () => {
-    await scrollToElement('btn-set-index-3');
+    await waitFor(element(by.id('btn-set-index-3')))
+      .toBeVisible()
+      .withTimeout(5000);
     await element(by.id('btn-set-index-3')).tap();
     await waitFor(element(by.id('controlled-selected-label')))
       .toHaveText('L')
@@ -74,7 +82,9 @@ describe('DrumPicker', () => {
   });
 
   it('hapticFeedback prop does not crash', async () => {
-    await scrollToElement('drum-picker-haptic');
+    await waitFor(element(by.id('drum-picker-haptic')))
+      .toBeVisible()
+      .withTimeout(5000);
     const picker = element(by.id('drum-picker-haptic'));
     await picker.scroll(80, 'down');
     await expect(picker).toBeVisible();

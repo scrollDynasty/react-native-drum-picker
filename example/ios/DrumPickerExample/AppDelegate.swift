@@ -39,10 +39,14 @@ class ReactNativeDelegate: RCTDefaultReactNativeFactoryDelegate {
   }
 
   override func bundleURL() -> URL? {
+    // Prefer an embedded bundle when present (Detox / CI Debug builds with SKIP_BUNDLING=0).
+    if let bundled = Bundle.main.url(forResource: "main", withExtension: "jsbundle") {
+      return bundled
+    }
 #if DEBUG
-    RCTBundleURLProvider.sharedSettings().jsBundleURL(forBundleRoot: "index")
+    return RCTBundleURLProvider.sharedSettings().jsBundleURL(forBundleRoot: "index")
 #else
-    Bundle.main.url(forResource: "main", withExtension: "jsbundle")
+    return Bundle.main.url(forResource: "main", withExtension: "jsbundle")
 #endif
   }
 }

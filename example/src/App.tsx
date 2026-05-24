@@ -9,6 +9,9 @@ import {
 const ITEM_HEIGHT = 44;
 const VISIBLE_COUNT = 5;
 const PICKER_HEIGHT = ITEM_HEIGHT * VISIBLE_COUNT;
+/** Compact pickers on the E2E tab so fixtures fit one screen (Detox). */
+const E2E_ITEM_HEIGHT = 36;
+const E2E_VISIBLE_COUNT = 3;
 
 const SIZES = ['Small', 'Medium', 'Large'];
 const CONTROLLED_ITEMS = ['XS', 'S', 'M', 'L', 'XL'];
@@ -81,6 +84,7 @@ export default function App() {
 
   return (
     <ScrollView
+      testID="app-scroll"
       contentContainerStyle={styles.scroll}
       keyboardShouldPersistTaps="handled"
     >
@@ -229,67 +233,71 @@ export default function App() {
       )}
 
       {example === 'e2e' && (
-        <ScrollView
-          testID="e2e-scroll"
-          contentContainerStyle={styles.e2eScroll}
-          keyboardShouldPersistTaps="handled"
-        >
-          <View style={styles.section}>
-            <Text style={styles.label}>E2E fixtures</Text>
-            <DrumPicker
-              testID="drum-picker-basic"
-              items={WEEK_DAYS}
-              selectedIndex={weekDayIndex}
-              onChange={(e) => setWeekDayIndex(e.nativeEvent.index)}
-              style={styles.pickerW120}
-            />
-            <Text testID="selected-value-label" style={styles.value}>
-              {WEEK_DAYS[weekDayIndex]}
-            </Text>
+        <View testID="e2e-screen" style={styles.e2eScreen}>
+          <Text testID="e2e-heading" style={styles.label}>
+            E2E fixtures
+          </Text>
+          <DrumPicker
+            testID="drum-picker-basic"
+            items={WEEK_DAYS}
+            selectedIndex={weekDayIndex}
+            itemHeight={E2E_ITEM_HEIGHT}
+            visibleItemCount={E2E_VISIBLE_COUNT}
+            onChange={(e) => setWeekDayIndex(e.nativeEvent.index)}
+            style={styles.pickerW120}
+          />
+          <Text testID="selected-value-label" style={styles.value}>
+            {WEEK_DAYS[weekDayIndex]}
+          </Text>
 
-            <DrumPicker
-              testID="drum-picker-controlled"
-              items={CONTROLLED_ITEMS}
-              selectedIndex={e2eControlledIndex}
-              onChange={(e) => setE2eControlledIndex(e.nativeEvent.index)}
-              style={styles.pickerW120}
-            />
-            <Pressable
-              testID="btn-set-index-3"
-              style={styles.button}
-              onPress={() => setE2eControlledIndex(3)}
-            >
-              <Text>Set index 3</Text>
-            </Pressable>
-            <Text testID="controlled-selected-label" style={styles.value}>
-              {CONTROLLED_ITEMS[e2eControlledIndex]}
-            </Text>
+          <DrumPicker
+            testID="drum-picker-controlled"
+            items={CONTROLLED_ITEMS}
+            selectedIndex={e2eControlledIndex}
+            itemHeight={E2E_ITEM_HEIGHT}
+            visibleItemCount={E2E_VISIBLE_COUNT}
+            onChange={(e) => setE2eControlledIndex(e.nativeEvent.index)}
+            style={styles.pickerW120}
+          />
+          <Pressable
+            testID="btn-set-index-3"
+            style={styles.button}
+            onPress={() => setE2eControlledIndex(3)}
+          >
+            <Text>Set index 3</Text>
+          </Pressable>
+          <Text testID="controlled-selected-label" style={styles.value}>
+            {CONTROLLED_ITEMS[e2eControlledIndex]}
+          </Text>
 
-            <DrumPicker
-              testID="drum-picker-haptic"
-              hapticFeedback
-              items={WEEK_DAYS}
-              selectedIndex={weekDayIndex}
-              onChange={(e) => setWeekDayIndex(e.nativeEvent.index)}
-              style={styles.pickerW120}
-            />
+          <DrumPicker
+            testID="drum-picker-haptic"
+            hapticFeedback
+            items={WEEK_DAYS}
+            selectedIndex={weekDayIndex}
+            itemHeight={E2E_ITEM_HEIGHT}
+            visibleItemCount={E2E_VISIBLE_COUNT}
+            onChange={(e) => setWeekDayIndex(e.nativeEvent.index)}
+            style={styles.pickerW120}
+          />
 
-            <DateDrumPicker
-              mode="day-month-year"
-              value={date}
-              onChange={setDate}
-              monthFormat="short"
-              columnTestIDs={{
-                day: 'date-picker-day',
-                month: 'date-picker-month',
-                year: 'date-picker-year',
-              }}
-            />
-            <Text testID="date-value-label" style={styles.value}>
-              {`day:${date.day}, month:${date.month}, year:${date.year}`}
-            </Text>
-          </View>
-        </ScrollView>
+          <DateDrumPicker
+            mode="day-month-year"
+            value={date}
+            onChange={setDate}
+            monthFormat="short"
+            itemHeight={E2E_ITEM_HEIGHT}
+            visibleItemCount={E2E_VISIBLE_COUNT}
+            columnTestIDs={{
+              day: 'date-picker-day',
+              month: 'date-picker-month',
+              year: 'date-picker-year',
+            }}
+          />
+          <Text testID="date-value-label" style={styles.value}>
+            {`day:${date.day}, month:${date.month}, year:${date.year}`}
+          </Text>
+        </View>
       )}
     </ScrollView>
   );
@@ -303,10 +311,10 @@ const styles = StyleSheet.create({
     backgroundColor: '#F2F2F7',
     alignItems: 'center',
   },
-  e2eScroll: {
-    flexGrow: 1,
+  e2eScreen: {
+    width: '100%',
     alignItems: 'center',
-    paddingBottom: 48,
+    paddingBottom: 24,
   },
   title: {
     fontSize: 18,
