@@ -27,5 +27,12 @@
     "target": "ESNext",
     "verbatimModuleSyntax": true
   },
-  "exclude": ["node_modules", "lib", "example", "src/**/__tests__"]
+  "exclude": [
+    "node_modules",
+    "lib",
+    "example",
+    "src/**/__tests__",
+    "src/**/__mocks__",
+    "jest.setup.ts"
+  ]
 }

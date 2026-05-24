@@ -1,11 +1,14 @@
 # react-native-drum-picker
 
+[![CI](https://github.com/scrollDynasty/react-native-drum-picker/actions/workflows/ci.yml/badge.svg)](https://github.com/scrollDynasty/react-native-drum-picker/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/gh/scrollDynasty/react-native-drum-picker/badge.svg)](https://codecov.io/gh/scrollDynasty/react-native-drum-picker)
 [![npm version](https://img.shields.io/npm/v/react-native-drum-picker.svg)](https://www.npmjs.com/package/react-native-drum-picker)
 [![license](https://img.shields.io/github/license/scrollDynasty/react-native-drum-picker.svg)](https://github.com/scrollDynasty/react-native-drum-picker/blob/main/LICENSE)
-[![platform](https://img.shields.io/badge/platform-Android-3DDC84.svg)](https://reactnative.dev)
+[![platform - android](https://img.shields.io/badge/platform-Android-3DDC84.svg)](https://reactnative.dev)
+[![platform - ios](https://img.shields.io/badge/platform-iOS-000000.svg)](https://reactnative.dev)
 [![React Native](https://img.shields.io/badge/React%20Native-%E2%89%A50.76-61DAFB.svg)](https://reactnative.dev)
 
-A smooth **Android-native** iOS-style drum/wheel picker for React Native (Fabric / New Architecture).
+A smooth **cross-platform native** iOS-style drum/wheel picker for React Native (Fabric / New Architecture).
 
 ## Preview
 
@@ -15,7 +18,8 @@ A smooth **Android-native** iOS-style drum/wheel picker for React Native (Fabric
 
 ## Features
 
-- Android-native implementation (Kotlin + `RecyclerView`)
+- Android native implementation (Kotlin + `RecyclerView`)
+- iOS native implementation (Swift + `UIPickerView`)
 - iOS-style wheel / drum picker with smooth snapping
 - Center selection indicator (optional)
 - Transparent background by default
@@ -34,19 +38,11 @@ yarn add react-native-drum-picker
 npm install react-native-drum-picker
 ```
 
-This package includes **native Android code**. Rebuild your app after installing:
+This package includes **native Android and iOS code**. Rebuild your app after installing:
 
 ```sh
-cd android && ./gradlew clean && cd ..
-npx react-native run-android
-```
-
-On Windows:
-
-```sh
-cd android
-.\gradlew clean
-cd ..
+npx pod-install
+npx react-native run-ios
 npx react-native run-android
 ```
 
@@ -55,7 +51,7 @@ npx react-native run-android
 | Platform | Status |
 |----------|--------|
 | Android | Supported |
-| iOS | Not supported yet |
+| iOS | Supported |
 | Web | Not supported |
 
 Requires **React Native 0.76+** with the **New Architecture** enabled.
@@ -67,8 +63,8 @@ Requires **React Native 0.76+** with the **New Architecture** enabled.
 | React Native New Architecture | **Required** |
 | Fabric | **Required** |
 | Android | Supported |
-| iOS | **Not supported yet** |
-| Expo Go | **Not supported** (native Android library) |
+| iOS | Supported |
+| Expo Go | **Not supported** (native library) |
 | Expo SDK 54 + dev build / prebuild | Tested |
 | `react-native-screens` navigation | Tested (use **0.1.4+** for detach safety) |
 
@@ -235,6 +231,7 @@ Day count follows month/year (e.g. February has 28/29 days).
 | `showSelectionIndicator` | `boolean` | `true` | Center lines |
 | `selectionIndicatorColor` | `string` | `#D1D1D6` | Line color |
 | `selectionIndicatorHeight` | `number` | `1` | Line thickness (dp) |
+| `hapticFeedback` | `boolean` | `false` | Light haptic on snap (Android + iOS) |
 | `onChange` | `function` | — | `nativeEvent: { index, value }` |
 | `style` | `ViewStyle` | — | Size and layout |
 
@@ -261,6 +258,7 @@ Day count follows month/year (e.g. February has 28/29 days).
 | `backgroundColor` | `string` | `transparent` | Passed to each column |
 | `itemBackgroundColor` | `string` | `transparent` | Passed to each column |
 | `containerBackgroundColor` | `string` | `transparent` | Passed to each column |
+| `hapticFeedback` | `boolean` | `false` | Passed to each column |
 | `style` | `ViewStyle` | — | Row container |
 | `columnStyle` | `ViewStyle` | — | All columns |
 | `columnStyles` | `object` | — | Per column: `day`, `month`, `year` |

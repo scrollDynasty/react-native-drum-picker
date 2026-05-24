@@ -1,6 +1,8 @@
+import { useCallback, useEffect, useRef } from 'react';
+import type { NativeSyntheticEvent } from 'react-native';
 import DrumPickerNative from './DrumPickerViewNativeComponent';
 import { resolveDrumPickerStyle } from './drumPickerLayout';
-import type { DrumPickerProps } from './types';
+import type { DrumPickerChangeEvent, DrumPickerProps } from './types';
 
 const DEFAULTS = {
   selectedIndex: 0,
@@ -16,6 +18,7 @@ const DEFAULTS = {
   backgroundColor: 'transparent',
   itemBackgroundColor: 'transparent',
   containerBackgroundColor: 'transparent',
+  hapticFeedback: false,
 } as const;
 
 export function DrumPicker({
@@ -33,6 +36,7 @@ export function DrumPicker({
   backgroundColor = DEFAULTS.backgroundColor,
   itemBackgroundColor = DEFAULTS.itemBackgroundColor,
   containerBackgroundColor = DEFAULTS.containerBackgroundColor,
+  hapticFeedback = DEFAULTS.hapticFeedback,
   onChange,
   style,
 }: DrumPickerProps) {
@@ -40,6 +44,23 @@ export function DrumPicker({
     itemHeight,
     visibleItemCount,
     style
+  );
+
+  const lastEmittedIndexRef = useRef(selectedIndex);
+  useEffect(() => {
+    lastEmittedIndexRef.current = selectedIndex;
+  }, [selectedIndex]);
+
+  const handleValueChange = useCallback(
+    (event: NativeSyntheticEvent<DrumPickerChangeEvent>) => {
+      const index = event.nativeEvent.index;
+      if (index === lastEmittedIndexRef.current) {
+        return;
+      }
+      lastEmittedIndexRef.current = index;
+      onChange?.(event);
+    },
+    [onChange]
   );
 
   return (
@@ -59,7 +80,8 @@ export function DrumPicker({
       backgroundColor={backgroundColor}
       itemBackgroundColor={itemBackgroundColor}
       containerBackgroundColor={containerBackgroundColor}
-      onValueChange={onChange}
+      hapticFeedback={hapticFeedback}
+      onValueChange={handleValueChange}
       style={pickerStyle}
     />
   );

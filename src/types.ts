@@ -20,6 +20,7 @@ export type DrumPickerProps = {
   backgroundColor?: string;
   itemBackgroundColor?: string;
   containerBackgroundColor?: string;
+  hapticFeedback?: boolean;
   onChange?: (event: NativeSyntheticEvent<DrumPickerChangeEvent>) => void;
   style?: StyleProp<ViewStyle>;
 };

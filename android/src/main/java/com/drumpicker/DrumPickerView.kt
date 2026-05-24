@@ -2,6 +2,8 @@ package com.drumpicker
 
 import android.content.Context
 import android.graphics.Color
+import android.os.Build
+import android.view.HapticFeedbackConstants
 import android.util.AttributeSet
 import android.view.View
 import android.widget.FrameLayout
@@ -43,8 +45,10 @@ class DrumPickerView @JvmOverloads constructor(
   private var backgroundColor = DrumPickerDefaults.TRANSPARENT
   private var containerBackgroundColor = DrumPickerDefaults.TRANSPARENT
   private var itemBackgroundColor = DrumPickerDefaults.TRANSPARENT
+  private var hapticFeedback = false
 
   private var itemHeightPx = dpToPx(itemHeightDp)
+  private var lastHapticIndex = -1
   private var selectionIndicatorHeightPx = dpToPx(selectionIndicatorHeightDp)
   private var lastEmittedIndex = -1
   private var suppressChangeEvent = false
@@ -215,6 +219,10 @@ class DrumPickerView @JvmOverloads constructor(
   fun setItemBackgroundColorProp(value: Any?) {
     itemBackgroundColor = resolveBackgroundColor(value, itemBackgroundColor)
     applyBackgroundColors()
+  }
+
+  fun setHapticFeedbackProp(value: Any?) {
+    hapticFeedback = value as? Boolean ?: false
   }
 
   override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
@@ -500,7 +508,23 @@ class DrumPickerView @JvmOverloads constructor(
 
     selectedIndex = centerIndex
     updateVisibleItemStyles()
+    maybePerformHaptic(centerIndex)
     maybeEmitChange(centerIndex)
+  }
+
+  private fun maybePerformHaptic(index: Int) {
+    if (!hapticFeedback || !isLifecycleActive() || index < 0) {
+      return
+    }
+    if (index == lastHapticIndex) {
+      return
+    }
+    lastHapticIndex = index
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+      performHapticFeedback(HapticFeedbackConstants.TEXT_HANDLE_MOVE)
+    } else {
+      performHapticFeedback(HapticFeedbackConstants.CLOCK_TICK)
+    }
   }
 
   private fun findSnapCenterIndex(): Int {

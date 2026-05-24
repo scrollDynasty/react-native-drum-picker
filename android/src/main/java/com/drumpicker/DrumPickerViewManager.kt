@@ -40,6 +40,7 @@ class DrumPickerViewManager :
         "backgroundColor" -> view.setBackgroundColorProp(value)
         "containerBackgroundColor" -> view.setContainerBackgroundColorProp(value)
         "itemBackgroundColor" -> view.setItemBackgroundColorProp(value)
+        "hapticFeedback" -> view.setHapticFeedbackProp(value)
         else -> delegate.setProperty(view, key, value)
       }
     }
@@ -100,6 +101,10 @@ class DrumPickerViewManager :
 
   override fun setItemBackgroundColor(view: DrumPickerView?, value: Int?) {
     view?.setItemBackgroundColorProp(value)
+  }
+
+  override fun setHapticFeedback(view: DrumPickerView?, value: Boolean) {
+    view?.setHapticFeedbackProp(value)
   }
 
   companion object {

@@ -1,0 +1,37 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`DrumPicker snapshots matches default render 1`] = `
+<View
+  backgroundColor="transparent"
+  collapsable={false}
+  containerBackgroundColor="transparent"
+  hapticFeedback={false}
+  itemBackgroundColor="transparent"
+  itemHeight={44}
+  items={
+    [
+      "One",
+      "Two",
+      "Three",
+    ]
+  }
+  onValueChange={[Function]}
+  selectedIndex={0}
+  selectedTextColor="#1C1C1E"
+  selectedTextSize={22}
+  selectionIndicatorColor="#D1D1D6"
+  selectionIndicatorHeight={1}
+  showSelectionIndicator={true}
+  style={
+    {
+      "height": 220,
+      "minHeight": 220,
+      "minWidth": 64,
+    }
+  }
+  testID="drum-picker-native"
+  textColor="#8E8E93"
+  textSize={20}
+  visibleItemCount={5}
+/>
+`;

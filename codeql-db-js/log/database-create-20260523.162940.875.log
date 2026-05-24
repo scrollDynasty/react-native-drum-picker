@@ -1,0 +1,377 @@
+[2026-05-23 16:29:40] This is codeql database create .\codeql-db-js --language=javascript-typescript --source-root=.
+[2026-05-23 16:29:40] Log file was started late.
+[2026-05-23 16:29:40] [PROGRESS] database create> Initializing database at C:\Users\ymaru\prj\react-native-drum-picker\codeql-db-js.
+[2026-05-23 16:29:40] Running plumbing command: codeql database init --language=javascript-typescript --extractor-options-verbosity=1 --qlconfig-file=C:\Users\ymaru\prj\react-native-drum-picker\qlconfig.yml --source-root=C:\Users\ymaru\prj\react-native-drum-picker --allow-missing-source-root=false --allow-already-existing -- C:\Users\ymaru\prj\react-native-drum-picker\codeql-db-js
+[2026-05-23 16:29:40] Calling plumbing command: codeql resolve languages --extractor-options-verbosity=1 --format=betterjson
+[2026-05-23 16:29:41] [DETAILS] resolve languages> Scanning for [codeql-extractor.yml] from C:\Tools\codeql\.codeqlmanifest.json
+[2026-05-23 16:29:41] [DETAILS] resolve languages> Parsing C:\Tools\codeql\actions\codeql-extractor.yml.
+[2026-05-23 16:29:41] [DETAILS] resolve languages> Parsing C:\Tools\codeql\cpp\codeql-extractor.yml.
+[2026-05-23 16:29:41] [DETAILS] resolve languages> Parsing C:\Tools\codeql\csharp\codeql-extractor.yml.
+[2026-05-23 16:29:41] [DETAILS] resolve languages> Parsing C:\Tools\codeql\csv\codeql-extractor.yml.
+[2026-05-23 16:29:41] [DETAILS] resolve languages> Parsing C:\Tools\codeql\go\codeql-extractor.yml.
+[2026-05-23 16:29:41] [DETAILS] resolve languages> Parsing C:\Tools\codeql\html\codeql-extractor.yml.
+[2026-05-23 16:29:41] [DETAILS] resolve languages> Parsing C:\Tools\codeql\java\codeql-extractor.yml.
+[2026-05-23 16:29:41] [DETAILS] resolve languages> Parsing C:\Tools\codeql\javascript\codeql-extractor.yml.
+[2026-05-23 16:29:41] [DETAILS] resolve languages> Parsing C:\Tools\codeql\properties\codeql-extractor.yml.
+[2026-05-23 16:29:41] [DETAILS] resolve languages> Parsing C:\Tools\codeql\python\codeql-extractor.yml.
+[2026-05-23 16:29:41] [DETAILS] resolve languages> Parsing C:\Tools\codeql\ruby\codeql-extractor.yml.
+[2026-05-23 16:29:41] [DETAILS] resolve languages> Parsing C:\Tools\codeql\rust\codeql-extractor.yml.
+[2026-05-23 16:29:41] [DETAILS] resolve languages> Parsing C:\Tools\codeql\swift\codeql-extractor.yml.
+[2026-05-23 16:29:41] [DETAILS] resolve languages> Parsing C:\Tools\codeql\xml\codeql-extractor.yml.
+[2026-05-23 16:29:41] [DETAILS] resolve languages> Parsing C:\Tools\codeql\yaml\codeql-extractor.yml.
+[2026-05-23 16:29:41] Plumbing command codeql resolve languages completed:
+                      {
+                        "aliases" : {
+                          "c" : "cpp",
+                          "c++" : "cpp",
+                          "c-c++" : "cpp",
+                          "c-cpp" : "cpp",
+                          "c#" : "csharp",
+                          "java-kotlin" : "java",
+                          "kotlin" : "java",
+                          "javascript-typescript" : "javascript",
+                          "typescript" : "javascript"
+                        },
+                        "extractors" : {
+                          "actions" : [
+                            {
+                              "extractor_root" : "C:\\Tools\\codeql\\actions",
+                              "extractor_options" : { }
+                            }
+                          ],
+                          "cpp" : [
+                            {
+                              "extractor_root" : "C:\\Tools\\codeql\\cpp",
+                              "extractor_options" : {
+                                "scale_timeouts" : {
+                                  "title" : "Value to scale compiler introspection timeouts with",
+                                  "description" : "The extractor attempts to determine what compiler the source code being extracted is compiled with. To this end the extractor makes additional calls to the compiler, some of which are expected to return within a certain fixed time (either 10s or 15s). On some systems that are under high load this time might be too short, and can be scaled up using this option.\n",
+                                  "type" : "string",
+                                  "pattern" : "[0-9]+"
+                                },
+                                "log_verbosity" : {
+                                  "title" : "Verbosity of the extractor logging",
+                                  "description" : "Set the verbosity of the extractor logging to 'quiet' (0), 'normal' (1), 'chatty' (2), or 'noisy' (3). The default is 'normal'.\n",
+                                  "type" : "string",
+                                  "pattern" : "[0-3]"
+                                }
+                              }
+                            }
+                          ],
+                          "csharp" : [
+                            {
+                              "extractor_root" : "C:\\Tools\\codeql\\csharp",
+                              "extractor_options" : {
+                                "trap" : {
+                                  "title" : "Options pertaining to TRAP.",
+                                  "description" : "Options pertaining to TRAP.",
+                                  "type" : "object",
+                                  "properties" : {
+                                    "compression" : {
+                                      "title" : "Controls compression for the TRAP files written by the extractor.",
+                                      "description" : "This option is only intended for use in debugging the extractor. Accepted values are 'brotli' (the default, to write brotli-compressed TRAP), 'gzip', and 'none' (to write uncompressed TRAP).\n",
+                                      "type" : "string",
+                                      "pattern" : "^(none|gzip|brotli)$"
+                                    }
+                                  }
+                                },
+                                "buildless" : {
+                                  "title" : "DEPRECATED - Whether to use buildless (standalone) extraction.",
+                                  "description" : "DEPRECATED: Use `--build-mode none` instead.\nA value indicating, which type of extraction the autobuilder should perform. If 'true', then the standalone extractor will be used, otherwise tracing extraction will be performed. The default is 'false'. Note that buildless extraction will generally yield less accurate analysis results, and should only be used in cases where it is not possible to build the code (for example if it uses inaccessible dependencies).\n",
+                                  "type" : "string",
+                                  "pattern" : "^(false|true)$"
+                                },
+                                "logging" : {
+                                  "title" : "Options pertaining to logging.",
+                                  "description" : "Options pertaining to logging.",
+                                  "type" : "object",
+                                  "properties" : {
+                                    "verbosity" : {
+                                      "title" : "Extractor logging verbosity level.",
+                                      "description" : "Controls the level of verbosity of the extractor. The supported levels are (in order of increasing verbosity):\n  - off\n  - errors\n  - warnings\n  - info or progress\n  - debug or progress+\n  - trace or progress++\n  - progress+++\n",
+                                      "type" : "string",
+                                      "pattern" : "^(off|errors|warnings|(info|progress)|(debug|progress\\+)|(trace|progress\\+\\+)|progress\\+\\+\\+)$"
+                                    }
+                                  }
+                                },
+                                "binlog" : {
+                                  "title" : "Binlog",
+                                  "description" : "[EXPERIMENTAL] The value is a path to the MsBuild binary log file that should be extracted. This option only works when `--build-mode none` is also specified.\n",
+                                  "type" : "array"
+                                },
+                                "buildless_dependency_dir" : {
+                                  "title" : "The path where buildless (standalone) extraction should keep dependencies.",
+                                  "description" : "If set, the buildless (standalone) extractor will store dependencies in this directory.\n",
+                                  "type" : "string"
+                                }
+                              }
+                            }
+                          ],
+                          "csv" : [
+                            {
+                              "extractor_root" : "C:\\Tools\\codeql\\csv"
+                            }
+                          ],
+                          "go" : [
+                            {
+                              "extractor_root" : "C:\\Tools\\codeql\\go",
+                              "extractor_options" : {
+                                "extract_tests" : {
+                                  "title" : "Whether to include Go test files in the CodeQL database.",
+                                  "description" : "A value indicating whether Go test files should be included in the CodeQL database. The default is 'false'.\n",
+                                  "type" : "string",
+                                  "pattern" : "^(false|true)$"
+                                },
+                                "extract_vendor_dirs" : {
+                                  "title" : "Whether to include Go vendor directories in the CodeQL database.",
+                                  "description" : "A value indicating whether Go vendor directories should be included in the CodeQL database. The default is 'false'.\n",
+                                  "type" : "string",
+                                  "pattern" : "^(false|true)$"
+                                }
+                              }
+                            }
+                          ],
+                          "html" : [
+                            {
+                              "extractor_root" : "C:\\Tools\\codeql\\html"
+                            }
+                          ],
+                          "java" : [
+                            {
+                              "extractor_root" : "C:\\Tools\\codeql\\java",
+                              "extractor_options" : {
+                                "exclude" : {
+                                  "title" : "A glob excluding files from analysis.",
+                                  "description" : "A glob indicating what files to exclude from the analysis. This accepts glob patterns that are supported by Java's 'getPathMatcher' implementation.\n",
+                                  "type" : "string"
+                                },
+                                "add_prefer_source" : {
+                                  "title" : "Whether to always prefer source files over class files.",
+                                  "description" : "A value indicating whether source files should be preferred over class files. If set to 'true', the extraction adds '-Xprefer:source' to the javac command line. If set to 'false', the extraction uses the default javac behavior ('-Xprefer:newer'). The default is 'true'.\n",
+                                  "type" : "string",
+                                  "pattern" : "^(false|true)$"
+                                },
+                                "buildless" : {
+                                  "title" : "Whether to use buildless (standalone) extraction (experimental).",
+                                  "description" : "A value indicating, which type of extraction the autobuilder should perform. If 'true', then the standalone extractor will be used, otherwise tracing extraction will be performed. The default is 'false'. Note that buildless extraction will generally yield less accurate analysis results, and should only be used in cases where it is not possible to build the code (for example if it uses inaccessible dependencies).\n",
+                                  "type" : "string",
+                                  "pattern" : "^(false|true)$"
+                                },
+                                "buildless_dependency_dir" : {
+                                  "title" : "The path where buildless (standalone) extraction should keep dependencies.",
+                                  "description" : "If set, the buildless (standalone) extractor will store dependencies in this directory.\n",
+                                  "type" : "string"
+                                },
+                                "minimize_dependency_jars" : {
+                                  "title" : "Whether to rewrite and minimize downloaded JAR dependencies (experimental).",
+                                  "description" : "If 'true', JAR dependencies downloaded during extraction will be rewritten to remove unneeded data, such as method bodies. The default is 'false'.\n",
+                                  "type" : "string",
+                                  "pattern" : "^(false|true)$"
+                                }
+                              }
+                            }
+                          ],
+                          "javascript" : [
+                            {
+                              "extractor_root" : "C:\\Tools\\codeql\\javascript",
+                              "extractor_options" : {
+                                "skip_types" : {
+                                  "title" : "Skip type extraction for TypeScript",
+                                  "description" : "Whether to skip the extraction of types in a TypeScript application",
+                                  "type" : "string",
+                                  "pattern" : "^(false|true)$"
+                                }
+                              }
+                            }
+                          ],
+                          "properties" : [
+                            {
+                              "extractor_root" : "C:\\Tools\\codeql\\properties"
+                            }
+                          ],
+                          "python" : [
+                            {
+                              "extractor_root" : "C:\\Tools\\codeql\\python",
+                              "extractor_options" : {
+                                "logging" : {
+                                  "title" : "Options pertaining to logging.",
+                                  "description" : "Options pertaining to logging.",
+                                  "type" : "object",
+                                  "properties" : {
+                                    "verbosity" : {
+                                      "title" : "Python extractor logging verbosity level.",
+                                      "description" : "Controls the level of verbosity of the CodeQL Python extractor.\nThe supported levels are (in order of increasing verbosity):\n\n  - off\n  - errors\n  - warnings\n  - info or progress\n  - debug or progress+\n  - trace or progress++\n  - progress+++\n",
+                                      "type" : "string",
+                                      "pattern" : "^(off|errors|warnings|(info|progress)|(debug|progress\\+)|(trace|progress\\+\\+)|progress\\+\\+\\+)$"
+                                    }
+                                  }
+                                },
+                                "python_executable_name" : {
+                                  "title" : "Controls the name of the Python executable used by the Python extractor.",
+                                  "description" : "The Python extractor uses platform-dependent heuristics to determine the name of the Python executable to use. Specifying a value for this option overrides the name of the Python executable used by the extractor. Accepted values are py, python and python3. Use this setting with caution, the Python extractor requires Python 3 to run.\n",
+                                  "type" : "string",
+                                  "pattern" : "^(py|python|python3)$"
+                                }
+                              }
+                            }
+                          ],
+                          "ruby" : [
+                            {
+                              "extractor_root" : "C:\\Tools\\codeql\\ruby",
+                              "extractor_options" : {
+                                "trap" : {
+                                  "title" : "Options pertaining to TRAP.",
+                                  "description" : "Options pertaining to TRAP.",
+                                  "type" : "object",
+                                  "properties" : {
+                                    "compression" : {
+                                      "title" : "Controls compression for the TRAP files written by the extractor.",
+                                      "description" : "This option is only intended for use in debugging the extractor. Accepted values are 'gzip' (the default, to write gzip-compressed TRAP) 'zstd' (to write Zstandard-compressed TRAP) and 'none' (to write uncompressed TRAP).\n",
+                                      "type" : "string",
+                                      "pattern" : "^(none|gzip|zstd)$"
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          ],
+                          "rust" : [
+                            {
+                              "extractor_root" : "C:\\Tools\\codeql\\rust",
+                              "extractor_options" : {
+                                "trap" : {
+                                  "title" : "Options pertaining to TRAP.",
+                                  "description" : "Options pertaining to TRAP.",
+                                  "type" : "object",
+                                  "properties" : {
+                                    "compression" : {
+                                      "title" : "Controls compression for the TRAP files written by the extractor.",
+                                      "description" : "This option is only intended for use in debugging the extractor. Accepted values are 'gzip' (to write gzip-compressed TRAP) 'zstd' (to write Zstandard-compressed TRAP) and 'none' (the default, to write uncompressed TRAP).\n",
+                                      "type" : "string",
+                                      "pattern" : "^(none|gzip|zstd)$"
+                                    }
+                                  }
+                                },
+                                "cargo_target_dir" : {
+                                  "title" : "Directory to use for cargo output files.",
+                                  "description" : "This value is an optional path to use as `CARGO_TARGET_DIR` for the internal cargo commands the extractor uses. Pointing it to a persistent directory may reduce execution time of consecutive extractor runs. By default, a new scratch directory is used for each run.\n",
+                                  "type" : "string"
+                                },
+                                "cargo_target" : {
+                                  "title" : "Target architecture",
+                                  "description" : "Target architecture to use for analysis, analogous to `cargo --target`. By default the host architecture is used.\n",
+                                  "type" : "string"
+                                },
+                                "cargo_features" : {
+                                  "title" : "Cargo features to turn on",
+                                  "description" : "Comma-separated list of features to turn on. By default all features are enabled. If any features are specified, then only those features are enabled. The `default` feature must be explicitly specified if only default features are desired. Can be repeated.\n",
+                                  "type" : "array"
+                                },
+                                "cargo_cfg_overrides" : {
+                                  "title" : "Cargo cfg overrides",
+                                  "description" : "Comma-separated list of cfg settings to enable, or disable if prefixed with `-`. Can be repeated.\n",
+                                  "type" : "array"
+                                },
+                                "logging" : {
+                                  "title" : "Options pertaining to logging.",
+                                  "description" : "Options pertaining to logging.",
+                                  "type" : "object",
+                                  "properties" : {
+                                    "verbosity" : {
+                                      "title" : "Extractor logging verbosity level.",
+                                      "description" : "Controls the level of verbosity of the extractor. The supported levels are (in order of increasing verbosity):\n  - off\n  - errors\n  - warnings\n  - info or progress\n  - debug or progress+\n  - trace or progress++\n  - progress+++\n",
+                                      "type" : "string",
+                                      "pattern" : "^(off|errors|warnings|(info|progress)|(debug|progress\\+)|(trace|progress\\+\\+)|progress\\+\\+\\+)$"
+                                    },
+                                    "flamegraph" : {
+                                      "title" : "[Experimental] File path for write flame graph log",
+                                      "description" : "Collect flame graph data using the `tracing-flame` crate. To render a flame graph or chart, run the `inferno-flamegraph` command. See also: https://crates.io/crates/tracing-flame\n",
+                                      "type" : "string"
+                                    }
+                                  }
+                                },
+                                "extract_dependencies_as_source" : {
+                                  "title" : "Extract dependencies as source code",
+                                  "description" : "Extract the full source code of dependencies instead of only extracting signatures.\n",
+                                  "type" : "string",
+                                  "pattern" : "^(false|true)$"
+                                }
+                              }
+                            }
+                          ],
+                          "swift" : [
+                            {
+                              "extractor_root" : "C:\\Tools\\codeql\\swift"
+                            }
+                          ],
+                          "xml" : [
+                            {
+                              "extractor_root" : "C:\\Tools\\codeql\\xml"
+                            }
+                          ],
+                          "yaml" : [
+                            {
+                              "extractor_root" : "C:\\Tools\\codeql\\yaml"
+                            }
+                          ]
+                        }
+                      }
+[2026-05-23 16:29:41] [PROGRESS] database init> Calculating baseline information in C:\Users\ymaru\prj\react-native-drum-picker
+[2026-05-23 16:29:41] [SPAMMY] database init> Ignoring the following directories when processing baseline information: .git, .hg, .svn.
+[2026-05-23 16:29:41] [DETAILS] database init> Running command in C:\Users\ymaru\prj\react-native-drum-picker: C:\Tools\codeql\tools\win64\scc.exe --by-file --exclude-dir .git,.hg,.svn --format json --no-large --no-min .
+[2026-05-23 16:29:41] Using configure-baseline script C:\Tools\codeql\javascript\tools\configure-baseline.cmd.
+[2026-05-23 16:29:41] [PROGRESS] database init> Running command in C:\Users\ymaru\prj\react-native-drum-picker: [C:\Tools\codeql\javascript\tools\configure-baseline.cmd]
+[2026-05-23 16:29:41] Using configure-baseline script C:\Tools\codeql\actions\tools\configure-baseline.cmd.
+[2026-05-23 16:29:41] [PROGRESS] database init> Running command in C:\Users\ymaru\prj\react-native-drum-picker: [C:\Tools\codeql\actions\tools\configure-baseline.cmd]
+[2026-05-23 16:29:41] [SPAMMY] database init> Ignored an additional 3 files when processing baseline information for YAML due to paths and paths-ignore configuration.
+[2026-05-23 16:29:41] [SPAMMY] database init> Found 18 baseline files for javascript.
+[2026-05-23 16:29:41] [SPAMMY] database init> Found 8 baseline files for java.
+[2026-05-23 16:29:41] [SPAMMY] database init> Found 3 baseline files for actions.
+[2026-05-23 16:29:41] [SPAMMY] database init> Found 1 baseline files for cpp.
+[2026-05-23 16:29:41] [SPAMMY] database init> Found 1 baseline files for swift.
+[2026-05-23 16:29:41] [PROGRESS] database init> Calculated baseline information for languages: actions, cpp, java, javascript, swift (205ms).
+[2026-05-23 16:29:44] [PROGRESS] database init> Resolving extractor javascript.
+[2026-05-23 16:29:44] [DETAILS] database init> Found candidate extractor root for javascript: C:\Tools\codeql\javascript.
+[2026-05-23 16:29:44] [PROGRESS] database init> Successfully loaded extractor JavaScript/TypeScript (javascript) from C:\Tools\codeql\javascript.
+[2026-05-23 16:29:44] [PROGRESS] database init> Created skeleton CodeQL database at C:\Users\ymaru\prj\react-native-drum-picker\codeql-db-js. This in-progress database is ready to be populated by an extractor.
+[2026-05-23 16:29:44] Plumbing command codeql database init completed.
+[2026-05-23 16:29:44] [PROGRESS] database create> Running build command: []
+[2026-05-23 16:29:45] Running plumbing command: codeql database trace-command --working-dir=C:\Users\ymaru\prj\react-native-drum-picker --index-traceless-dbs --no-db-cluster -- C:\Users\ymaru\prj\react-native-drum-picker\codeql-db-js
+[2026-05-23 16:29:45] Using autobuild script C:\Tools\codeql\javascript\tools\autobuild.cmd.
+[2026-05-23 16:29:45] [PROGRESS] database trace-command> Running command in C:\Users\ymaru\prj\react-native-drum-picker: [C:\Tools\codeql\javascript\tools\autobuild.cmd]
+[2026-05-23 16:29:45] [build-stdout] Single-threaded extraction.
+[2026-05-23 17:08:03] [build-stderr] java.nio.file.FileSystemException: C:\Users\ymaru\prj\react-native-drum-picker\example\node_modules\react-native-drum-picker\example\node_modules\react-native-drum-picker\example\node_modules\react-native-drum-picker\example\node_modules\react-native-drum-picker\example\node_modules\react-native-drum-picker\example\node_modules\react-native-drum-picker\example\node_modules\react-native-drum-picker\example\node_modules\react-native-drum-picker\example\node_modules\react-native-drum-picker\example\node_modules\react-native-drum-picker\example\node_modules\react-native-drum-picker\example\node_modules\react-native-drum-picker\example\node_modules\react-native-drum-picker\example\node_modules\react-native-drum-picker\example\node_modules\react-native-drum-picker\example\node_modules\react-native-drum-picker\example\node_modules\react-native-drum-picker\example\node_modules\react-native-drum-picker\example\node_modules\react-native-drum-picker\example\node_modules\react-native-drum-picker\example\node_modules\react-native-drum-picker\example\node_modules\react-native-drum-picker\example\node_modules\react-native-drum-picker\example\node_modules\react-native-drum-picker\example\node_modules\react-native-drum-picker\example\node_modules\react-native-drum-picker\example\node_modules\react-native-drum-picker\example\node_modules\react-native-drum-picker\example\node_modules\react-native-drum-picker\example\node_modules\react-native-drum-picker\example\node_modules\react-native-drum-picker\example\node_modules\react-native-drum-picker\example\node_modules\react-native-drum-picker\example\node_modules\react-native-drum-picker\example\node_modules\react-native-drum-picker\example\node_modules\react-native-drum-picker\example\node_modules\react-native-drum-picker\example\node_modules\react-native-drum-picker\example\node_modules\react-native-drum-picker\example\node_modules\react-native-drum-picker\example\node_modules\react-native-drum-picker\example\node_modules\react-native-drum-picker\example\node_modules\react-native-drum-picker\example\node_modules\react-native-drum-picker\example\node_modules\react-native-drum-picker\example\node_modules\react-native-drum-picker\example\node_modules\react-native-drum-picker\example\node_modules\react-native-drum-picker\example\node_modules\react-native-drum-picker\example\node_modules\react-native-drum-picker\example\node_modules\react-native-drum-picker\example\node_modules\react-native-drum-picker\example\node_modules\react-native-drum-picker\example\node_modules\react-native-drum-picker\example\node_modules\react-native-drum-picker\example\node_modules\react-native-drum-picker\example\node_modules\react-native-drum-picker\example\node_modules\react-native-drum-picker\example\node_modules\react-native-drum-picker\example\node_modules\react-native-drum-picker\example\node_modules\react-native-drum-picker\example\node_modules\react-native-drum-picker\example\node_modules\react-native-drum-picker\example\node_modules\react-native-drum-picker: ��� ����� ����� �� ����� ���� ��������� ��������
+[2026-05-23 17:08:03] [build-stderr] 	at java.base/sun.nio.fs.WindowsException.translateToIOException(Unknown Source)
+[2026-05-23 17:08:03] [build-stderr] 	at java.base/sun.nio.fs.WindowsException.rethrowAsIOException(Unknown Source)
+[2026-05-23 17:08:03] [build-stderr] 	at java.base/sun.nio.fs.WindowsException.rethrowAsIOException(Unknown Source)
+[2026-05-23 17:08:03] [build-stderr] 	at java.base/sun.nio.fs.WindowsDirectoryStream.<init>(Unknown Source)
+[2026-05-23 17:08:03] [build-stderr] 	at java.base/sun.nio.fs.WindowsFileSystemProvider.newDirectoryStream(Unknown Source)
+[2026-05-23 17:08:03] [build-stderr] 	at java.base/java.nio.file.Files.newDirectoryStream(Unknown Source)
+[2026-05-23 17:08:03] [build-stderr] 	at java.base/java.nio.file.FileTreeWalker.visit(Unknown Source)
+[2026-05-23 17:08:03] [build-stderr] 	at java.base/java.nio.file.FileTreeWalker.next(Unknown Source)
+[2026-05-23 17:08:03] [build-stderr] 	at java.base/java.nio.file.Files.walkFileTree(Unknown Source)
+[2026-05-23 17:08:03] [build-stderr] 	at java.base/java.nio.file.Files.walkFileTree(Unknown Source)
+[2026-05-23 17:08:03] [build-stderr] 	at com.semmle.js.extractor.AutoBuild.findFilesToExtract(AutoBuild.java:1201)
+[2026-05-23 17:08:03] [build-stderr] 	at com.semmle.js.extractor.AutoBuild.extractSource(AutoBuild.java:755)
+[2026-05-23 17:08:03] [build-stderr] 	at com.semmle.js.extractor.AutoBuild.run(AutoBuild.java:468)
+[2026-05-23 17:08:03] [build-stderr] 	at com.semmle.js.extractor.AutoBuild.main(AutoBuild.java:1387)
+[2026-05-23 17:08:03] [ERROR] Spawned process exited abnormally (code 1; tried to run: [C:\Tools\codeql\tools\win64\runner.exe, cmd.exe, /C, type, NUL, &&, C:\Tools\codeql\javascript\tools\autobuild.cmd])
+[2026-05-23 17:08:03] Exception caught at top level: Exit status 1 from command: [C:\Tools\codeql\tools\win64\runner.exe, cmd.exe, /C, type, NUL, &&, C:\Tools\codeql\javascript\tools\autobuild.cmd]
+                      com.semmle.cli2.Commandline.executeAndCheckResult(Commandline.java:170)
+                      com.semmle.cli2.Commandline.runWithoutReturn(Commandline.java:123)
+                      com.semmle.cli2.database.DatabaseProcessCommandCommon.executeSubcommand(DatabaseProcessCommandCommon.java:227)
+                      com.semmle.cli2.database.TraceCommandCommand.executeSubcommand(TraceCommandCommand.java:126)
+                      com.semmle.cli2.picocli.SubcommandCommon.lambda$executeSubcommandWithMessages$5(SubcommandCommon.java:886)
+                      com.semmle.cli2.picocli.SubcommandCommon.withCompilationMessages(SubcommandCommon.java:444)
+                      com.semmle.cli2.picocli.SubcommandCommon.executeSubcommandWithMessages(SubcommandCommon.java:884)
+                      com.semmle.cli2.picocli.PlumbingRunner.run(PlumbingRunner.java:123)
+                      com.semmle.cli2.picocli.SubcommandCommon.runPlumbingInProcess(SubcommandCommon.java:201)
+                      com.semmle.cli2.database.CreateCommand.executeSubcommand(CreateCommand.java:188)
+                      com.semmle.cli2.picocli.SubcommandCommon.lambda$executeSubcommandWithMessages$5(SubcommandCommon.java:886)
+                      com.semmle.cli2.picocli.SubcommandCommon.withCompilationMessages(SubcommandCommon.java:444)
+                      com.semmle.cli2.picocli.SubcommandCommon.executeSubcommandWithMessages(SubcommandCommon.java:884)
+                      com.semmle.cli2.picocli.SubcommandCommon.toplevelMain(SubcommandCommon.java:777)
+                      com.semmle.cli2.picocli.SubcommandCommon.call(SubcommandCommon.java:757)
+                      com.semmle.cli2.picocli.SubcommandMaker.runMain(SubcommandMaker.java:238)
+                      com.semmle.cli2.picocli.SubcommandMaker.runMain(SubcommandMaker.java:259)
+                      com.semmle.cli2.CodeQL.main(CodeQL.java:113)

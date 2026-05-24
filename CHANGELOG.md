@@ -9,6 +9,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 _No changes yet._
 
+## [0.2.0] - 2026-05-22
+
+### Added
+
+- **iOS support** — native `UIPickerView` implementation (Swift + Fabric) with the same props and `onChange` payload as Android.
+- **`hapticFeedback`** prop on `DrumPicker` and `DateDrumPicker` (default `false`) — light selection haptic on snap (Android + iOS).
+- Jest unit tests, snapshot tests, and Android instrumented tests (Espresso).
+- CI: Codecov upload; job names `lint-and-typecheck`, `js-tests`, `android-build`, `ios-build`.
+
+### Changed
+
+- Library description and README platform tables: iOS is supported.
+- `DrumPicker` JS wrapper deduplicates `onChange` when the index is unchanged (aligned with native behavior).
+
 ## [0.1.5] - 2026-05-22
 
 ### Fixed

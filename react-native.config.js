@@ -7,7 +7,7 @@ module.exports = {
       android: {
         sourceDir: './android',
       },
-      ios: null,
+      ios: {},
     },
   },
 };
