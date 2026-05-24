@@ -228,7 +228,7 @@ jobs:
 
       - name: Upload Android test results
         if: failure()
-        uses: actions/upload-artifact@ea165f8d65b6e81b54135e7e6320b474844f9e62 # v4.6.2
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: android-instrumented-results
           path: |
@@ -285,7 +285,7 @@ jobs:
 
       - name: Upload pod lint log on failure
         if: failure()
-        uses: actions/upload-artifact@ea165f8d65b6e81b54135e7e6320b474844f9e62 # v4.6.2
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: pod-lint-log
           path: example/ios/pod-lint.log
@@ -363,7 +363,7 @@ jobs:
 
       - name: Upload Detox artifacts on failure
         if: failure()
-        uses: actions/upload-artifact@ea165f8d65b6e81b54135e7e6320b474844f9e62 # v4.6.2
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: detox-ios-artifacts
           path: example/artifacts/
@@ -429,7 +429,7 @@ jobs:
 
       - name: Upload Detox artifacts on failure
         if: failure()
-        uses: actions/upload-artifact@ea165f8d65b6e81b54135e7e6320b474844f9e62 # v4.6.2
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: detox-android-artifacts
           path: example/artifacts/
