@@ -52,6 +52,7 @@ export default function App() {
   const [heightIndex, setHeightIndex] = useState(75);
   const [weightIndex, setWeightIndex] = useState(90);
   const [controlledIndex, setControlledIndex] = useState(2);
+  const [e2eControlledIndex, setE2eControlledIndex] = useState(2);
   const [debouncedLog, setDebouncedLog] = useState('—');
   const [date, setDate] = useState<DateDrumPickerValue>({
     day: 10,
@@ -263,19 +264,19 @@ export default function App() {
             <DrumPicker
               testID="drum-picker-controlled"
               items={CONTROLLED_ITEMS}
-              selectedIndex={controlledIndex}
-              onChange={(e) => setControlledIndex(e.nativeEvent.index)}
+              selectedIndex={e2eControlledIndex}
+              onChange={(e) => setE2eControlledIndex(e.nativeEvent.index)}
               style={styles.pickerW120}
             />
             <Pressable
               testID="btn-set-index-3"
               style={styles.button}
-              onPress={() => setControlledIndex(3)}
+              onPress={() => setE2eControlledIndex(3)}
             >
               <Text>Set index 3</Text>
             </Pressable>
             <Text testID="controlled-selected-label" style={styles.value}>
-              {CONTROLLED_ITEMS[controlledIndex]}
+              {CONTROLLED_ITEMS[e2eControlledIndex]}
             </Text>
 
             <DrumPicker

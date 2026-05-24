@@ -11,17 +11,21 @@ concurrency:
 
 permissions:
   contents: read
-  actions: write
 
 jobs:
   lint-and-typecheck:
     name: lint-and-typecheck
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    permissions:
+      contents: read
+      actions: write
 
     steps:
       - name: Checkout
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        with:
+          persist-credentials: false
 
       - name: Setup
         uses: ./.github/actions/setup
@@ -36,10 +40,15 @@ jobs:
     name: js-tests
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    permissions:
+      contents: read
+      actions: write
 
     steps:
       - name: Checkout
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        with:
+          persist-credentials: false
 
       - name: Setup
         uses: ./.github/actions/setup
@@ -60,6 +69,9 @@ jobs:
     name: android-build
     runs-on: ubuntu-latest
     timeout-minutes: 60
+    permissions:
+      contents: read
+      actions: write
 
     env:
       TURBO_CACHE_DIR: .turbo/android
@@ -67,6 +79,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        with:
+          persist-credentials: false
 
       - name: Setup
         uses: ./.github/actions/setup
@@ -124,6 +138,9 @@ jobs:
     name: ios-build
     runs-on: macos-latest
     timeout-minutes: 60
+    permissions:
+      contents: read
+      actions: write
 
     env:
       XCODE_VERSION: 26
@@ -134,6 +151,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        with:
+          persist-credentials: false
 
       - name: Setup
         uses: ./.github/actions/setup
@@ -179,10 +198,15 @@ jobs:
     name: android-instrumented
     runs-on: ubuntu-latest
     timeout-minutes: 60
+    permissions:
+      contents: read
+      actions: write
 
     steps:
       - name: Checkout
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        with:
+          persist-credentials: false
 
       - name: Setup
         uses: ./.github/actions/setup
@@ -238,6 +262,9 @@ jobs:
     name: ios-unit-tests
     runs-on: macos-latest
     timeout-minutes: 60
+    permissions:
+      contents: read
+      actions: write
 
     env:
       RCT_NEW_ARCH_ENABLED: 1
@@ -247,6 +274,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        with:
+          persist-credentials: false
 
       - name: Setup
         uses: ./.github/actions/setup
@@ -293,6 +322,9 @@ jobs:
     name: detox-ios
     runs-on: macos-latest
     timeout-minutes: 60
+    permissions:
+      contents: read
+      actions: write
 
     env:
       RCT_NEW_ARCH_ENABLED: 1
@@ -302,6 +334,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        with:
+          persist-credentials: false
 
       - name: Setup
         uses: ./.github/actions/setup
@@ -382,10 +416,15 @@ jobs:
     name: detox-android
     runs-on: ubuntu-latest
     timeout-minutes: 60
+    permissions:
+      contents: read
+      actions: write
 
     steps:
       - name: Checkout
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        with:
+          persist-credentials: false
 
       - name: Setup
         uses: ./.github/actions/setup
@@ -442,6 +481,7 @@ jobs:
   all-checks-passed:
     name: all-checks-passed
     runs-on: ubuntu-latest
+    permissions: {}
     needs:
       - lint-and-typecheck
       - js-tests
