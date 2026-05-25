@@ -241,9 +241,19 @@ class DrumPickerView @JvmOverloads constructor(
       return
     }
     val clamped = position.coerceIn(0, items.size - 1)
+    if (clamped == selectedIndex && clamped == lastEmittedIndex) {
+      return
+    }
     selectedIndex = clamped
     scheduleScrollToSelectedIndexCentered(animated = true, emit = true)
   }
+
+  /** @see selectedIndexForTesting — instrumented tests only */
+  internal fun testingPerformItemTap(position: Int) {
+    scrollToPositionFromTap(position)
+  }
+
+  internal fun selectedIndexForTesting(): Int = selectedIndex
 
   override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
     updateMinimumDimensions()

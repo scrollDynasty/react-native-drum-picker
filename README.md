@@ -235,6 +235,8 @@ const CITIES = ['Tashkent', 'Moscow', 'London', /* ... */]; // 1000+ items
 
 `windowSize` controls the render buffer. Higher = smoother fast flings, higher memory. Default of 20 works for most cases.
 
+**Platforms:** iOS and Android only (wrap `DrumPicker` from the package — not web). The native wheel always receives a small sliced `items` array on both platforms.
+
 ## API reference
 
 ### `DrumPicker`
@@ -256,7 +258,7 @@ const CITIES = ['Tashkent', 'Moscow', 'London', /* ... */]; // 1000+ items
 | `selectionIndicatorColor` | `string` | `#D1D1D6` | Line color |
 | `selectionIndicatorHeight` | `number` | `1` | Line thickness (dp) |
 | `hapticFeedback` | `boolean` | `false` | Light haptic on snap (Android + iOS) |
-| `enableScrollByTapOnItem` | `boolean` | `false` | Tap an item to scroll it to center |
+| `enableScrollByTapOnItem` | `boolean` | `false` | Tap a visible row to scroll it to center (Android + iOS) |
 | `onChange` | `function` | — | `nativeEvent: { index, value }` |
 | `style` | `ViewStyle` | — | Size and layout |
 
@@ -284,6 +286,7 @@ const CITIES = ['Tashkent', 'Moscow', 'London', /* ... */]; // 1000+ items
 | `itemBackgroundColor` | `string` | `transparent` | Passed to each column |
 | `containerBackgroundColor` | `string` | `transparent` | Passed to each column |
 | `hapticFeedback` | `boolean` | `false` | Passed to each column |
+| `enableScrollByTapOnItem` | `boolean` | `false` | Passed to each column |
 | `style` | `ViewStyle` | — | Row container |
 | `columnStyle` | `ViewStyle` | — | All columns |
 | `columnStyles` | `object` | — | Per column: `day`, `month`, `year` |

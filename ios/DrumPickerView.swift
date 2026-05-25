@@ -94,10 +94,46 @@ public final class DrumPickerWheelView: UIView, UIPickerViewDataSource, UIPicker
 
   private func rowAtTapLocation(_ point: CGPoint) -> Int {
     guard itemHeight > 0, !items.isEmpty else { return 0 }
+    if let hitRow = rowFromVisibleLabelHitTest(at: point) {
+      return hitRow
+    }
     let currentRow = picker.selectedRow(inComponent: 0)
     let centerY = picker.bounds.midY
-    let deltaRows = Int((point.y - centerY) / itemHeight)
+    let deltaRows = Int(round((point.y - centerY) / itemHeight))
     return min(max(currentRow + deltaRows, 0), items.count - 1)
+  }
+
+  private func rowFromVisibleLabelHitTest(at point: CGPoint) -> Int? {
+    findRowLabel(in: picker, at: point)
+  }
+
+  private func findRowLabel(in view: UIView, at pointInPicker: CGPoint) -> Int? {
+    for child in view.subviews {
+      let local = picker.convert(pointInPicker, to: child)
+      guard child.bounds.contains(local) else { continue }
+      if let label = child as? UILabel,
+         let text = label.text,
+         !text.isEmpty,
+         let index = items.firstIndex(of: text) {
+        return index
+      }
+      if let nested = findRowLabel(in: child, at: pointInPicker) {
+        return nested
+      }
+    }
+    return nil
+  }
+
+  /// Used by unit tests to assert tap-to-scroll selection without UIKit gesture plumbing.
+  internal func testingTap(at point: CGPoint) {
+    guard enableScrollByTapOnItem, !items.isEmpty else { return }
+    let row = rowAtTapLocation(point)
+    guard row >= 0, row < items.count else { return }
+    applySelectedIndex(row, animated: false, userInitiated: true)
+  }
+
+  internal func selectedIndexForTesting() -> Int {
+    selectedIndex
   }
 
   public override func didMoveToWindow() {
@@ -291,8 +327,12 @@ public final class DrumPickerWheelView: UIView, UIPickerViewDataSource, UIPicker
     selectedIndex = clamped
 
     if userInitiated {
+      if clamped == lastSelectedIndex {
+        return
+      }
       picker.selectRow(clamped, inComponent: 0, animated: animated)
       picker.reloadComponent(0)
+      lastSelectedIndex = clamped
       notifySelection(row: clamped, userInitiated: true)
       return
     }

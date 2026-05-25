@@ -3,8 +3,12 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import {
   DateDrumPicker,
   DrumPicker,
+  withVirtualized,
   type DateDrumPickerValue,
 } from 'react-native-drum-picker';
+
+const VirtualizedDrumPicker = withVirtualized(DrumPicker);
+const CITIES = Array.from({ length: 500 }, (_, i) => `City ${i}`);
 
 const ITEM_HEIGHT = 44;
 const VISIBLE_COUNT = 5;
@@ -40,8 +44,9 @@ function useDebouncedCallback<T extends (...args: never[]) => void>(
 
 export default function App() {
   const [example, setExample] = useState<
-    'basic' | 'time' | 'hw' | 'date' | 'controlled' | 'debounce'
+    'basic' | 'time' | 'hw' | 'date' | 'controlled' | 'debounce' | 'large'
   >('basic');
+  const [cityIndex, setCityIndex] = useState(0);
 
   const [sizeIndex, setSizeIndex] = useState(1);
   const [hourIndex, setHourIndex] = useState(9);
@@ -69,6 +74,7 @@ export default function App() {
         ['date', 'Date'],
         ['controlled', 'Controlled'],
         ['debounce', 'Debounce'],
+        ['large', 'Large list'],
       ] as const,
     []
   );
@@ -101,6 +107,7 @@ export default function App() {
           <DrumPicker
             items={SIZES}
             selectedIndex={sizeIndex}
+            enableScrollByTapOnItem
             onChange={(e) => setSizeIndex(e.nativeEvent.index)}
             style={styles.pickerW120}
           />
@@ -198,6 +205,21 @@ export default function App() {
             </Pressable>
           </View>
           <Text style={styles.value}>{SIZES[controlledIndex]}</Text>
+        </View>
+      )}
+
+      {example === 'large' && (
+        <View style={styles.section}>
+          <Text style={styles.label}>withVirtualized (500 cities)</Text>
+          <VirtualizedDrumPicker
+            items={CITIES}
+            selectedIndex={cityIndex}
+            windowSize={20}
+            enableScrollByTapOnItem
+            onChange={(e) => setCityIndex(e.nativeEvent.index)}
+            style={styles.pickerW140}
+          />
+          <Text style={styles.value}>{CITIES[cityIndex]}</Text>
         </View>
       )}
 
@@ -317,6 +339,10 @@ const styles = StyleSheet.create({
   },
   pickerW120: {
     width: 120,
+    height: PICKER_HEIGHT,
+  },
+  pickerW140: {
+    width: 140,
     height: PICKER_HEIGHT,
   },
 });

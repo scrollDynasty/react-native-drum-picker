@@ -162,6 +162,19 @@ describe('DateDrumPicker', () => {
     expect(props?.items).toEqual(years);
   });
 
+  it('passes enableScrollByTapOnItem to column pickers', () => {
+    render(
+      <DateDrumPicker
+        mode="day-month-year"
+        value={{ day: 15, month: 6, year: 2024 }}
+        enableScrollByTapOnItem
+      />
+    );
+    expect(getLatestNativeDrumPickerProps()?.enableScrollByTapOnItem).toBe(
+      true
+    );
+  });
+
   it('passes hapticFeedback to column pickers', () => {
     render(
       <DateDrumPicker

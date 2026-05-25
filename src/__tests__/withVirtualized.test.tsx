@@ -105,6 +105,20 @@ describe('withVirtualized', () => {
     );
   });
 
+  it('forwards enableScrollByTapOnItem to the wrapped picker', () => {
+    render(
+      <VirtualizedDrumPicker
+        items={CITIES}
+        selectedIndex={0}
+        enableScrollByTapOnItem
+        onChange={() => {}}
+      />
+    );
+    expect(getLatestNativeDrumPickerProps()?.enableScrollByTapOnItem).toBe(
+      true
+    );
+  });
+
   it('works with string array (backward compat)', () => {
     const onChange = jest.fn();
     render(

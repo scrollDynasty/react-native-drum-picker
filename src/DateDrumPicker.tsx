@@ -61,6 +61,7 @@ export type DateDrumPickerProps = {
   itemBackgroundColor?: string;
   containerBackgroundColor?: string;
   hapticFeedback?: boolean;
+  enableScrollByTapOnItem?: boolean;
   style?: StyleProp<ViewStyle>;
   columnStyle?: StyleProp<ViewStyle>;
   columnStyles?: Partial<Record<DateDrumPickerColumnKey, StyleProp<ViewStyle>>>;
@@ -110,6 +111,7 @@ export function DateDrumPicker({
   itemBackgroundColor = 'transparent',
   containerBackgroundColor = 'transparent',
   hapticFeedback = false,
+  enableScrollByTapOnItem = false,
   style,
   columnStyle,
   columnStyles,
@@ -200,6 +202,7 @@ export function DateDrumPicker({
     itemBackgroundColor,
     containerBackgroundColor,
     hapticFeedback,
+    enableScrollByTapOnItem,
   };
 
   const columnContainerStyle = (
