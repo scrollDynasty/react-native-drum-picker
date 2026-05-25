@@ -4,6 +4,8 @@ on:
   push:
     tags:
       - 'v*'
+      # release-please component tags (until include-component-in-tag: false)
+      - 'react-native-drum-picker-v*'
 
 permissions:
   contents: read
@@ -40,7 +42,8 @@ jobs:
       - name: Verify version matches tag
         run: |
           PKG_VERSION=$(node -p "require('./package.json').version")
-          TAG_VERSION="${GITHUB_REF_NAME#v}"
+          TAG_VERSION="${GITHUB_REF_NAME#react-native-drum-picker-v}"
+          TAG_VERSION="${TAG_VERSION#v}"
           echo "package.json: $PKG_VERSION"
           echo "git tag:      $TAG_VERSION"
           if [ "$PKG_VERSION" != "$TAG_VERSION" ]; then
