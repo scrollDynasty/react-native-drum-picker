@@ -331,7 +331,6 @@ public final class DrumPickerWheelView: UIView, UIPickerViewDataSource, UIPicker
         return
       }
       picker.selectRow(clamped, inComponent: 0, animated: animated)
-      picker.reloadComponent(0)
       lastSelectedIndex = clamped
       notifySelection(row: clamped, userInitiated: true)
       return

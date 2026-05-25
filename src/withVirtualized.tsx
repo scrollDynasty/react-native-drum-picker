@@ -202,6 +202,46 @@ export function withVirtualized(WrappedPicker: ComponentType<DrumPickerProps>) {
       scheduleSliceUnlock(isUpdatingSliceRef, unlockTimerRef);
     }, [selectedIndex, computeWindow]);
 
+    // Keep anchor/window valid when the list shrinks or is cleared.
+    useEffect(() => {
+      clearRecenterTimer(recenterTimerRef);
+
+      if (totalCount === 0) {
+        if (windowRef.current.start === 0 && windowRef.current.end === 0) {
+          parentIndexRef.current = 0;
+          return;
+        }
+        parentIndexRef.current = 0;
+        isUpdatingSliceRef.current = true;
+        setAnchorIndex(0);
+        const emptyWindow: ItemWindow = { start: 0, end: 0 };
+        windowRef.current = emptyWindow;
+        setWindow(emptyWindow);
+        scheduleSliceUnlock(isUpdatingSliceRef, unlockTimerRef);
+        return;
+      }
+
+      const maxIndex = totalCount - 1;
+      const targetIdx = Math.min(Math.max(parentIndexRef.current, 0), maxIndex);
+      const newWindow = computeWindow(targetIdx);
+      const current = windowRef.current;
+      if (
+        targetIdx === parentIndexRef.current &&
+        newWindow.start === current.start &&
+        newWindow.end === current.end &&
+        current.end <= totalCount
+      ) {
+        return;
+      }
+
+      parentIndexRef.current = targetIdx;
+      isUpdatingSliceRef.current = true;
+      setAnchorIndex(targetIdx);
+      windowRef.current = newWindow;
+      setWindow(newWindow);
+      scheduleSliceUnlock(isUpdatingSliceRef, unlockTimerRef);
+    }, [totalCount, computeWindow]);
+
     const slicedItems = useMemo(
       () => items.slice(window.start, window.end),
       [items, window.start, window.end]

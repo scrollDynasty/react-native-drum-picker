@@ -241,6 +241,17 @@ Optional `windowRecenterDebounceMs` (default `100`) debounces slice recentering 
 
 **Requirements:** each entry in `items` must be a **unique** string. Duplicate labels break index recovery during slice swaps and on iOS tap hit-testing.
 
+Not intended for `DateDrumPicker` (small fixed column lists).
+
+### `withVirtualized(DrumPicker)` props
+
+In addition to all `DrumPicker` props (on the wrapped instance):
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `windowSize` | `number` | `20` | Rows rendered above and below the selection |
+| `windowRecenterDebounceMs` | `number` | `100` | Debounce before shifting the slice when scrolling hits the window edge |
+
 ## API reference
 
 ### `DrumPicker`

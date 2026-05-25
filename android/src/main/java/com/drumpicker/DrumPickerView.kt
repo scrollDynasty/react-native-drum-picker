@@ -231,9 +231,6 @@ class DrumPickerView @JvmOverloads constructor(
   fun setEnableScrollByTapOnItemProp(value: Any?) {
     enableScrollByTapOnItem = toBoolean(value, false)
     adapter.enableScrollByTapOnItem = enableScrollByTapOnItem
-    if (adapter.itemCount > 0) {
-      adapter.notifyItemRangeChanged(0, adapter.itemCount)
-    }
   }
 
   private fun scrollToPositionFromTap(position: Int) {

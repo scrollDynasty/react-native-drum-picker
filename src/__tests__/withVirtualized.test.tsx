@@ -205,6 +205,30 @@ describe('withVirtualized', () => {
     );
   });
 
+  it('reclamps anchor and window when items list shrinks', () => {
+    const shortList = Array.from({ length: 100 }, (_, i) => `City ${i}`);
+    const { rerender } = render(
+      <VirtualizedDrumPicker
+        items={CITIES}
+        selectedIndex={900}
+        windowSize={20}
+        onChange={() => {}}
+      />
+    );
+    rerender(
+      <VirtualizedDrumPicker
+        items={shortList}
+        selectedIndex={900}
+        windowSize={20}
+        onChange={() => {}}
+      />
+    );
+    const props = getLatestNativeDrumPickerProps();
+    expect(props?.items?.[0]).toBe('City 79');
+    expect(props?.items?.[props.items.length - 1]).toBe('City 99');
+    expect(props?.selectedIndex).toBe(20);
+  });
+
   it('clamps window at list start (no negative indices)', () => {
     expect(() =>
       render(
