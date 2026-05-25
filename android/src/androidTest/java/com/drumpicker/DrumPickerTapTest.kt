@@ -53,6 +53,7 @@ class DrumPickerTapTest {
         activity.picker.setEnableScrollByTapOnItemProp(false)
         activity.picker.setSelectedIndexProp(2)
         activity.picker.requestLayout()
+        activity.picker.testingPerformItemTap(0)
       }
       instrumentation.waitForIdleSync()
 

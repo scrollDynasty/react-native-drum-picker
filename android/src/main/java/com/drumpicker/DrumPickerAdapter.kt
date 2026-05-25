@@ -3,6 +3,7 @@ package com.drumpicker
 import android.graphics.Typeface
 import android.util.TypedValue
 import android.view.Gravity
+import android.view.MotionEvent
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
@@ -79,6 +80,16 @@ internal class DrumPickerAdapter(
         onItemTap?.invoke(adapterPosition)
       }
     }
+    holder.itemView.setOnTouchListener { view, event ->
+      if (enableScrollByTapOnItem) {
+        false
+      } else {
+        when (event.actionMasked) {
+          MotionEvent.ACTION_UP -> view.performClick()
+        }
+        true
+      }
+    }
     return holder
   }
 
@@ -90,6 +101,7 @@ internal class DrumPickerAdapter(
     textView.text = items[position]
     textView.contentDescription = items[position]
     textView.setBackgroundColor(itemBackgroundColor)
+    holder.itemView.isClickable = enableScrollByTapOnItem
     holder.lastStyleBucket = Int.MIN_VALUE
     val distance = distanceForPosition?.invoke(position) ?: 2f
     applyItemStyle(holder, distance)
