@@ -214,6 +214,27 @@ export function DateExample() {
 
 Day count follows month/year (e.g. February has 28/29 days).
 
+## withVirtualized
+
+For large item lists (cities, timezones, country codes), wrap `DrumPicker` with `withVirtualized` to render only items near the visible window:
+
+```tsx
+import { DrumPicker, withVirtualized } from 'react-native-drum-picker';
+
+const VirtualizedDrumPicker = withVirtualized(DrumPicker);
+
+const CITIES = ['Tashkent', 'Moscow', 'London', /* ... */]; // 1000+ items
+
+<VirtualizedDrumPicker
+  items={CITIES}
+  selectedIndex={selectedIndex}
+  windowSize={20} // items above + below visible area (default: 20)
+  onChange={({ nativeEvent }) => setIndex(nativeEvent.index)}
+/>;
+```
+
+`windowSize` controls the render buffer. Higher = smoother fast flings, higher memory. Default of 20 works for most cases.
+
 ## API reference
 
 ### `DrumPicker`
@@ -235,6 +256,7 @@ Day count follows month/year (e.g. February has 28/29 days).
 | `selectionIndicatorColor` | `string` | `#D1D1D6` | Line color |
 | `selectionIndicatorHeight` | `number` | `1` | Line thickness (dp) |
 | `hapticFeedback` | `boolean` | `false` | Light haptic on snap (Android + iOS) |
+| `enableScrollByTapOnItem` | `boolean` | `false` | Tap an item to scroll it to center |
 | `onChange` | `function` | — | `nativeEvent: { index, value }` |
 | `style` | `ViewStyle` | — | Size and layout |
 

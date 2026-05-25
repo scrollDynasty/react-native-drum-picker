@@ -24,6 +24,8 @@ internal class DrumPickerAdapter(
   var itemBackgroundColor: Int = DrumPickerDefaults.TRANSPARENT
 
   var distanceForPosition: ((position: Int) -> Float)? = null
+  var onItemTap: ((position: Int) -> Unit)? = null
+  var enableScrollByTapOnItem: Boolean = false
 
   private val regularTypeface = Typeface.create(Typeface.SANS_SERIF, Typeface.NORMAL)
   private val selectedTypeface = Typeface.create(Typeface.SANS_SERIF, Typeface.BOLD)
@@ -81,6 +83,15 @@ internal class DrumPickerAdapter(
     holder.lastStyleBucket = Int.MIN_VALUE
     val distance = distanceForPosition?.invoke(position) ?: 2f
     applyItemStyle(holder, distance)
+    holder.itemView.setOnClickListener {
+      if (!enableScrollByTapOnItem) {
+        return@setOnClickListener
+      }
+      val adapterPosition = holder.bindingAdapterPosition
+      if (adapterPosition != RecyclerView.NO_POSITION) {
+        onItemTap?.invoke(adapterPosition)
+      }
+    }
   }
 
   fun applyItemStyle(holder: ItemViewHolder, distanceFromCenter: Float) {

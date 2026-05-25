@@ -73,3 +73,30 @@ describe('DrumPicker', () => {
     expect(getLatestNativeDrumPickerProps()?.hapticFeedback).toBe(true);
   });
 });
+
+describe('enableScrollByTapOnItem', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    resetNativeDrumPickerMocks();
+  });
+
+  it('passes enableScrollByTapOnItem=false by default', () => {
+    render(<DrumPicker items={['A', 'B', 'C']} onChange={() => {}} />);
+    expect(getLatestNativeDrumPickerProps()?.enableScrollByTapOnItem).toBe(
+      false
+    );
+  });
+
+  it('passes enableScrollByTapOnItem=true when set', () => {
+    render(
+      <DrumPicker
+        items={['A', 'B', 'C']}
+        enableScrollByTapOnItem
+        onChange={() => {}}
+      />
+    );
+    expect(getLatestNativeDrumPickerProps()?.enableScrollByTapOnItem).toBe(
+      true
+    );
+  });
+});

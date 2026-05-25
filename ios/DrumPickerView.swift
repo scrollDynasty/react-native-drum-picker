@@ -47,6 +47,7 @@ public final class DrumPickerWheelView: UIView, UIPickerViewDataSource, UIPicker
   private var selectionIndicatorHeight: CGFloat = DrumPickerDefaults.indicatorHeight
   private var itemBackgroundColor: UIColor = .clear
   private var hapticFeedback = false
+  private var enableScrollByTapOnItem = false
 
   public override init(frame: CGRect) {
     super.init(frame: frame)
@@ -74,6 +75,29 @@ public final class DrumPickerWheelView: UIView, UIPickerViewDataSource, UIPicker
 
     updatePickerFrame()
     updateIndicators()
+    setupTapGesture()
+  }
+
+  private func setupTapGesture() {
+    let tap = UITapGestureRecognizer(target: self, action: #selector(handlePickerTap(_:)))
+    tap.cancelsTouchesInView = false
+    picker.addGestureRecognizer(tap)
+  }
+
+  @objc private func handlePickerTap(_ gesture: UITapGestureRecognizer) {
+    guard enableScrollByTapOnItem, !items.isEmpty else { return }
+    let location = gesture.location(in: picker)
+    let row = rowAtTapLocation(location)
+    guard row >= 0, row < items.count else { return }
+    applySelectedIndex(row, animated: true, userInitiated: true)
+  }
+
+  private func rowAtTapLocation(_ point: CGPoint) -> Int {
+    guard itemHeight > 0, !items.isEmpty else { return 0 }
+    let currentRow = picker.selectedRow(inComponent: 0)
+    let centerY = picker.bounds.midY
+    let deltaRows = Int((point.y - centerY) / itemHeight)
+    return min(max(currentRow + deltaRows, 0), items.count - 1)
   }
 
   public override func didMoveToWindow() {
@@ -232,6 +256,10 @@ public final class DrumPickerWheelView: UIView, UIPickerViewDataSource, UIPicker
     if value {
       ensureSelectionGenerator()
     }
+  }
+
+  @objc public func setEnableScrollByTapOnItem(_ value: Bool) {
+    enableScrollByTapOnItem = value
   }
 
   public override var intrinsicContentSize: CGSize {

@@ -5,6 +5,7 @@ exports[`DrumPicker snapshots matches default render 1`] = `
   backgroundColor="transparent"
   collapsable={false}
   containerBackgroundColor="transparent"
+  enableScrollByTapOnItem={false}
   hapticFeedback={false}
   itemBackgroundColor="transparent"
   itemHeight={44}

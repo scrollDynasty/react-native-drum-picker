@@ -46,6 +46,7 @@ class DrumPickerView @JvmOverloads constructor(
   private var containerBackgroundColor = DrumPickerDefaults.TRANSPARENT
   private var itemBackgroundColor = DrumPickerDefaults.TRANSPARENT
   private var hapticFeedback = false
+  private var enableScrollByTapOnItem = false
 
   private var itemHeightPx = dpToPx(itemHeightDp)
   private var lastHapticIndex = -1
@@ -122,6 +123,7 @@ class DrumPickerView @JvmOverloads constructor(
     addView(bottomIndicator, LayoutParams(LayoutParams.MATCH_PARENT, selectionIndicatorHeightPx))
 
     adapter.distanceForPosition = { position -> distanceFromCenterForPosition(position) }
+    adapter.onItemTap = { position -> scrollToPositionFromTap(position) }
     syncAdapterStyle()
     applyBackgroundColors()
     applyRecyclerPadding()
@@ -224,6 +226,23 @@ class DrumPickerView @JvmOverloads constructor(
 
   fun setHapticFeedbackProp(value: Any?) {
     hapticFeedback = value as? Boolean ?: false
+  }
+
+  fun setEnableScrollByTapOnItemProp(value: Any?) {
+    enableScrollByTapOnItem = toBoolean(value, false)
+    adapter.enableScrollByTapOnItem = enableScrollByTapOnItem
+    if (adapter.itemCount > 0) {
+      adapter.notifyItemRangeChanged(0, adapter.itemCount)
+    }
+  }
+
+  private fun scrollToPositionFromTap(position: Int) {
+    if (!enableScrollByTapOnItem || !isLifecycleActive() || items.isEmpty()) {
+      return
+    }
+    val clamped = position.coerceIn(0, items.size - 1)
+    selectedIndex = clamped
+    scheduleScrollToSelectedIndexCentered(animated = true, emit = true)
   }
 
   override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {

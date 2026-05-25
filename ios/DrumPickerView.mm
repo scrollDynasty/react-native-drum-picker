@@ -118,6 +118,10 @@ using namespace facebook::react;
     [_wheelView setHapticFeedback:newViewProps.hapticFeedback];
   }
 
+  if (oldViewProps.enableScrollByTapOnItem != newViewProps.enableScrollByTapOnItem) {
+    [_wheelView setEnableScrollByTapOnItem:newViewProps.enableScrollByTapOnItem];
+  }
+
   [super updateProps:props oldProps:oldProps];
 }
 

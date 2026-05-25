@@ -41,6 +41,7 @@ class DrumPickerViewManager :
         "containerBackgroundColor" -> view.setContainerBackgroundColorProp(value)
         "itemBackgroundColor" -> view.setItemBackgroundColorProp(value)
         "hapticFeedback" -> view.setHapticFeedbackProp(value)
+        "enableScrollByTapOnItem" -> view.setEnableScrollByTapOnItemProp(value)
         else -> delegate.setProperty(view, key, value)
       }
     }
@@ -105,6 +106,10 @@ class DrumPickerViewManager :
 
   override fun setHapticFeedback(view: DrumPickerView?, value: Boolean) {
     view?.setHapticFeedbackProp(value)
+  }
+
+  override fun setEnableScrollByTapOnItem(view: DrumPickerView?, value: Boolean) {
+    view?.setEnableScrollByTapOnItemProp(value)
   }
 
   companion object {

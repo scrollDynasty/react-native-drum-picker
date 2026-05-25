@@ -19,6 +19,7 @@ const DEFAULTS = {
   itemBackgroundColor: 'transparent',
   containerBackgroundColor: 'transparent',
   hapticFeedback: false,
+  enableScrollByTapOnItem: false,
 } as const;
 
 export function DrumPicker({
@@ -37,6 +38,7 @@ export function DrumPicker({
   itemBackgroundColor = DEFAULTS.itemBackgroundColor,
   containerBackgroundColor = DEFAULTS.containerBackgroundColor,
   hapticFeedback = DEFAULTS.hapticFeedback,
+  enableScrollByTapOnItem = DEFAULTS.enableScrollByTapOnItem,
   onChange,
   style,
   testID,
@@ -83,6 +85,7 @@ export function DrumPicker({
       itemBackgroundColor={itemBackgroundColor}
       containerBackgroundColor={containerBackgroundColor}
       hapticFeedback={hapticFeedback}
+      enableScrollByTapOnItem={enableScrollByTapOnItem}
       onValueChange={handleValueChange}
       style={pickerStyle}
     />

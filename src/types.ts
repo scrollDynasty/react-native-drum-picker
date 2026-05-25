@@ -21,6 +21,12 @@ export type DrumPickerProps = {
   itemBackgroundColor?: string;
   containerBackgroundColor?: string;
   hapticFeedback?: boolean;
+  /**
+   * When true, tapping an item above or below the center
+   * scrolls the picker to that item.
+   * @default false
+   */
+  enableScrollByTapOnItem?: boolean;
   onChange?: (event: NativeSyntheticEvent<DrumPickerChangeEvent>) => void;
   style?: StyleProp<ViewStyle>;
   testID?: string;

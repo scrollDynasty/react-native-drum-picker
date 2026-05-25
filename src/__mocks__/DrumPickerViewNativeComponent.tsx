@@ -6,6 +6,7 @@ type MockProps = ViewProps & {
   items?: ReadonlyArray<string>;
   selectedIndex?: number;
   hapticFeedback?: boolean;
+  enableScrollByTapOnItem?: boolean;
   onValueChange?: (event: {
     nativeEvent: DrumPickerChangeEventPayload;
   }) => void;
