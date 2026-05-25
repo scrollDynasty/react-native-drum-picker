@@ -28,6 +28,7 @@ iOS preview coming soon — see the `ios-build` CI job for validation status.
 - Custom text colors and sizes
 - TypeScript API
 - Flexible `DateDrumPicker` wrapper (day / month / year columns)
+- Flexible `TimeDrumPicker` wrapper (hour / minute / second / AM·PM columns, 12h or 24h, minute & second intervals)
 - Fabric View / New Architecture
 
 ## Installation
@@ -349,6 +350,85 @@ type DateDrumPickerMode =
   | 'month-day-year'
   | 'year-month-day';
 ```
+
+## TimeDrumPicker
+
+A composed wrapper for picking a time of day. It is built on top of `DrumPicker`, so it
+inherits the same native rendering, theming, and haptics — no extra native dependencies.
+
+```tsx
+import { TimeDrumPicker } from 'react-native-drum-picker';
+
+function Example() {
+  const [time, setTime] = useState({ hour: 9, minute: 30 });
+
+  return (
+    <TimeDrumPicker
+      mode="hour-minute-period"
+      value={time}
+      minuteInterval={15}
+      onChange={setTime}
+    />
+  );
+}
+```
+
+Hour values in `value` / `onChange` are **always 24-hour** (`0..23`), regardless of
+display mode. The component handles the 12h ↔ 24h conversion internally so callers
+do not have to track AM/PM state separately.
+
+### `TimeDrumPicker` props
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `mode` | `TimeDrumPickerMode` | `'hour-minute'` | Which columns to show |
+| `value` | `{ hour?: 0..23; minute?: 0..59; second?: 0..59 }` | now | Controlled value (24h) |
+| `onChange` | `(value) => void` | – | Called with the full clamped `{ hour, minute, second }` |
+| `hourFormat` | `'12' \| '24'` | inferred from `mode` | Force a specific hour column format |
+| `minuteInterval` | `1 \| 2 \| 3 \| 4 \| 5 \| 6 \| 10 \| 12 \| 15 \| 20 \| 30` | `1` | Step between minute items (mirrors `UIDatePicker.minuteInterval`) |
+| `secondInterval` | same as `minuteInterval` | `1` | Step between second items |
+| `padWithZero` | `boolean` | `true` | Pad single-digit values with `0` |
+| `amLabel` / `pmLabel` | `string` | `'AM'` / `'PM'` | Localized period labels |
+| `columnTestIDs` | `Partial<Record<'hour' \| 'minute' \| 'second' \| 'period', string>>` | – | Per-column `testID`s |
+
+All shared visual props from `DrumPicker` (`itemHeight`, `visibleItemCount`,
+`textColor`, `selectedTextColor`, `textSize`, `selectedTextSize`,
+`showSelectionIndicator`, `selectionIndicatorColor`, `selectionIndicatorHeight`,
+`backgroundColor`, `itemBackgroundColor`, `containerBackgroundColor`,
+`hapticFeedback`) are forwarded to every column.
+
+### `TimeDrumPicker` modes
+
+| Mode | Columns |
+|------|---------|
+| `hour` | hour |
+| `minute` | minute |
+| `hour-minute` | hour, minute |
+| `hour-minute-second` | hour, minute, second |
+| `hour-minute-period` | hour (12h), minute, AM/PM |
+| `hour-minute-second-period` | hour (12h), minute, second, AM/PM |
+
+```ts
+type TimeDrumPickerMode =
+  | 'hour'
+  | 'minute'
+  | 'hour-minute'
+  | 'hour-minute-second'
+  | 'hour-minute-period'
+  | 'hour-minute-second-period';
+```
+
+### Behavior notes
+
+- **Controlled value clamping.** If you pass a value outside the supported range
+  (e.g. `minute: 53` with `minuteInterval={15}`), the component clamps to the
+  nearest valid value and calls `onChange` once so your state stays in sync with
+  what the picker actually shows. This mirrors `DateDrumPicker`'s clamp-and-notify
+  contract for invalid February dates.
+- **Uncontrolled mode.** Omit `value` and the component manages its own state; it
+  initializes from `new Date()`.
+- **12h ↔ 24h.** `value` and `onChange` are always 24-hour. Flipping AM/PM keeps
+  the displayed 12h hour and shifts the 24h hour by ±12.
 
 ## Styling
 

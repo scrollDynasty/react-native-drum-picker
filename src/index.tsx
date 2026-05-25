@@ -5,6 +5,14 @@ export {
   getDaysInMonth,
   normalizeYearRange,
 } from './DateDrumPicker';
+export { TimeDrumPicker } from './TimeDrumPicker';
+export {
+  clampTimeValue,
+  from12Hour,
+  normalizeInterval,
+  snapToInterval,
+  to12Hour,
+} from './timeDrumPickerLogic';
 export type {
   DrumPickerChangeEvent,
   DrumPickerItem,
@@ -18,3 +26,12 @@ export type {
   DateDrumPickerProps,
   DateDrumPickerValue,
 } from './DateDrumPicker';
+export type {
+  TimeDrumPickerColumnKey,
+  TimeDrumPickerHourFormat,
+  TimeDrumPickerInterval,
+  TimeDrumPickerMode,
+  TimeDrumPickerPeriod,
+  TimeDrumPickerProps,
+  TimeDrumPickerValue,
+} from './TimeDrumPicker';
