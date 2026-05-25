@@ -75,7 +75,19 @@ internal class DrumPickerAdapter(
           )
       }
     val holder = ItemViewHolder(textView)
+    holder.itemView.setOnClickListener {
+      if (!enableScrollByTapOnItem) {
+        return@setOnClickListener
+      }
+      val adapterPosition = holder.bindingAdapterPosition
+      if (adapterPosition != RecyclerView.NO_POSITION) {
+        onItemTap?.invoke(adapterPosition)
+      }
+    }
     holder.itemView.setOnTouchListener { view, event ->
+      if (!enableScrollByTapOnItem) {
+        return@setOnTouchListener false
+      }
       handleRowTouch(holder, view, event)
     }
     return holder
@@ -121,11 +133,8 @@ internal class DrumPickerAdapter(
       }
       MotionEvent.ACTION_UP -> {
         view.parent?.requestDisallowInterceptTouchEvent(false)
-        if (!holder.movedPastSlop && enableScrollByTapOnItem) {
-          val adapterPosition = holder.bindingAdapterPosition
-          if (adapterPosition != RecyclerView.NO_POSITION) {
-            onItemTap?.invoke(adapterPosition)
-          }
+        if (!holder.movedPastSlop) {
+          view.performClick()
         }
         return true
       }
