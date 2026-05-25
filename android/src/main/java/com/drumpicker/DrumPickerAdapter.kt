@@ -3,6 +3,7 @@ package com.drumpicker
 import android.graphics.Typeface
 import android.util.TypedValue
 import android.view.Gravity
+import android.view.MotionEvent
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
@@ -12,6 +13,10 @@ import kotlin.math.roundToInt
 internal class DrumPickerAdapter(
   private val defaultItemHeightPx: () -> Int,
 ) : RecyclerView.Adapter<DrumPickerAdapter.ItemViewHolder>() {
+
+  private companion object {
+    const val TAP_SLOP_PX = 8f
+  }
 
   var items: List<String> = emptyList()
     private set
@@ -24,6 +29,8 @@ internal class DrumPickerAdapter(
   var itemBackgroundColor: Int = DrumPickerDefaults.TRANSPARENT
 
   var distanceForPosition: ((position: Int) -> Float)? = null
+  var onItemTap: ((position: Int) -> Unit)? = null
+  var enableScrollByTapOnItem: Boolean = false
 
   private val regularTypeface = Typeface.create(Typeface.SANS_SERIF, Typeface.NORMAL)
   private val selectedTypeface = Typeface.create(Typeface.SANS_SERIF, Typeface.BOLD)
@@ -67,7 +74,23 @@ internal class DrumPickerAdapter(
             height,
           )
       }
-    return ItemViewHolder(textView)
+    val holder = ItemViewHolder(textView)
+    holder.itemView.setOnClickListener {
+      if (!enableScrollByTapOnItem) {
+        return@setOnClickListener
+      }
+      val adapterPosition = holder.bindingAdapterPosition
+      if (adapterPosition != RecyclerView.NO_POSITION) {
+        onItemTap?.invoke(adapterPosition)
+      }
+    }
+    holder.itemView.setOnTouchListener { view, event ->
+      if (!enableScrollByTapOnItem) {
+        return@setOnTouchListener false
+      }
+      handleRowTouch(holder, view, event)
+    }
+    return holder
   }
 
   override fun onBindViewHolder(holder: ItemViewHolder, position: Int) {
@@ -81,6 +104,47 @@ internal class DrumPickerAdapter(
     holder.lastStyleBucket = Int.MIN_VALUE
     val distance = distanceForPosition?.invoke(position) ?: 2f
     applyItemStyle(holder, distance)
+  }
+
+  private fun handleRowTouch(
+    holder: ItemViewHolder,
+    view: android.view.View,
+    event: MotionEvent,
+  ): Boolean {
+    when (event.actionMasked) {
+      MotionEvent.ACTION_DOWN -> {
+        holder.touchDownX = event.x
+        holder.touchDownY = event.y
+        holder.movedPastSlop = false
+        view.parent?.requestDisallowInterceptTouchEvent(true)
+        return true
+      }
+      MotionEvent.ACTION_MOVE -> {
+        if (!holder.movedPastSlop) {
+          val dx = abs(event.x - holder.touchDownX)
+          val dy = abs(event.y - holder.touchDownY)
+          if (dx > TAP_SLOP_PX || dy > TAP_SLOP_PX) {
+            holder.movedPastSlop = true
+            view.parent?.requestDisallowInterceptTouchEvent(false)
+            return false
+          }
+        }
+        return true
+      }
+      MotionEvent.ACTION_UP -> {
+        view.parent?.requestDisallowInterceptTouchEvent(false)
+        if (!holder.movedPastSlop) {
+          view.performClick()
+        }
+        return true
+      }
+      MotionEvent.ACTION_CANCEL -> {
+        view.parent?.requestDisallowInterceptTouchEvent(false)
+        holder.movedPastSlop = false
+        return true
+      }
+      else -> return true
+    }
   }
 
   fun applyItemStyle(holder: ItemViewHolder, distanceFromCenter: Float) {
@@ -105,5 +169,8 @@ internal class DrumPickerAdapter(
 
   class ItemViewHolder(val textView: TextView) : RecyclerView.ViewHolder(textView) {
     var lastStyleBucket: Int = Int.MIN_VALUE
+    var touchDownX: Float = 0f
+    var touchDownY: Float = 0f
+    var movedPastSlop: Boolean = false
   }
 }

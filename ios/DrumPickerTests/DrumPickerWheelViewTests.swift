@@ -56,10 +56,77 @@ final class DrumPickerWheelViewTests: XCTestCase {
     XCTAssertNoThrow(view.setHapticFeedback(true))
     XCTAssertNoThrow(view.setHapticFeedback(false))
   }
+
+  func testEnableScrollByTapOnItemPropertyAccepted() {
+    XCTAssertNoThrow(view.setEnableScrollByTapOnItem(true))
+    XCTAssertNoThrow(view.setEnableScrollByTapOnItem(false))
+  }
+
+  func testTapSelectsTappedRowWhenEnabled() {
+    view.setSelectedIndex(2, animated: false)
+    view.setEnableScrollByTapOnItem(true)
+    view.layoutIfNeeded()
+    RunLoop.main.run(until: Date(timeIntervalSinceNow: 0.05))
+
+    let rowZeroLabel = view.pickerView(
+      picker,
+      viewForRow: 0,
+      forComponent: 0,
+      reusing: nil
+    )
+    let frameInPicker = rowZeroLabel.convert(rowZeroLabel.bounds, to: picker)
+    let tapPoint = CGPoint(x: frameInPicker.midX, y: frameInPicker.midY)
+
+    view.testingTap(at: tapPoint)
+
+    XCTAssertEqual(view.selectedIndexForTesting(), 0)
+    XCTAssertEqual(picker.selectedRow(inComponent: 0), 0)
+  }
+
+  func testTapDoesNotReemitWhenAlreadySelected() {
+    let delegate = MockWheelDelegate()
+    view.wheelDelegate = delegate
+    view.setSelectedIndex(2, animated: false)
+    view.setEnableScrollByTapOnItem(true)
+    view.layoutIfNeeded()
+    RunLoop.main.run(until: Date(timeIntervalSinceNow: 0.05))
+
+    let rowLabel = view.pickerView(
+      picker,
+      viewForRow: 2,
+      forComponent: 0,
+      reusing: nil
+    )
+    let frameInPicker = rowLabel.convert(rowLabel.bounds, to: picker)
+    let tapPoint = CGPoint(x: frameInPicker.midX, y: frameInPicker.midY)
+
+    view.testingTap(at: tapPoint)
+
+    XCTAssertEqual(delegate.userInitiatedCount, 0)
+    XCTAssertEqual(view.selectedIndexForTesting(), 2)
+  }
+
+  func testTapIgnoredWhenDisabled() {
+    view.setSelectedIndex(2, animated: false)
+    view.setEnableScrollByTapOnItem(false)
+    view.layoutIfNeeded()
+
+    let rowZeroLabel = view.pickerView(
+      picker,
+      viewForRow: 0,
+      forComponent: 0,
+      reusing: nil
+    )
+    let frameInPicker = rowZeroLabel.convert(rowZeroLabel.bounds, to: picker)
+    view.testingTap(at: CGPoint(x: frameInPicker.midX, y: frameInPicker.midY))
+
+    XCTAssertEqual(view.selectedIndexForTesting(), 2)
+  }
 }
 
 private final class MockWheelDelegate: NSObject, DrumPickerWheelViewDelegate {
   var userInitiatedCount = 0
+  var lastRow: Int?
 
   func drumPickerWheelView(
     _ view: DrumPickerWheelView,
@@ -69,6 +136,7 @@ private final class MockWheelDelegate: NSObject, DrumPickerWheelViewDelegate {
   ) {
     if userInitiated {
       userInitiatedCount += 1
+      lastRow = row
     }
   }
 }

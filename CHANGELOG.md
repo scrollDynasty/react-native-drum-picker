@@ -7,7 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-_No changes yet._
+### Added
+
+- `withVirtualized` HOC for efficient rendering of large item lists (1000+ items) via windowed rendering (anchor index, slice-update lock, debounced recenter by latest anchor, O(1) index resolution when labels match, reclamp when list length changes)
+- `enableScrollByTapOnItem` prop — tap any visible item to scroll it to the center position (Android + iOS); also on `DateDrumPicker` columns
+- iOS tap uses visible-row label hit-testing (aligned with Android row taps); native unit / instrumented tests on both platforms
+- Documented requirement: unique `items` strings for `withVirtualized` and iOS tap hit-testing
 
 ## [0.2.0] - 2026-05-22
 

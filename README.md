@@ -214,6 +214,44 @@ export function DateExample() {
 
 Day count follows month/year (e.g. February has 28/29 days).
 
+## withVirtualized
+
+For large item lists (cities, timezones, country codes), wrap `DrumPicker` with `withVirtualized` to render only items near the visible window:
+
+```tsx
+import { DrumPicker, withVirtualized } from 'react-native-drum-picker';
+
+const VirtualizedDrumPicker = withVirtualized(DrumPicker);
+
+const CITIES = ['Tashkent', 'Moscow', 'London', /* ... */]; // 1000+ items
+
+<VirtualizedDrumPicker
+  items={CITIES}
+  selectedIndex={selectedIndex}
+  windowSize={20} // items above + below visible area (default: 20)
+  onChange={({ nativeEvent }) => setIndex(nativeEvent.index)}
+/>;
+```
+
+`windowSize` controls the render buffer. Higher = smoother fast flings, higher memory. Default of 20 works for most cases.
+
+Optional `windowRecenterDebounceMs` (default `100`) debounces slice recentering when you reach the first or last row of the current window — this prevents scroll feedback loops during fast flings on large lists.
+
+**Platforms:** iOS and Android only (wrap `DrumPicker` from the package — not web). The native wheel always receives a small sliced `items` array on both platforms.
+
+**Requirements:** each entry in `items` must be a **unique** string. Duplicate labels break index recovery during slice swaps and on iOS tap hit-testing.
+
+Not intended for `DateDrumPicker` (small fixed column lists).
+
+### `withVirtualized(DrumPicker)` props
+
+In addition to all `DrumPicker` props (on the wrapped instance):
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `windowSize` | `number` | `20` | Rows rendered above and below the selection |
+| `windowRecenterDebounceMs` | `number` | `100` | Debounce before shifting the slice when scrolling hits the window edge |
+
 ## API reference
 
 ### `DrumPicker`
@@ -235,6 +273,7 @@ Day count follows month/year (e.g. February has 28/29 days).
 | `selectionIndicatorColor` | `string` | `#D1D1D6` | Line color |
 | `selectionIndicatorHeight` | `number` | `1` | Line thickness (dp) |
 | `hapticFeedback` | `boolean` | `false` | Light haptic on snap (Android + iOS) |
+| `enableScrollByTapOnItem` | `boolean` | `false` | Tap a visible row to scroll it to center (Android + iOS) |
 | `onChange` | `function` | — | `nativeEvent: { index, value }` |
 | `style` | `ViewStyle` | — | Size and layout |
 
@@ -262,6 +301,7 @@ Day count follows month/year (e.g. February has 28/29 days).
 | `itemBackgroundColor` | `string` | `transparent` | Passed to each column |
 | `containerBackgroundColor` | `string` | `transparent` | Passed to each column |
 | `hapticFeedback` | `boolean` | `false` | Passed to each column |
+| `enableScrollByTapOnItem` | `boolean` | `false` | Passed to each column |
 | `style` | `ViewStyle` | — | Row container |
 | `columnStyle` | `ViewStyle` | — | All columns |
 | `columnStyles` | `object` | — | Per column: `day`, `month`, `year` |

@@ -5,6 +5,8 @@ import android.graphics.Color
 import android.os.Build
 import android.view.HapticFeedbackConstants
 import android.util.AttributeSet
+import android.os.SystemClock
+import android.view.MotionEvent
 import android.view.View
 import android.widget.FrameLayout
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -46,6 +48,7 @@ class DrumPickerView @JvmOverloads constructor(
   private var containerBackgroundColor = DrumPickerDefaults.TRANSPARENT
   private var itemBackgroundColor = DrumPickerDefaults.TRANSPARENT
   private var hapticFeedback = false
+  private var enableScrollByTapOnItem = false
 
   private var itemHeightPx = dpToPx(itemHeightDp)
   private var lastHapticIndex = -1
@@ -122,6 +125,7 @@ class DrumPickerView @JvmOverloads constructor(
     addView(bottomIndicator, LayoutParams(LayoutParams.MATCH_PARENT, selectionIndicatorHeightPx))
 
     adapter.distanceForPosition = { position -> distanceFromCenterForPosition(position) }
+    adapter.onItemTap = { position -> scrollToPositionFromTap(position) }
     syncAdapterStyle()
     applyBackgroundColors()
     applyRecyclerPadding()
@@ -225,6 +229,64 @@ class DrumPickerView @JvmOverloads constructor(
   fun setHapticFeedbackProp(value: Any?) {
     hapticFeedback = value as? Boolean ?: false
   }
+
+  fun setEnableScrollByTapOnItemProp(value: Any?) {
+    enableScrollByTapOnItem = toBoolean(value, false)
+    adapter.enableScrollByTapOnItem = enableScrollByTapOnItem
+  }
+
+  private fun scrollToPositionFromTap(position: Int) {
+    if (!enableScrollByTapOnItem || !isLifecycleActive() || items.isEmpty()) {
+      return
+    }
+    val clamped = position.coerceIn(0, items.size - 1)
+    if (clamped == selectedIndex && clamped == lastEmittedIndex) {
+      return
+    }
+    selectedIndex = clamped
+    scheduleScrollToSelectedIndexCentered(animated = true, emit = true)
+  }
+
+  /** @see selectedIndexForTesting — instrumented tests only */
+  internal fun testingPerformItemTap(position: Int) {
+    scrollToPositionFromTap(position)
+  }
+
+  /** Dispatches a tap on the row view for instrumented tests (real touch pipeline). */
+  internal fun testingClickRow(position: Int) {
+    val holder = recyclerView.findViewHolderForAdapterPosition(position)
+    if (holder == null) {
+      if (recyclerView.height > 0) {
+        val centerOffset = ((recyclerView.height - itemHeightPx) / 2).coerceAtLeast(0)
+        layoutManager.scrollToPositionWithOffset(position, centerOffset)
+      } else {
+        layoutManager.scrollToPosition(position)
+      }
+      recyclerView.post { testingClickRow(position) }
+      return
+    }
+    val view = holder.itemView
+    val downTime = SystemClock.uptimeMillis()
+    val x = view.width / 2f
+    val y = view.height / 2f
+    val down =
+      MotionEvent.obtain(downTime, downTime, MotionEvent.ACTION_DOWN, x, y, 0)
+    val up =
+      MotionEvent.obtain(
+        downTime,
+        downTime + 50,
+        MotionEvent.ACTION_UP,
+        x,
+        y,
+        0,
+      )
+    view.dispatchTouchEvent(down)
+    view.dispatchTouchEvent(up)
+    down.recycle()
+    up.recycle()
+  }
+
+  internal fun selectedIndexForTesting(): Int = selectedIndex
 
   override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
     updateMinimumDimensions()
@@ -468,19 +530,19 @@ class DrumPickerView @JvmOverloads constructor(
       if (!isLifecycleActive()) {
         return@post
       }
-      val snappedIndex = findSnapCenterIndex()
+      var snappedIndex = findSnapCenterIndex()
       if (snappedIndex != RecyclerView.NO_POSITION && snappedIndex != index) {
-        layoutManager.scrollToPositionWithOffset(snappedIndex, centerOffset)
-        selectedIndex = snappedIndex
+        layoutManager.scrollToPositionWithOffset(index, centerOffset)
+        snappedIndex = findSnapCenterIndex()
       }
       updateVisibleItemStyles()
       val resolvedIndex =
-        if (snappedIndex != RecyclerView.NO_POSITION) snappedIndex else index
+        if (emit && snappedIndex != RecyclerView.NO_POSITION) snappedIndex else index
       if (emit) {
         maybeEmitChange(resolvedIndex)
       } else {
-        lastEmittedIndex = resolvedIndex
-        selectedIndex = resolvedIndex
+        lastEmittedIndex = index
+        selectedIndex = index
       }
       suppressChangeEvent = false
     }
