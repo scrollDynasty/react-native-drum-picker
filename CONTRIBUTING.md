@@ -219,17 +219,29 @@ Advanced CodeQL runs separately (`.github/workflows/codeql.yml`). If it fails wi
 
 [GitHub Discussions](https://github.com/scrollDynasty/react-native-drum-picker/discussions) or the [question template](https://github.com/scrollDynasty/react-native-drum-picker/issues/new?template=question.md).
 
-## Publishing (maintainers only)
+## Commit conventions
 
-Releases use [release-it](https://github.com/release-it/release-it). Before release:
+PR titles must follow [Conventional Commits](https://conventionalcommits.org).
+release-please reads merged PR titles to auto-generate CHANGELOG and
+bump version. The Release PR is created automatically — merge it when
+ready to ship.
 
-```sh
-yarn install
-yarn lint
-yarn build
-npm pack --dry-run
-```
+| PR title prefix | Example | Version bump |
+|----------------|---------|--------------|
+| `feat:` | `feat: add TimeDrumPicker` | minor `0.x.0` |
+| `fix:` | `fix: haptic on Android` | patch `0.0.x` |
+| `feat!:` | `feat!: rename onChange` | major `x.0.0` |
+| `BREAKING CHANGE` in body | any title | major `x.0.0` |
+| `chore:` | `chore: update deps` | patch `0.0.x` |
+| `docs:` | `docs: update README` | patch `0.0.x` |
+| `refactor:` | `refactor: extract utils` | patch `0.0.x` |
 
-Confirm `npm pack --dry-run` lists `package/README.md`. Do not commit secrets or `.env` files.
+### Release flow
+
+1. Merge PRs to `main` as usual
+2. release-please automatically maintains a "Release PR"
+3. When ready to ship — merge the Release PR
+4. GitHub Release + tag are created automatically
+5. The release tag triggers automated publishing to npm
 
 If `package.json` `peerDependencies` change, commit **`yarn.lock`**.

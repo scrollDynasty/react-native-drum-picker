@@ -97,3 +97,7 @@ android/generated
 
 # React Native Nitro Modules
 nitrogen/
+
+# release-please
+release-please
+.release-please-manifest.json.bak
