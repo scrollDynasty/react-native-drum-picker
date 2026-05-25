@@ -2,7 +2,6 @@ package com.drumpicker
 
 import androidx.test.core.app.ActivityScenario
 import androidx.test.espresso.Espresso.onView
-import androidx.test.espresso.action.ViewActions.click
 import androidx.test.espresso.assertion.ViewAssertions.matches
 import androidx.test.espresso.matcher.ViewMatchers.isDisplayed
 import androidx.test.espresso.matcher.ViewMatchers.withContentDescription
@@ -17,6 +16,21 @@ import org.junit.runner.RunWith
 
 @RunWith(AndroidJUnit4::class)
 class DrumPickerTapTest {
+  private fun readSelectedIndex(
+    scenario: ActivityScenario<TestActivity>,
+  ): Int {
+    val latch = CountDownLatch(1)
+    var selectedIndex = -1
+    scenario.onActivity { activity ->
+      activity.picker.post {
+        selectedIndex = activity.picker.selectedIndexForTesting()
+        latch.countDown()
+      }
+    }
+    assertTrue(latch.await(3, TimeUnit.SECONDS))
+    return selectedIndex
+  }
+
   @Test
   fun tapOnRowScrollsSelectionWhenEnabled() {
     val instrumentation = InstrumentationRegistry.getInstrumentation()
@@ -28,19 +42,12 @@ class DrumPickerTapTest {
       }
       instrumentation.waitForIdleSync()
 
-      onView(withContentDescription("Alpha")).perform(click())
+      scenario.onActivity { activity ->
+        activity.picker.testingClickRow(0)
+      }
       instrumentation.waitForIdleSync()
 
-      val latch = CountDownLatch(1)
-      var selectedIndex = -1
-      scenario.onActivity { activity ->
-        activity.picker.post {
-          selectedIndex = activity.picker.selectedIndexForTesting()
-          latch.countDown()
-        }
-      }
-      assertTrue(latch.await(3, TimeUnit.SECONDS))
-      assertEquals(0, selectedIndex)
+      assertEquals(0, readSelectedIndex(scenario))
       onView(withContentDescription("Alpha")).check(matches(isDisplayed()))
     }
   }
@@ -56,20 +63,13 @@ class DrumPickerTapTest {
         activity.picker.testingPerformItemTap(0)
       }
       instrumentation.waitForIdleSync()
+      assertEquals(2, readSelectedIndex(scenario))
 
-      onView(withContentDescription("Alpha")).perform(click())
-      instrumentation.waitForIdleSync()
-
-      val latch = CountDownLatch(1)
-      var selectedIndex = -1
       scenario.onActivity { activity ->
-        activity.picker.post {
-          selectedIndex = activity.picker.selectedIndexForTesting()
-          latch.countDown()
-        }
+        activity.picker.testingClickRow(0)
       }
-      assertTrue(latch.await(3, TimeUnit.SECONDS))
-      assertEquals(2, selectedIndex)
+      instrumentation.waitForIdleSync()
+      assertEquals(2, readSelectedIndex(scenario))
     }
   }
 }

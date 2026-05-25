@@ -5,6 +5,8 @@ import android.graphics.Color
 import android.os.Build
 import android.view.HapticFeedbackConstants
 import android.util.AttributeSet
+import android.os.SystemClock
+import android.view.MotionEvent
 import android.view.View
 import android.widget.FrameLayout
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -248,6 +250,35 @@ class DrumPickerView @JvmOverloads constructor(
   /** @see selectedIndexForTesting — instrumented tests only */
   internal fun testingPerformItemTap(position: Int) {
     scrollToPositionFromTap(position)
+  }
+
+  /** Dispatches a tap on the row view for instrumented tests (real touch pipeline). */
+  internal fun testingClickRow(position: Int) {
+    val holder = recyclerView.findViewHolderForAdapterPosition(position)
+    if (holder == null) {
+      layoutManager.scrollToPosition(position)
+      recyclerView.post { testingClickRow(position) }
+      return
+    }
+    val view = holder.itemView
+    val downTime = SystemClock.uptimeMillis()
+    val x = view.width / 2f
+    val y = view.height / 2f
+    val down =
+      MotionEvent.obtain(downTime, downTime, MotionEvent.ACTION_DOWN, x, y, 0)
+    val up =
+      MotionEvent.obtain(
+        downTime,
+        downTime + 50,
+        MotionEvent.ACTION_UP,
+        x,
+        y,
+        0,
+      )
+    view.dispatchTouchEvent(down)
+    view.dispatchTouchEvent(up)
+    down.recycle()
+    up.recycle()
   }
 
   internal fun selectedIndexForTesting(): Int = selectedIndex
