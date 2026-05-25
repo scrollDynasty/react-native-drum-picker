@@ -10,14 +10,15 @@ export interface VirtualizedProps {
    */
   windowSize?: number;
   /**
-   * When the selection is within this many rows of the sliced window edge,
-   * the window recenters on the current index. Avoids shifting the native
-   * item list on every scroll tick (which caused phantom rows / index gaps).
+   * Debounce (ms) before recentering the native item slice when the user
+   * reaches the first/last row of the current window. Coalesces fast flings.
    */
-  windowEdgeThreshold?: number;
+  windowRecenterDebounceMs?: number;
 }
 
 type ItemWindow = { start: number; end: number };
+
+const SLICE_UNLOCK_DELAY_MS = 48;
 
 function clampLocalIndex(
   realIndex: number,
@@ -31,16 +32,56 @@ function clampLocalIndex(
   return Math.min(Math.max(local, 0), sliceLength - 1);
 }
 
-function shouldRecenterWindow(
-  localIndex: number,
-  sliceLength: number,
-  edgeThreshold: number
-): boolean {
+/** Recenter only on the actual first/last row — not a wide margin band. */
+function isAtSliceEdge(localIndex: number, sliceLength: number): boolean {
   if (sliceLength <= 1) {
     return false;
   }
-  const margin = Math.min(edgeThreshold, Math.floor((sliceLength - 1) / 2));
-  return localIndex <= margin || localIndex >= sliceLength - 1 - margin;
+  return localIndex === 0 || localIndex === sliceLength - 1;
+}
+
+/**
+ * Prefer the label from the native event when it maps inside the current window;
+ * avoids bogus local indices fired while the slice is being swapped.
+ */
+function resolveRealIndex(
+  localIndex: number,
+  window: ItemWindow,
+  label: string,
+  items: ReadonlyArray<string>
+): number {
+  const fromOffset = window.start + localIndex;
+  if (label.length === 0) {
+    return fromOffset;
+  }
+  const fromLabel = items.indexOf(label);
+  if (fromLabel < 0) {
+    return fromOffset;
+  }
+  if (fromLabel >= window.start && fromLabel < window.end) {
+    return fromLabel;
+  }
+  if (Math.abs(fromLabel - fromOffset) <= 1) {
+    return fromLabel;
+  }
+  return fromOffset;
+}
+
+function scheduleSliceUnlock(
+  isUpdatingSlice: { current: boolean },
+  unlockTimer: { current: ReturnType<typeof setTimeout> | null }
+): void {
+  if (unlockTimer.current != null) {
+    clearTimeout(unlockTimer.current);
+  }
+  unlockTimer.current = setTimeout(() => {
+    unlockTimer.current = null;
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        isUpdatingSlice.current = false;
+      });
+    });
+  }, SLICE_UNLOCK_DELAY_MS);
 }
 
 /**
@@ -54,7 +95,7 @@ export function withVirtualized(WrappedPicker: ComponentType<DrumPickerProps>) {
     selectedIndex = 0,
     onChange,
     windowSize = 20,
-    windowEdgeThreshold = 5,
+    windowRecenterDebounceMs = 100,
     ...rest
   }: DrumPickerProps & VirtualizedProps) => {
     const totalCount = items.length;
@@ -69,11 +110,58 @@ export function withVirtualized(WrappedPicker: ComponentType<DrumPickerProps>) {
     );
 
     const parentIndexRef = useRef(selectedIndex);
+    const isUpdatingSliceRef = useRef(false);
+    const recenterTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const unlockTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const windowRef = useRef<ItemWindow>(computeWindow(selectedIndex));
+
     const [window, setWindow] = useState<ItemWindow>(() =>
       computeWindow(selectedIndex)
     );
-    /** Authoritative real index for native mapping — updated immediately on scroll. */
     const [anchorIndex, setAnchorIndex] = useState(selectedIndex);
+
+    windowRef.current = window;
+
+    useEffect(() => {
+      const recenterTimer = recenterTimerRef;
+      const unlockTimer = unlockTimerRef;
+      return () => {
+        if (recenterTimer.current != null) {
+          clearTimeout(recenterTimer.current);
+        }
+        if (unlockTimer.current != null) {
+          clearTimeout(unlockTimer.current);
+        }
+      };
+    }, []);
+
+    const applyWindowRecenter = useCallback(
+      (realIdx: number) => {
+        const newWindow = computeWindow(realIdx);
+        const current = windowRef.current;
+        if (
+          newWindow.start === current.start &&
+          newWindow.end === current.end
+        ) {
+          return;
+        }
+
+        isUpdatingSliceRef.current = true;
+
+        if (recenterTimerRef.current != null) {
+          clearTimeout(recenterTimerRef.current);
+          recenterTimerRef.current = null;
+        }
+
+        setAnchorIndex(realIdx);
+        parentIndexRef.current = realIdx;
+        windowRef.current = newWindow;
+        setWindow(newWindow);
+
+        scheduleSliceUnlock(isUpdatingSliceRef, unlockTimerRef);
+      },
+      [computeWindow]
+    );
 
     // Controlled updates from parent only (not echo from our own onChange).
     useEffect(() => {
@@ -81,8 +169,12 @@ export function withVirtualized(WrappedPicker: ComponentType<DrumPickerProps>) {
         return;
       }
       parentIndexRef.current = selectedIndex;
+      isUpdatingSliceRef.current = true;
       setAnchorIndex(selectedIndex);
-      setWindow(computeWindow(selectedIndex));
+      const nextWindow = computeWindow(selectedIndex);
+      windowRef.current = nextWindow;
+      setWindow(nextWindow);
+      scheduleSliceUnlock(isUpdatingSliceRef, unlockTimerRef);
     }, [selectedIndex, computeWindow]);
 
     const slicedItems = useMemo(
@@ -97,26 +189,34 @@ export function withVirtualized(WrappedPicker: ComponentType<DrumPickerProps>) {
 
     const handleChange = useCallback(
       (event: NativeSyntheticEvent<DrumPickerChangeEvent>) => {
+        if (isUpdatingSliceRef.current) {
+          return;
+        }
+
         const localIdx = event.nativeEvent.index;
-        const realIdx = window.start + localIdx;
+        const currentWindow = windowRef.current;
+        const realIdx = resolveRealIndex(
+          localIdx,
+          currentWindow,
+          event.nativeEvent.value,
+          items
+        );
 
         setAnchorIndex(realIdx);
         parentIndexRef.current = realIdx;
 
-        if (
-          shouldRecenterWindow(
-            localIdx,
-            slicedItems.length,
-            windowEdgeThreshold
-          )
-        ) {
-          const newWindow = computeWindow(realIdx);
-          if (
-            newWindow.start !== window.start ||
-            newWindow.end !== window.end
-          ) {
-            setWindow(newWindow);
+        const sliceLength = currentWindow.end - currentWindow.start;
+        if (isAtSliceEdge(localIdx, sliceLength)) {
+          if (recenterTimerRef.current != null) {
+            clearTimeout(recenterTimerRef.current);
           }
+          recenterTimerRef.current = setTimeout(() => {
+            recenterTimerRef.current = null;
+            if (isUpdatingSliceRef.current) {
+              return;
+            }
+            applyWindowRecenter(realIdx);
+          }, windowRecenterDebounceMs);
         }
 
         onChange?.({
@@ -128,19 +228,11 @@ export function withVirtualized(WrappedPicker: ComponentType<DrumPickerProps>) {
           },
         });
       },
-      [
-        window,
-        items,
-        onChange,
-        computeWindow,
-        slicedItems.length,
-        windowEdgeThreshold,
-      ]
+      [items, onChange, windowRecenterDebounceMs, applyWindowRecenter]
     );
 
     return (
       <WrappedPicker
-        key={`virtualized-${window.start}-${window.end}`}
         {...rest}
         items={slicedItems}
         selectedIndex={localIndex}

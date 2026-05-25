@@ -86,13 +86,15 @@ describe('withVirtualized', () => {
     expect(props?.selectedIndex).toBe(10);
   });
 
-  it('slides window when selection nears edge', () => {
+  it('slides window when selection reaches slice edge (debounced)', () => {
+    jest.useFakeTimers();
     const onChange = jest.fn();
     render(
       <VirtualizedDrumPicker
         items={CITIES}
         selectedIndex={500}
         windowSize={20}
+        windowRecenterDebounceMs={50}
         onChange={onChange}
       />
     );
@@ -102,6 +104,60 @@ describe('withVirtualized', () => {
     expect(onChange).toHaveBeenCalledWith(
       expect.objectContaining({
         nativeEvent: expect.objectContaining({ index: 480 }),
+      })
+    );
+    act(() => {
+      jest.advanceTimersByTime(50);
+    });
+    const props = getLatestNativeDrumPickerProps();
+    expect(props?.items?.[0]).toBe('City 460');
+    jest.useRealTimers();
+  });
+
+  it('ignores native events while the slice is being swapped', () => {
+    jest.useFakeTimers();
+    const onChange = jest.fn();
+    render(
+      <VirtualizedDrumPicker
+        items={CITIES}
+        selectedIndex={500}
+        windowSize={20}
+        windowRecenterDebounceMs={0}
+        onChange={onChange}
+      />
+    );
+    act(() => {
+      fireNativeDrumPickerChange(0, 'City 480');
+      jest.advanceTimersByTime(0);
+    });
+    onChange.mockClear();
+    act(() => {
+      fireNativeDrumPickerChange(0, 'City 0');
+      jest.advanceTimersByTime(48);
+    });
+    expect(onChange).not.toHaveBeenCalled();
+    jest.useRealTimers();
+  });
+
+  it('resolves index from event value when inside the current window', () => {
+    const onChange = jest.fn();
+    render(
+      <VirtualizedDrumPicker
+        items={CITIES}
+        selectedIndex={140}
+        windowSize={20}
+        onChange={onChange}
+      />
+    );
+    act(() => {
+      fireNativeDrumPickerChange(0, 'City 140');
+    });
+    expect(onChange).toHaveBeenCalledWith(
+      expect.objectContaining({
+        nativeEvent: expect.objectContaining({
+          index: 140,
+          value: 'City 140',
+        }),
       })
     );
   });
