@@ -90,6 +90,38 @@ const COLUMN_WIDTH: Record<DateColumnKey, number> = {
 const DEFAULT_ITEM_HEIGHT = 44;
 const DEFAULT_VISIBLE_ITEM_COUNT = 5;
 
+/**
+ * Render a horizontal date selector composed of scrollable day, month, and year drums according to the specified mode.
+ *
+ * The component supports controlled and uncontrolled usage, enforces `minYear`/`maxYear` bounds, and clamps invalid day/month/year combinations (for example, day 31 in April). It emits normalized changes via `onChange` and will notify the parent once if a controlled `value` contains out-of-range fields.
+ *
+ * @param mode - Which columns to show and their order (e.g., 'day-month-year', 'month-year', etc.).
+ * @param value - Controlled date value (partial object with `day`, `month`, `year`); when omitted the component manages its own state.
+ * @param onChange - Callback invoked with the normalized date value whenever the selection changes.
+ * @param minYear - Minimum selectable year (defaults to currentYear - 100 when not provided).
+ * @param maxYear - Maximum selectable year (defaults to currentYear + 50 when not provided).
+ * @param monthFormat - Month label format ('short' | 'long' etc.).
+ * @param locale - Locale used for month labels.
+ * @param itemHeight - Height of each drum item in pixels.
+ * @param visibleItemCount - Number of visible items in the drum viewport.
+ * @param textColor - Color for unselected item text.
+ * @param selectedTextColor - Color for selected item text.
+ * @param textSize - Font size for unselected items.
+ * @param selectedTextSize - Font size for the selected item.
+ * @param showSelectionIndicator - Whether to show a selection indicator overlay.
+ * @param selectionIndicatorColor - Color of the selection indicator.
+ * @param selectionIndicatorHeight - Height of the selection indicator.
+ * @param backgroundColor - Background color for each drum.
+ * @param itemBackgroundColor - Background color for individual items.
+ * @param containerBackgroundColor - Background color for the picker's container.
+ * @param hapticFeedback - Whether to trigger haptic feedback on selection changes.
+ * @param enableScrollByTapOnItem - Whether tapping an item scrolls the drum to that item.
+ * @param style - Style applied to the root container.
+ * @param columnStyle - Style applied to every column container.
+ * @param columnStyles - Per-column style overrides.
+ * @param columnTestIDs - Per-column test IDs.
+ * @returns A React element that displays the configured date drums.
+ */
 export function DateDrumPicker({
   mode = 'day-month-year',
   value,

@@ -42,6 +42,15 @@ function useDebouncedCallback<T extends (...args: never[]) => void>(
   );
 }
 
+/**
+ * Render a demo interface showcasing DrumPicker and DateDrumPicker features.
+ *
+ * The component provides a tabbed playground with examples for basic selection,
+ * time (hour/minute), height/weight pickers, a date picker, controlled usage,
+ * debounced persistence, and a large virtualized list demo.
+ *
+ * @returns A React element containing the demo UI with tabs for Basic, Time, Height/Weight, Date, Controlled, Debounce, and Large list examples.
+ */
 export default function App() {
   const [example, setExample] = useState<
     'basic' | 'time' | 'hw' | 'date' | 'controlled' | 'debounce' | 'large'

@@ -20,6 +20,14 @@ type ItemWindow = { start: number; end: number };
 
 const SLICE_UNLOCK_DELAY_MS = 48;
 
+/**
+ * Convert a global item index into a clamped local index relative to a window slice.
+ *
+ * @param realIndex - The index in the full items array.
+ * @param windowStart - The start index of the current window (slice) within the full array.
+ * @param sliceLength - The number of items in the current slice.
+ * @returns The local index corresponding to `realIndex` within the slice, clamped to the range `[0, sliceLength - 1]`. Returns `0` when `sliceLength` is `0` or negative.
+ */
 function clampLocalIndex(
   realIndex: number,
   windowStart: number,
@@ -32,7 +40,13 @@ function clampLocalIndex(
   return Math.min(Math.max(local, 0), sliceLength - 1);
 }
 
-/** Recenter only on the actual first/last row — not a wide margin band. */
+/**
+ * Determine whether a local index is exactly the first or last row of the slice.
+ *
+ * @param localIndex - Index relative to the current sliced window
+ * @param sliceLength - Number of items in the current slice
+ * @returns `true` if `localIndex` equals `0` or `sliceLength - 1`; `false` otherwise (also `false` when `sliceLength` is less than or equal to 1)
+ */
 function isAtSliceEdge(localIndex: number, sliceLength: number): boolean {
   if (sliceLength <= 1) {
     return false;
@@ -41,8 +55,21 @@ function isAtSliceEdge(localIndex: number, sliceLength: number): boolean {
 }
 
 /**
- * Map native index + label to a real index. Uses O(1) offset math when the
- * label matches; scans the full array only on mismatch (slice swap glitches).
+ * Map a native picker local index and item label to the corresponding index in the full `items` array.
+ *
+ * Resolves the "real" index for a native-picked row by computing an offset from `window.start` and then
+ * validating or reconciling that offset against `label`. If the computed offset is out of bounds it is
+ * clamped into the valid range.
+ *
+ * @param localIndex - The index inside the currently rendered slice (native picker index)
+ * @param window - The current window slice `{ start, end }` describing the half-open range into `items`
+ * @param label - The native-picked item label used to verify or correct the computed offset
+ * @param items - The full list of item labels
+ * @returns The index in `items` that best corresponds to the provided `localIndex` and `label`. If the
+ * computed offset is out of bounds it is clamped to `[0, items.length - 1]`. If `label` matches the item
+ * at the offset the offset is returned; otherwise a full-array scan is used to locate `label` and that
+ * found index is returned when it lies within the current window or is within one position of the offset;
+ * otherwise the original offset is returned.
  */
 function resolveRealIndex(
   localIndex: number,
@@ -73,6 +100,16 @@ function resolveRealIndex(
   return fromOffset;
 }
 
+/**
+ * Schedules clearing of the slice-update lock after a short delay and two animation frames.
+ *
+ * Clears any existing unlock timeout, sets a new timeout for `SLICE_UNLOCK_DELAY_MS`, and when
+ * it fires clears the timer ref and uses two nested `requestAnimationFrame` callbacks to set
+ * `isUpdatingSlice.current = false`.
+ *
+ * @param isUpdatingSlice - Mutable ref whose `current` flag prevents reacting to picker events while the slice updates; it will be set to `false` after the delay and frames.
+ * @param unlockTimer - Mutable ref used to store and clear the scheduled timeout; this function updates `unlockTimer.current`.
+ */
 function scheduleSliceUnlock(
   isUpdatingSlice: { current: boolean },
   unlockTimer: { current: ReturnType<typeof setTimeout> | null }
@@ -90,6 +127,11 @@ function scheduleSliceUnlock(
   }, SLICE_UNLOCK_DELAY_MS);
 }
 
+/**
+ * Clears a pending recenter timeout if present and nulls the timer ref.
+ *
+ * @param recenterTimer - Ref object whose `current` holds a timeout id or `null`
+ */
 function clearRecenterTimer(recenterTimer: {
   current: ReturnType<typeof setTimeout> | null;
 }): void {
@@ -100,11 +142,12 @@ function clearRecenterTimer(recenterTimer: {
 }
 
 /**
- * HOC that virtualizes a DrumPicker for large item lists.
- * Only renders items near the current selection, keeping native
- * RecyclerView / UIPickerView lean even with 10,000+ items.
+ * Wraps a DrumPicker-compatible component to render only a windowed slice of a large items array.
  *
- * Item labels must be unique — index recovery uses string equality.
+ * Item labels must be unique because recovered real indices rely on string equality.
+ *
+ * @param WrappedPicker - A DrumPicker-compatible component to virtualize.
+ * @returns A component that accepts DrumPickerProps & VirtualizedProps and renders a windowed slice of `items`, mapping native picker indices/values to their corresponding real indices/values in the full list.
  */
 export function withVirtualized(WrappedPicker: ComponentType<DrumPickerProps>) {
   const VirtualizedPicker = ({

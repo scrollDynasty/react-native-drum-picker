@@ -23,6 +23,14 @@ class DrumPickerViewManager :
   public override fun createViewInstance(context: ThemedReactContext): DrumPickerView =
     DrumPickerView(context)
 
+  /**
+   * Apply properties from a ReactStylesDiffMap to the given DrumPickerView.
+   *
+   * Routes recognized prop keys to the corresponding DrumPickerView setter methods and forwards unrecognized keys to the view manager delegate, then calls onAfterUpdateTransaction(view).
+   *
+   * @param view The DrumPickerView instance to update.
+   * @param props A map of property keys and values originating from React; known keys are handled by the view's setters, unknown keys are forwarded to the delegate.
+   */
   override fun updateProperties(view: DrumPickerView, props: ReactStylesDiffMap) {
     for ((key, value) in props.toMap()) {
       when (key) {
@@ -104,10 +112,22 @@ class DrumPickerViewManager :
     view?.setItemBackgroundColorProp(value)
   }
 
+  /**
+   * Sets whether haptic feedback is enabled for the DrumPickerView.
+   *
+   * @param view The target DrumPickerView, or null — no action is taken if null.
+   * @param value `true` to enable haptic feedback, `false` to disable it.
+   */
   override fun setHapticFeedback(view: DrumPickerView?, value: Boolean) {
     view?.setHapticFeedbackProp(value)
   }
 
+  /**
+   * Enables or disables scrolling the picker to an item when that item is tapped.
+   *
+   * @param view The target DrumPickerView instance; nothing happens if `null`.
+   * @param value `true` to enable scrolling by tapping an item, `false` to disable it.
+   */
   override fun setEnableScrollByTapOnItem(view: DrumPickerView?, value: Boolean) {
     view?.setEnableScrollByTapOnItemProp(value)
   }
