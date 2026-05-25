@@ -256,7 +256,12 @@ class DrumPickerView @JvmOverloads constructor(
   internal fun testingClickRow(position: Int) {
     val holder = recyclerView.findViewHolderForAdapterPosition(position)
     if (holder == null) {
-      layoutManager.scrollToPosition(position)
+      if (recyclerView.height > 0) {
+        val centerOffset = ((recyclerView.height - itemHeightPx) / 2).coerceAtLeast(0)
+        layoutManager.scrollToPositionWithOffset(position, centerOffset)
+      } else {
+        layoutManager.scrollToPosition(position)
+      }
       recyclerView.post { testingClickRow(position) }
       return
     }
@@ -525,19 +530,19 @@ class DrumPickerView @JvmOverloads constructor(
       if (!isLifecycleActive()) {
         return@post
       }
-      val snappedIndex = findSnapCenterIndex()
+      var snappedIndex = findSnapCenterIndex()
       if (snappedIndex != RecyclerView.NO_POSITION && snappedIndex != index) {
-        layoutManager.scrollToPositionWithOffset(snappedIndex, centerOffset)
-        selectedIndex = snappedIndex
+        layoutManager.scrollToPositionWithOffset(index, centerOffset)
+        snappedIndex = findSnapCenterIndex()
       }
       updateVisibleItemStyles()
       val resolvedIndex =
-        if (snappedIndex != RecyclerView.NO_POSITION) snappedIndex else index
+        if (emit && snappedIndex != RecyclerView.NO_POSITION) snappedIndex else index
       if (emit) {
         maybeEmitChange(resolvedIndex)
       } else {
-        lastEmittedIndex = resolvedIndex
-        selectedIndex = resolvedIndex
+        lastEmittedIndex = index
+        selectedIndex = index
       }
       suppressChangeEvent = false
     }

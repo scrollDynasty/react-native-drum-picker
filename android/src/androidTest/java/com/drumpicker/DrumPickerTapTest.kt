@@ -31,6 +31,21 @@ class DrumPickerTapTest {
     return selectedIndex
   }
 
+  private fun waitForSelectedIndex(
+    scenario: ActivityScenario<TestActivity>,
+    expected: Int,
+    timeoutMs: Long = 5000,
+  ) {
+    val deadline = System.currentTimeMillis() + timeoutMs
+    while (System.currentTimeMillis() < deadline) {
+      if (readSelectedIndex(scenario) == expected) {
+        return
+      }
+      Thread.sleep(50)
+    }
+    assertEquals(expected, readSelectedIndex(scenario))
+  }
+
   @Test
   fun tapOnRowScrollsSelectionWhenEnabled() {
     val instrumentation = InstrumentationRegistry.getInstrumentation()
@@ -41,13 +56,14 @@ class DrumPickerTapTest {
         activity.picker.requestLayout()
       }
       instrumentation.waitForIdleSync()
+      waitForSelectedIndex(scenario, 2)
 
       scenario.onActivity { activity ->
         activity.picker.testingClickRow(0)
       }
       instrumentation.waitForIdleSync()
+      waitForSelectedIndex(scenario, 0)
 
-      assertEquals(0, readSelectedIndex(scenario))
       onView(withContentDescription("Alpha")).check(matches(isDisplayed()))
     }
   }
@@ -60,6 +76,11 @@ class DrumPickerTapTest {
         activity.picker.setEnableScrollByTapOnItemProp(false)
         activity.picker.setSelectedIndexProp(2)
         activity.picker.requestLayout()
+      }
+      instrumentation.waitForIdleSync()
+      waitForSelectedIndex(scenario, 2)
+
+      scenario.onActivity { activity ->
         activity.picker.testingPerformItemTap(0)
       }
       instrumentation.waitForIdleSync()
