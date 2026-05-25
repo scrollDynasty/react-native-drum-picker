@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { ComponentType } from 'react';
 import type { NativeSyntheticEvent } from 'react-native';
 import type { DrumPickerChangeEvent, DrumPickerProps } from './types';
@@ -9,6 +9,38 @@ export interface VirtualizedProps {
    * Default: 20. Increase for faster flings.
    */
   windowSize?: number;
+  /**
+   * When the selection is within this many rows of the sliced window edge,
+   * the window recenters on the current index. Avoids shifting the native
+   * item list on every scroll tick (which caused phantom rows / index gaps).
+   */
+  windowEdgeThreshold?: number;
+}
+
+type ItemWindow = { start: number; end: number };
+
+function clampLocalIndex(
+  realIndex: number,
+  windowStart: number,
+  sliceLength: number
+): number {
+  if (sliceLength <= 0) {
+    return 0;
+  }
+  const local = realIndex - windowStart;
+  return Math.min(Math.max(local, 0), sliceLength - 1);
+}
+
+function shouldRecenterWindow(
+  localIndex: number,
+  sliceLength: number,
+  edgeThreshold: number
+): boolean {
+  if (sliceLength <= 1) {
+    return false;
+  }
+  const margin = Math.min(edgeThreshold, Math.floor((sliceLength - 1) / 2));
+  return localIndex <= margin || localIndex >= sliceLength - 1 - margin;
 }
 
 /**
@@ -22,12 +54,13 @@ export function withVirtualized(WrappedPicker: ComponentType<DrumPickerProps>) {
     selectedIndex = 0,
     onChange,
     windowSize = 20,
+    windowEdgeThreshold = 5,
     ...rest
   }: DrumPickerProps & VirtualizedProps) => {
     const totalCount = items.length;
 
     const computeWindow = useCallback(
-      (centerIndex: number) => {
+      (centerIndex: number): ItemWindow => {
         const start = Math.max(0, centerIndex - windowSize);
         const end = Math.min(totalCount, centerIndex + windowSize + 1);
         return { start, end };
@@ -35,30 +68,55 @@ export function withVirtualized(WrappedPicker: ComponentType<DrumPickerProps>) {
       [totalCount, windowSize]
     );
 
-    const [window, setWindow] = useState(() => computeWindow(selectedIndex));
-    const realIndexRef = useRef(selectedIndex);
+    const parentIndexRef = useRef(selectedIndex);
+    const [window, setWindow] = useState<ItemWindow>(() =>
+      computeWindow(selectedIndex)
+    );
+    /** Authoritative real index for native mapping — updated immediately on scroll. */
+    const [anchorIndex, setAnchorIndex] = useState(selectedIndex);
 
+    // Controlled updates from parent only (not echo from our own onChange).
     useEffect(() => {
-      realIndexRef.current = selectedIndex;
+      if (selectedIndex === parentIndexRef.current) {
+        return;
+      }
+      parentIndexRef.current = selectedIndex;
+      setAnchorIndex(selectedIndex);
       setWindow(computeWindow(selectedIndex));
     }, [selectedIndex, computeWindow]);
 
-    const slicedItems = items.slice(window.start, window.end);
+    const slicedItems = useMemo(
+      () => items.slice(window.start, window.end),
+      [items, window.start, window.end]
+    );
 
-    const localIndex = Math.min(
-      Math.max(selectedIndex - window.start, 0),
-      Math.max(slicedItems.length - 1, 0)
+    const localIndex = useMemo(
+      () => clampLocalIndex(anchorIndex, window.start, slicedItems.length),
+      [anchorIndex, window.start, slicedItems.length]
     );
 
     const handleChange = useCallback(
       (event: NativeSyntheticEvent<DrumPickerChangeEvent>) => {
         const localIdx = event.nativeEvent.index;
         const realIdx = window.start + localIdx;
-        realIndexRef.current = realIdx;
 
-        const newWindow = computeWindow(realIdx);
-        if (newWindow.start !== window.start || newWindow.end !== window.end) {
-          setWindow(newWindow);
+        setAnchorIndex(realIdx);
+        parentIndexRef.current = realIdx;
+
+        if (
+          shouldRecenterWindow(
+            localIdx,
+            slicedItems.length,
+            windowEdgeThreshold
+          )
+        ) {
+          const newWindow = computeWindow(realIdx);
+          if (
+            newWindow.start !== window.start ||
+            newWindow.end !== window.end
+          ) {
+            setWindow(newWindow);
+          }
         }
 
         onChange?.({
@@ -70,11 +128,19 @@ export function withVirtualized(WrappedPicker: ComponentType<DrumPickerProps>) {
           },
         });
       },
-      [window, items, onChange, computeWindow]
+      [
+        window,
+        items,
+        onChange,
+        computeWindow,
+        slicedItems.length,
+        windowEdgeThreshold,
+      ]
     );
 
     return (
       <WrappedPicker
+        key={`virtualized-${window.start}-${window.end}`}
         {...rest}
         items={slicedItems}
         selectedIndex={localIndex}

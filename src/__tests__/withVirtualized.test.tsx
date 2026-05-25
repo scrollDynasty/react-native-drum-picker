@@ -51,6 +51,41 @@ describe('withVirtualized', () => {
     );
   });
 
+  it('maps native selectedIndex from anchor when parent index is stale', () => {
+    render(
+      <VirtualizedDrumPicker
+        items={CITIES}
+        selectedIndex={3}
+        windowSize={20}
+        onChange={() => {}}
+      />
+    );
+    act(() => {
+      fireNativeDrumPickerChange(10, 'City 10');
+    });
+    const props = getLatestNativeDrumPickerProps();
+    expect(props?.selectedIndex).toBe(10);
+    expect(props?.items?.[10]).toBe('City 10');
+  });
+
+  it('does not recenter window when scrolling through the middle of the slice', () => {
+    render(
+      <VirtualizedDrumPicker
+        items={CITIES}
+        selectedIndex={500}
+        windowSize={20}
+        onChange={() => {}}
+      />
+    );
+    act(() => {
+      fireNativeDrumPickerChange(10, 'City 490');
+    });
+    const props = getLatestNativeDrumPickerProps();
+    expect(props?.items?.[0]).toBe('City 480');
+    expect(props?.items?.[10]).toBe('City 490');
+    expect(props?.selectedIndex).toBe(10);
+  });
+
   it('slides window when selection nears edge', () => {
     const onChange = jest.fn();
     render(

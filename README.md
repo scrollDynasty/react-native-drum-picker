@@ -235,6 +235,8 @@ const CITIES = ['Tashkent', 'Moscow', 'London', /* ... */]; // 1000+ items
 
 `windowSize` controls the render buffer. Higher = smoother fast flings, higher memory. Default of 20 works for most cases.
 
+Optional `windowEdgeThreshold` (default `5`) controls when the slice recenters near the top/bottom of the window — this keeps scroll smooth and avoids visual glitches from reloading the native list on every row.
+
 **Platforms:** iOS and Android only (wrap `DrumPicker` from the package — not web). The native wheel always receives a small sliced `items` array on both platforms.
 
 ## API reference
