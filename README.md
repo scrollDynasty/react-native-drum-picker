@@ -54,7 +54,7 @@ npx react-native run-android
 |----------|--------|
 | Android | Supported |
 | iOS | Supported |
-| Web | Not supported |
+| Web | Fallback (`<select>` element, accessible, no drum animation) |
 
 Requires **React Native 0.76+** with the **New Architecture** enabled.
 
@@ -83,6 +83,23 @@ Requires **React Native 0.76+** with the **New Architecture** enabled.
 **Intended range:** `react-native >= 0.76` with New Architecture. The package is **actively tested on RN 0.81.x / 0.85.x**. Older 0.76–0.80 may work but are not CI-guaranteed.
 
 This package is an **Android Fabric View** library. Use a **development build** or `expo run:android` after `expo prebuild` — not Expo Go.
+
+### Web fallback
+
+On web (Expo Web, `react-native-web`, or SSR contexts), `DrumPicker`
+renders a native HTML `<select>` element instead of throwing at module
+load. This means:
+
+- The library is **SSR-safe** — `import { DrumPicker } from 'react-native-drum-picker'`
+  in a server-rendered React app no longer crashes the bundle.
+- The web rendering is **keyboard-navigable and screen-reader-friendly by
+  default** (browser-provided semantics).
+- The `onChange` contract matches native — callers read
+  `event.nativeEvent.index` and `event.nativeEvent.value` the same way
+  cross-platform, so app code doesn't need a `Platform.OS` branch.
+
+A full drum-style scroll wheel on web is a future enhancement; the
+current fallback prioritizes correctness and accessibility.
 
 ### React Native 0.81+ event dispatch
 
