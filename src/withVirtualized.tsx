@@ -41,8 +41,8 @@ function isAtSliceEdge(localIndex: number, sliceLength: number): boolean {
 }
 
 /**
- * Prefer the label from the native event when it maps inside the current window;
- * avoids bogus local indices fired while the slice is being swapped.
+ * Map native index + label to a real index. Uses O(1) offset math when the
+ * label matches; scans the full array only on mismatch (slice swap glitches).
  */
 function resolveRealIndex(
   localIndex: number,
@@ -51,9 +51,15 @@ function resolveRealIndex(
   items: ReadonlyArray<string>
 ): number {
   const fromOffset = window.start + localIndex;
-  if (label.length === 0) {
+  if (fromOffset < 0 || fromOffset >= items.length) {
+    return Math.min(Math.max(fromOffset, 0), Math.max(items.length - 1, 0));
+  }
+
+  const atOffset = items[fromOffset];
+  if (label.length === 0 || atOffset === label) {
     return fromOffset;
   }
+
   const fromLabel = items.indexOf(label);
   if (fromLabel < 0) {
     return fromOffset;
@@ -84,10 +90,21 @@ function scheduleSliceUnlock(
   }, SLICE_UNLOCK_DELAY_MS);
 }
 
+function clearRecenterTimer(recenterTimer: {
+  current: ReturnType<typeof setTimeout> | null;
+}): void {
+  if (recenterTimer.current != null) {
+    clearTimeout(recenterTimer.current);
+    recenterTimer.current = null;
+  }
+}
+
 /**
  * HOC that virtualizes a DrumPicker for large item lists.
  * Only renders items near the current selection, keeping native
  * RecyclerView / UIPickerView lean even with 10,000+ items.
+ *
+ * Item labels must be unique — index recovery uses string equality.
  */
 export function withVirtualized(WrappedPicker: ComponentType<DrumPickerProps>) {
   const VirtualizedPicker = ({
@@ -147,11 +164,7 @@ export function withVirtualized(WrappedPicker: ComponentType<DrumPickerProps>) {
         }
 
         isUpdatingSliceRef.current = true;
-
-        if (recenterTimerRef.current != null) {
-          clearTimeout(recenterTimerRef.current);
-          recenterTimerRef.current = null;
-        }
+        clearRecenterTimer(recenterTimerRef);
 
         setAnchorIndex(realIdx);
         parentIndexRef.current = realIdx;
@@ -163,11 +176,23 @@ export function withVirtualized(WrappedPicker: ComponentType<DrumPickerProps>) {
       [computeWindow]
     );
 
+    const scheduleWindowRecenter = useCallback(() => {
+      clearRecenterTimer(recenterTimerRef);
+      recenterTimerRef.current = setTimeout(() => {
+        recenterTimerRef.current = null;
+        if (isUpdatingSliceRef.current) {
+          return;
+        }
+        applyWindowRecenter(parentIndexRef.current);
+      }, windowRecenterDebounceMs);
+    }, [windowRecenterDebounceMs, applyWindowRecenter]);
+
     // Controlled updates from parent only (not echo from our own onChange).
     useEffect(() => {
       if (selectedIndex === parentIndexRef.current) {
         return;
       }
+      clearRecenterTimer(recenterTimerRef);
       parentIndexRef.current = selectedIndex;
       isUpdatingSliceRef.current = true;
       setAnchorIndex(selectedIndex);
@@ -207,16 +232,9 @@ export function withVirtualized(WrappedPicker: ComponentType<DrumPickerProps>) {
 
         const sliceLength = currentWindow.end - currentWindow.start;
         if (isAtSliceEdge(localIdx, sliceLength)) {
-          if (recenterTimerRef.current != null) {
-            clearTimeout(recenterTimerRef.current);
-          }
-          recenterTimerRef.current = setTimeout(() => {
-            recenterTimerRef.current = null;
-            if (isUpdatingSliceRef.current) {
-              return;
-            }
-            applyWindowRecenter(realIdx);
-          }, windowRecenterDebounceMs);
+          scheduleWindowRecenter();
+        } else {
+          clearRecenterTimer(recenterTimerRef);
         }
 
         onChange?.({
@@ -228,7 +246,7 @@ export function withVirtualized(WrappedPicker: ComponentType<DrumPickerProps>) {
           },
         });
       },
-      [items, onChange, windowRecenterDebounceMs, applyWindowRecenter]
+      [items, onChange, scheduleWindowRecenter]
     );
 
     return (

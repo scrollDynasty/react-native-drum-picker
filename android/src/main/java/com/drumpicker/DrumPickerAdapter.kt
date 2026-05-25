@@ -69,7 +69,17 @@ internal class DrumPickerAdapter(
             height,
           )
       }
-    return ItemViewHolder(textView)
+    val holder = ItemViewHolder(textView)
+    holder.itemView.setOnClickListener {
+      if (!enableScrollByTapOnItem) {
+        return@setOnClickListener
+      }
+      val adapterPosition = holder.bindingAdapterPosition
+      if (adapterPosition != RecyclerView.NO_POSITION) {
+        onItemTap?.invoke(adapterPosition)
+      }
+    }
+    return holder
   }
 
   override fun onBindViewHolder(holder: ItemViewHolder, position: Int) {
@@ -83,15 +93,6 @@ internal class DrumPickerAdapter(
     holder.lastStyleBucket = Int.MIN_VALUE
     val distance = distanceForPosition?.invoke(position) ?: 2f
     applyItemStyle(holder, distance)
-    holder.itemView.setOnClickListener {
-      if (!enableScrollByTapOnItem) {
-        return@setOnClickListener
-      }
-      val adapterPosition = holder.bindingAdapterPosition
-      if (adapterPosition != RecyclerView.NO_POSITION) {
-        onItemTap?.invoke(adapterPosition)
-      }
-    }
   }
 
   fun applyItemStyle(holder: ItemViewHolder, distanceFromCenter: Float) {

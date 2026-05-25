@@ -139,7 +139,50 @@ describe('withVirtualized', () => {
     jest.useRealTimers();
   });
 
-  it('resolves index from event value when inside the current window', () => {
+  it('recenters window using latest anchor index after debounce', () => {
+    jest.useFakeTimers();
+    render(
+      <VirtualizedDrumPicker
+        items={CITIES}
+        selectedIndex={120}
+        windowSize={20}
+        windowRecenterDebounceMs={50}
+        onChange={() => {}}
+      />
+    );
+    act(() => {
+      fireNativeDrumPickerChange(0, 'City 100');
+      fireNativeDrumPickerChange(40, 'City 140');
+      jest.advanceTimersByTime(50);
+    });
+    const props = getLatestNativeDrumPickerProps();
+    expect(props?.items?.[0]).toBe('City 120');
+    expect(props?.selectedIndex).toBe(20);
+    jest.useRealTimers();
+  });
+
+  it('cancels pending recenter when scrolling away from slice edge', () => {
+    jest.useFakeTimers();
+    render(
+      <VirtualizedDrumPicker
+        items={CITIES}
+        selectedIndex={120}
+        windowSize={20}
+        windowRecenterDebounceMs={50}
+        onChange={() => {}}
+      />
+    );
+    act(() => {
+      fireNativeDrumPickerChange(0, 'City 100');
+      fireNativeDrumPickerChange(20, 'City 120');
+      jest.advanceTimersByTime(50);
+    });
+    const props = getLatestNativeDrumPickerProps();
+    expect(props?.items?.[0]).toBe('City 100');
+    jest.useRealTimers();
+  });
+
+  it('resolves index from event value when label mismatches local offset', () => {
     const onChange = jest.fn();
     render(
       <VirtualizedDrumPicker

@@ -239,6 +239,8 @@ Optional `windowRecenterDebounceMs` (default `100`) debounces slice recentering 
 
 **Platforms:** iOS and Android only (wrap `DrumPicker` from the package — not web). The native wheel always receives a small sliced `items` array on both platforms.
 
+**Requirements:** each entry in `items` must be a **unique** string. Duplicate labels break index recovery during slice swaps and on iOS tap hit-testing.
+
 ## API reference
 
 ### `DrumPicker`
