@@ -157,6 +157,46 @@ const [index, setIndex] = useState(1);
 />
 ```
 
+### Labeled items: display one thing, receive another
+
+When you want to render human-readable text but receive a typed identifier
+(an enum value, database id, country code, etc.) on selection, pass
+`{ label, value }` items instead of strings:
+
+```tsx
+type CountryCode = 'us' | 'de' | 'jp';
+
+const COUNTRIES: Array<{ label: string; value: CountryCode }> = [
+  { label: 'United States', value: 'us' },
+  { label: 'Germany', value: 'de' },
+  { label: 'Japan', value: 'jp' },
+];
+
+<DrumPicker<CountryCode>
+  items={COUNTRIES}
+  onChange={(event) => {
+    // event.nativeEvent.value === 'United States'  (the label that was shown)
+    // event.nativeEvent.item  === 'us'             (the typed value, fully inferred)
+    setCountry(event.nativeEvent.item);
+  }}
+/>
+```
+
+Plain string items keep working exactly as before — for them, `item` simply
+equals `value`, so `event.nativeEvent.item` is always safe to read.
+
+`value` can be any type — primitives, ids, or full objects:
+
+```tsx
+<DrumPicker
+  items={[
+    { label: 'United States', value: { id: 1, iso: 'us' } },
+    { label: 'Germany',       value: { id: 2, iso: 'de' } },
+  ]}
+  onChange={(e) => console.log(e.nativeEvent.item.iso)}
+/>
+```
+
 ### `onChange` and expensive side effects
 
 Native emits `onChange` when the wheel **snaps to idle** and the **centered index changes** (duplicate indices are ignored). Use it for UI state. For AsyncStorage, APIs, or analytics, **debounce** in your app:
@@ -220,7 +260,7 @@ Day count follows month/year (e.g. February has 28/29 days).
 
 | Prop | Type | Default | Description |
 |------|------|---------|-------------|
-| `items` | `string[]` | required | Wheel labels |
+| `items` | `Array<string \| { label: string; value: T }>` | required | Wheel rows. Strings are used as both label and value; labeled items render `label` and report `value` back on `onChange` |
 | `selectedIndex` | `number` | `0` | Selected row index |
 | `itemHeight` | `number` | `44` | Row height (dp) |
 | `visibleItemCount` | `number` | `5` | Visible rows (odd recommended) |

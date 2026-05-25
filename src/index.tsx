@@ -5,7 +5,12 @@ export {
   getDaysInMonth,
   normalizeYearRange,
 } from './DateDrumPicker';
-export type { DrumPickerChangeEvent, DrumPickerProps } from './types';
+export type {
+  DrumPickerChangeEvent,
+  DrumPickerItem,
+  DrumPickerLabeledItem,
+  DrumPickerProps,
+} from './types';
 export type {
   DateDrumPickerColumnKey,
   DateDrumPickerMode,

@@ -39,6 +39,7 @@ describe('DrumPicker', () => {
     expect(onChange.mock.calls[0][0].nativeEvent).toEqual({
       index: 1,
       value: 'Beta',
+      item: 'Beta',
     });
   });
 
