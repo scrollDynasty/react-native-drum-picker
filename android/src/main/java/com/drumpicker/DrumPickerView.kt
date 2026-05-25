@@ -224,15 +224,35 @@ class DrumPickerView @JvmOverloads constructor(
     applyBackgroundColors()
   }
 
+  /**
+   * Updates whether haptic feedback is enabled for the picker.
+   *
+   * Converts the provided value to a Boolean: if `value` is a `Boolean` that value is used; otherwise `false` is assigned (including `null`).
+   *
+   * @param value The incoming prop value (may be null or any type).
+   */
   fun setHapticFeedbackProp(value: Any?) {
     hapticFeedback = value as? Boolean ?: false
   }
 
+  /**
+   * Enable or disable scrolling to an item when it is tapped and propagate the setting to the adapter.
+   *
+   * @param value A value interpreted as a boolean (Booleans are used directly; numeric values are treated as false when zero and true otherwise; null falls back to `false`).
   fun setEnableScrollByTapOnItemProp(value: Any?) {
     enableScrollByTapOnItem = toBoolean(value, false)
     adapter.enableScrollByTapOnItem = enableScrollByTapOnItem
   }
 
+  /**
+   * Scrolls the picker to the item at the tapped index and emits a selection change when tapping is enabled.
+   *
+   * Clamps the provided index to the valid range, ignores the tap if tapping-scroll is disabled,
+   * the view is not lifecycle-active, there are no items, or the tapped item is already selected and emitted.
+   * Otherwise updates the selected index and schedules an animated centered scroll that will emit the change.
+   *
+   * @param position The tapped item's index within the current items list.
+   */
   private fun scrollToPositionFromTap(position: Int) {
     if (!enableScrollByTapOnItem || !isLifecycleActive() || items.isEmpty()) {
       return
@@ -245,13 +265,36 @@ class DrumPickerView @JvmOverloads constructor(
     scheduleScrollToSelectedIndexCentered(animated = true, emit = true)
   }
 
-  /** @see selectedIndexForTesting — instrumented tests only */
+  /**
+   * Simulates a user tap on the item at the given index for instrumented tests.
+   *
+   * This is intended for test instrumentation and triggers the same behavior
+   * as an actual item tap (including optional scrolling and event emission).
+   *
+   * @param position The adapter index of the item to simulate a tap on.
+   */
   internal fun testingPerformItemTap(position: Int) {
     scrollToPositionFromTap(position)
   }
 
-  internal fun selectedIndexForTesting(): Int = selectedIndex
+  /**
+ * Get the current selected index for testing.
+ *
+ * @return The current selected index. 
+ */
+internal fun selectedIndexForTesting(): Int = selectedIndex
 
+  /**
+   * Measures the picker and sizes its internal RecyclerView so the view height matches
+   * the configured item height multiplied by the visible item count.
+   *
+   * The visible item count is coerced to at least 1. The resolved width and computed
+   * height are applied to the RecyclerView with exact measure specs and then used
+   * to set this view's measured dimensions.
+   *
+   * @param widthMeasureSpec Horizontal space requirements as imposed by the parent.
+   * @param heightMeasureSpec Vertical space requirements as imposed by the parent.
+   */
   override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
     updateMinimumDimensions()
     val width = resolveSize(minWidthPx, widthMeasureSpec)

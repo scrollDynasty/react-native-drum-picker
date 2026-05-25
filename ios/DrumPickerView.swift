@@ -59,6 +59,9 @@ public final class DrumPickerWheelView: UIView, UIPickerViewDataSource, UIPicker
     commonInit()
   }
 
+  /// Performs initial setup of the view's subcomponents and layout.
+  /// 
+  /// Configures the container and picker appearance and delegation, disables interaction on the selection indicator views, adds the picker and indicator subviews to the hierarchy, updates the picker frame and indicator positions, and attaches the tap gesture recognizer used for tap-to-select behavior.
   private func commonInit() {
     backgroundColor = .clear
     picker.dataSource = self
@@ -78,12 +81,17 @@ public final class DrumPickerWheelView: UIView, UIPickerViewDataSource, UIPicker
     setupTapGesture()
   }
 
+  /// Installs a tap gesture recognizer on the internal picker to forward tap events to the picker tap handler.
+  /// 
+  /// The recognizer does not cancel existing touch events on the picker, allowing normal picker interactions to continue.
   private func setupTapGesture() {
     let tap = UITapGestureRecognizer(target: self, action: #selector(handlePickerTap(_:)))
     tap.cancelsTouchesInView = false
     picker.addGestureRecognizer(tap)
   }
 
+  /// Handles tap gestures on the internal picker and selects the item at the tapped location when tap-to-select is enabled.
+  /// - Parameter gesture: The tap gesture recognizer whose location in the picker is used to determine the target row. When a valid row is found, it is applied as an animated, user-initiated selection.
   @objc private func handlePickerTap(_ gesture: UITapGestureRecognizer) {
     guard enableScrollByTapOnItem, !items.isEmpty else { return }
     let location = gesture.location(in: picker)
@@ -92,6 +100,10 @@ public final class DrumPickerWheelView: UIView, UIPickerViewDataSource, UIPicker
     applySelectedIndex(row, animated: true, userInitiated: true)
   }
 
+  /// Maps a tap location within the picker to the corresponding item row index.
+  /// - Parameters:
+  ///   - point: The tap location in the picker's coordinate space.
+  /// - Returns: The resolved row index clamped to the valid range (0..items.count-1). If `items` is empty or `itemHeight` is not positive, returns `0`. The method first attempts to resolve a row by hit-testing visible row labels; if that fails it derives the row by the vertical offset from the picker center.
   private func rowAtTapLocation(_ point: CGPoint) -> Int {
     guard itemHeight > 0, !items.isEmpty else { return 0 }
     if let hitRow = rowFromVisibleLabelHitTest(at: point) {
@@ -103,10 +115,18 @@ public final class DrumPickerWheelView: UIView, UIPickerViewDataSource, UIPicker
     return min(max(currentRow + deltaRows, 0), items.count - 1)
   }
 
+  /// Finds the picker row index whose visible label contains the given point.
+  /// - Parameter point: A point in the picker's coordinate space to hit-test against visible row labels.
+  /// - Returns: The index of the matched row if a visible label contains `point`, `nil` otherwise.
   private func rowFromVisibleLabelHitTest(at point: CGPoint) -> Int? {
     findRowLabel(in: picker, at: point)
   }
 
+  /// Finds the index of the item whose visible label contains the specified point in the picker's coordinate space.
+  /// - Parameters:
+  ///   - view: Root view whose subviews will be traversed to locate UILabels.
+  ///   - pointInPicker: Point in the picker's coordinate space used to hit-test visible labels.
+  /// - Returns: The index of the matching item if found, `nil` otherwise.
   private func findRowLabel(in view: UIView, at pointInPicker: CGPoint) -> Int? {
     for child in view.subviews {
       let local = picker.convert(pointInPicker, to: child)
@@ -124,7 +144,9 @@ public final class DrumPickerWheelView: UIView, UIPickerViewDataSource, UIPicker
     return nil
   }
 
-  /// Used by unit tests to assert tap-to-scroll selection without UIKit gesture plumbing.
+  /// Simulates a user tap on the picker at the given point and selects the corresponding item.
+  /// - Parameter point: Location (in the view's coordinate space) where the tap is simulated.
+  /// - Note: If tap-to-select is disabled, there are no items, or the tap does not map to a valid row, the call has no effect. When a selection occurs it is treated as user-initiated and performed without animation.
   internal func testingTap(at point: CGPoint) {
     guard enableScrollByTapOnItem, !items.isEmpty else { return }
     let row = rowAtTapLocation(point)
@@ -132,10 +154,13 @@ public final class DrumPickerWheelView: UIView, UIPickerViewDataSource, UIPicker
     applySelectedIndex(row, animated: false, userInitiated: true)
   }
 
+  /// Fetches the current selected row index for unit tests.
+  /// - Returns: The currently selected row index (0 when no items are present).
   internal func selectedIndexForTesting() -> Int {
     selectedIndex
   }
 
+  /// Called when the view is moved to a window; ensures the picker’s scroll haptic observer is attached.
   public override func didMoveToWindow() {
     super.didMoveToWindow()
     attachScrollHapticObserver()
@@ -287,6 +312,9 @@ public final class DrumPickerWheelView: UIView, UIPickerViewDataSource, UIPicker
     picker.backgroundColor = color
   }
 
+  /// Enable or disable haptic feedback for selection changes.
+  /// When enabled, the selection feedback generator is created and prepared immediately.
+  /// - Parameter value: `true` to enable haptic feedback, `false` to disable it.
   @objc public func setHapticFeedback(_ value: Bool) {
     hapticFeedback = value
     if value {
@@ -294,6 +322,8 @@ public final class DrumPickerWheelView: UIView, UIPickerViewDataSource, UIPicker
     }
   }
 
+  /// Enables or disables selecting a row by tapping on the picker's item area.
+  /// - Parameter value: `true` to allow tap-to-select on picker items; `false` to disable it.
   @objc public func setEnableScrollByTapOnItem(_ value: Bool) {
     enableScrollByTapOnItem = value
   }
@@ -312,6 +342,12 @@ public final class DrumPickerWheelView: UIView, UIPickerViewDataSource, UIPicker
     }
   }
 
+  /// Apply a requested selection index to the picker, updating internal selection state and performing either a user-initiated or programmatic selection.
+  /// - Parameters:
+  ///   - index: The desired row index; will be clamped to the valid range [0, items.count - 1].
+  ///   - animated: Whether the picker selection should animate.
+  ///   - userInitiated: If `true`, treat the change as user-initiated (update the picker, notify the delegate, and update `lastSelectedIndex`). If `false`, perform a programmatic update without emitting selection notifications.
+  /// - Note: If `items` is empty the selection is reset (`selectedIndex = 0`, `lastSelectedIndex = -1`).
   private func applySelectedIndex(
     _ index: Int,
     animated: Bool = false,

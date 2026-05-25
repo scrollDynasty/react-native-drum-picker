@@ -57,6 +57,17 @@ internal class DrumPickerAdapter(
 
   override fun getItemCount(): Int = items.size
 
+  /**
+   * Creates an ItemViewHolder containing a centered TextView configured for a picker row and wired
+   * with click and touch behavior that respects the adapter's tap configuration.
+   *
+   * The TextView has its background color and layout height set to the adapter's row height.
+   *
+   * @return An ItemViewHolder wrapping the configured TextView. The view's click listener will
+   * invoke `onItemTap` when `enableScrollByTapOnItem` is true and the adapter position is valid;
+   * the touch listener either allows normal touch handling (when tapping is enabled) or converts
+   * ACTION_UP into a click and consumes the event (when tapping is disabled).
+   */
   override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ItemViewHolder {
     val height = rowHeightPx()
     val textView =
@@ -93,6 +104,16 @@ internal class DrumPickerAdapter(
     return holder
   }
 
+  /**
+   * Binds the item at [position] into [holder], updating text, accessibility, background, clickability, and visual style.
+   *
+   * Sets the row text and content description from the adapter data, applies the configured background color,
+   * updates the view's clickable state according to the tap-enabled flag, resets the holder's style cache, and
+   * computes a distance metric (using `distanceForPosition` or `2f` if absent) to drive visual styling via [applyItemStyle].
+   *
+   * @param holder ViewHolder containing the row's TextView.
+   * @param position Index of the item to bind.
+   */
   override fun onBindViewHolder(holder: ItemViewHolder, position: Int) {
     val textView = holder.textView
     val height = rowHeightPx()

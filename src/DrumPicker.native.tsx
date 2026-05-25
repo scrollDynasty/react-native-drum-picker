@@ -22,6 +22,19 @@ const DEFAULTS = {
   enableScrollByTapOnItem: false,
 } as const;
 
+/**
+ * Render a configurable drum-style picker control.
+ *
+ * Renders a native drum picker with provided items and visual/behavioral props, preventing duplicate change events when the selected index does not change.
+ *
+ * @param items - Array of picker items to display.
+ * @param selectedIndex - Index of the currently selected item.
+ * @param onChange - Callback invoked when the selected index changes; receives the native change event.
+ * @param enableScrollByTapOnItem - When `true`, tapping an item scrolls it into selection.
+ * @param style - Optional style overrides applied to the picker container.
+ * @param testID - Optional test identifier forwarded to the native component.
+ * @returns A React element that mounts the native drum picker configured with the given props.
+ */
 export function DrumPicker({
   items,
   selectedIndex = DEFAULTS.selectedIndex,
