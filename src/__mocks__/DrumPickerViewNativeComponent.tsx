@@ -1,7 +1,7 @@
 import React, {
   forwardRef,
-  useEffect,
   useImperativeHandle,
+  useRef,
   useState,
 } from 'react';
 import { View, type ViewProps } from 'react-native';
@@ -51,24 +51,19 @@ const DrumPickerViewNativeComponent = forwardRef<
   { setNativeProps: (props: Partial<MockProps>) => void },
   MockProps
 >(function DrumPickerViewNativeComponent(props, ref) {
-  const [renderedProps, setRenderedProps] = useState(props);
-
-  useEffect(() => {
-    setRenderedProps(props);
-    latestProps = props;
-  }, [props]);
+  const nativePropsRef = useRef<Partial<MockProps>>({});
+  const [, forceRerender] = useState(0);
 
   useImperativeHandle(ref, () => ({
     setNativeProps(updates: Partial<MockProps>) {
-      setRenderedProps((prev) => {
-        const next = { ...prev, ...updates };
-        latestProps = next;
-        return next;
-      });
+      nativePropsRef.current = { ...nativePropsRef.current, ...updates };
+      forceRerender((x) => x + 1);
     },
   }));
 
-  return <View testID="drum-picker-native" {...renderedProps} />;
+  const merged = { ...props, ...nativePropsRef.current };
+  latestProps = merged;
+  return <View testID="drum-picker-native" {...merged} />;
 });
 
 export default DrumPickerViewNativeComponent;
