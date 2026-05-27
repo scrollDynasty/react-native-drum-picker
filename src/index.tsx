@@ -6,7 +6,12 @@ export {
   normalizeYearRange,
 } from './DateDrumPicker';
 export { withVirtualized } from './withVirtualized';
-export type { DrumPickerChangeEvent, DrumPickerProps } from './types';
+export type {
+  DateDrumPickerRef,
+  DrumPickerChangeEvent,
+  DrumPickerProps,
+  DrumPickerRef,
+} from './types';
 export type { VirtualizedProps } from './withVirtualized';
 export type {
   DateDrumPickerColumnKey,

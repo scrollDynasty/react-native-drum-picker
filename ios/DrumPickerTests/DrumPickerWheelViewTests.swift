@@ -32,6 +32,26 @@ final class DrumPickerWheelViewTests: XCTestCase {
     XCTAssertEqual(picker.selectedRow(inComponent: 0), 4)
   }
 
+  func testSetSelectedIndexAnimatedUpdatesRow() {
+    view.setSelectedIndex(4, animated: true)
+    let exp = expectation(description: "animated selection")
+    DispatchQueue.main.async { exp.fulfill() }
+    wait(for: [exp], timeout: 2.0)
+    XCTAssertEqual(picker.selectedRow(inComponent: 0), 4)
+    XCTAssertEqual(view.selectedIndexForTesting(), 4)
+  }
+
+  func testSetSelectedIndexAnimatedDoesNotNotifyDelegate() {
+    let delegate = MockWheelDelegate()
+    view.wheelDelegate = delegate
+    view.setSelectedIndex(3, animated: true)
+    let exp = expectation(description: "animated selection flush")
+    DispatchQueue.main.async { exp.fulfill() }
+    wait(for: [exp], timeout: 2.0)
+    XCTAssertEqual(delegate.userInitiatedCount, 0)
+    XCTAssertEqual(view.selectedIndexForTesting(), 3)
+  }
+
   func testViewForRowValid() {
     let cell = view.pickerView(
       picker,

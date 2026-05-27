@@ -58,6 +58,7 @@ exports[`DateDrumPicker snapshots matches day-month-year mode 1`] = `
     }
     onValueChange={[Function]}
     onValueChangingEnabled={false}
+    scrollAnimated={false}
     selectedIndex={9}
     selectedTextColor="#1C1C1E"
     selectedTextSize={22}
@@ -104,6 +105,7 @@ exports[`DateDrumPicker snapshots matches day-month-year mode 1`] = `
     }
     onValueChange={[Function]}
     onValueChangingEnabled={false}
+    scrollAnimated={false}
     selectedIndex={4}
     selectedTextColor="#1C1C1E"
     selectedTextSize={22}
@@ -289,6 +291,7 @@ exports[`DateDrumPicker snapshots matches day-month-year mode 1`] = `
     }
     onValueChange={[Function]}
     onValueChangingEnabled={false}
+    scrollAnimated={false}
     selectedIndex={98}
     selectedTextColor="#1C1C1E"
     selectedTextSize={22}

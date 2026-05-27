@@ -50,6 +50,7 @@ class DrumPickerView @JvmOverloads constructor(
   private var hapticFeedback = false
   private var enableScrollByTapOnItem = false
   private var onValueChangingEnabled = false
+  private var scrollAnimatedForNextIndex = false
 
   private var itemHeightPx = dpToPx(itemHeightDp)
   private var lastHapticIndex = -1
@@ -168,7 +169,12 @@ class DrumPickerView @JvmOverloads constructor(
       } else {
         index.coerceIn(0, items.size - 1)
       }
-    setSelectedIndex(safeIndex)
+    setSelectedIndex(safeIndex, animated = scrollAnimatedForNextIndex)
+    scrollAnimatedForNextIndex = false
+  }
+
+  fun setScrollAnimatedProp(value: Any?) {
+    scrollAnimatedForNextIndex = toBoolean(value, false)
   }
 
   fun setItemHeightProp(value: Any?) {
@@ -354,7 +360,7 @@ class DrumPickerView @JvmOverloads constructor(
 
   private fun isLifecycleActive(): Boolean = isAttachedToWindow && !isDisposed
 
-  fun setSelectedIndex(index: Int) {
+  fun setSelectedIndex(index: Int, animated: Boolean = false) {
     if (items.isEmpty()) {
       selectedIndex = index.coerceAtLeast(0)
       return
@@ -369,7 +375,7 @@ class DrumPickerView @JvmOverloads constructor(
       return
     }
     selectedIndex = clamped
-    scheduleScrollToSelectedIndexCentered(animated = false, emit = false)
+    scheduleScrollToSelectedIndexCentered(animated = animated, emit = false)
   }
 
   fun setItemHeight(height: Float) {

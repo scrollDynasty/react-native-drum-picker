@@ -54,7 +54,7 @@ npx react-native run-android
 |----------|--------|
 | Android | Supported |
 | iOS | Supported |
-| Web | Not supported |
+| Web | Read-only preview stub (`DrumPicker.tsx`); ref API works, no native wheel |
 
 Requires **React Native 0.76+** with the **New Architecture** enabled.
 
@@ -196,6 +196,102 @@ const [previewIndex, setPreviewIndex] = useState(1);
 `onValueChanging` can fire many times per second while the wheel moves. Keep the handler light; for UI updates prefer a ref or debounce/`requestAnimationFrame` instead of heavy `setState` on every tick. Use `onChange` for the final committed value.
 
 See the **example** app (`example/src/App.tsx`) for basic, time, height/weight, date, controlled, and debounced demos.
+
+## Imperative ref API
+
+Control the picker programmatically using a ref. `scrollToIndex` / `scrollToValue` default to `animated: true` and invoke `onChange` when the selection changes (so controlled `selectedIndex` stays in sync). `withVirtualized` forwards the same `DrumPickerRef` using **real** list indices.
+
+```tsx
+import { useRef } from 'react';
+import { Button } from 'react-native';
+import { DrumPicker, type DrumPickerRef } from 'react-native-drum-picker';
+
+const months = ['Jan', 'Feb', 'Mar', 'Jun'];
+
+function MyPicker() {
+  const ref = useRef<DrumPickerRef>(null);
+
+  return (
+    <>
+      <DrumPicker
+        ref={ref}
+        items={months}
+        onChange={({ nativeEvent }) => console.log(nativeEvent.value)}
+      />
+      <Button
+        title="Jump to June"
+        onPress={() => ref.current?.scrollToValue('Jun')}
+      />
+      <Button
+        title="Reset to first"
+        onPress={() => ref.current?.scrollToIndex(0, { animated: true })}
+      />
+    </>
+  );
+}
+```
+
+### DateDrumPicker ref — "Today" button
+
+```tsx
+import { useRef, useState } from 'react';
+import { Button } from 'react-native';
+import {
+  DateDrumPicker,
+  type DateDrumPickerRef,
+  type DateDrumPickerValue,
+} from 'react-native-drum-picker';
+
+function DateWithToday() {
+  const [date, setDate] = useState<DateDrumPickerValue>({
+    day: 1,
+    month: 1,
+    year: 2026,
+  });
+  const today = new Date();
+  const dateRef = useRef<DateDrumPickerRef>(null);
+
+  return (
+    <>
+      <DateDrumPicker
+        ref={dateRef}
+        mode="day-month-year"
+        value={date}
+        onChange={setDate}
+      />
+      <Button
+        title="Today"
+        onPress={() =>
+          dateRef.current?.scrollToDate(
+            {
+              day: today.getDate(),
+              month: today.getMonth() + 1,
+              year: today.getFullYear(),
+            },
+            { animated: true }
+          )
+        }
+      />
+    </>
+  );
+}
+```
+
+### DrumPickerRef API
+
+| Method | Description |
+|--------|-------------|
+| `scrollToIndex(index, options?)` | Scroll to index. Clamped to valid range. |
+| `scrollToValue(value, options?)` | Scroll to first matching value. No-op if not found. |
+| `getCurrentIndex()` | Returns current selected index. |
+| `getCurrentValue()` | Returns current selected value string. |
+
+### DateDrumPickerRef API
+
+| Method | Description |
+|--------|-------------|
+| `scrollToDate(date, options?)` | Scroll columns to given date. Partial updates supported. Clamps invalid days and calls `onChange` when set. |
+| `getCurrentDate()` | Returns clamped `{ day, month, year }` of current selection. |
 
 ## DateDrumPicker
 

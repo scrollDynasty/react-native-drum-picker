@@ -1,10 +1,16 @@
-import { useEffect } from 'react';
+import React, {
+  forwardRef,
+  useImperativeHandle,
+  useRef,
+  useState,
+} from 'react';
 import { View, type ViewProps } from 'react-native';
 import type { DrumPickerChangeEventPayload } from '../DrumPickerViewNativeComponent';
 
 type MockProps = ViewProps & {
   items?: ReadonlyArray<string>;
   selectedIndex?: number;
+  scrollAnimated?: boolean;
   hapticFeedback?: boolean;
   enableScrollByTapOnItem?: boolean;
   onValueChangingEnabled?: boolean;
@@ -41,14 +47,23 @@ export function fireNativeDrumPickerChanging(
   });
 }
 
-function DrumPickerViewNativeComponent(props: MockProps) {
-  latestProps = props;
+const DrumPickerViewNativeComponent = forwardRef<
+  { setNativeProps: (props: Partial<MockProps>) => void },
+  MockProps
+>(function DrumPickerViewNativeComponent(props, ref) {
+  const nativePropsRef = useRef<Partial<MockProps>>({});
+  const [, forceRerender] = useState(0);
 
-  useEffect(() => {
-    latestProps = props;
-  });
+  useImperativeHandle(ref, () => ({
+    setNativeProps(updates: Partial<MockProps>) {
+      nativePropsRef.current = { ...nativePropsRef.current, ...updates };
+      forceRerender((x) => x + 1);
+    },
+  }));
 
-  return <View testID="drum-picker-native" {...props} />;
-}
+  const merged = { ...props, ...nativePropsRef.current };
+  latestProps = merged;
+  return <View testID="drum-picker-native" {...merged} />;
+});
 
 export default DrumPickerViewNativeComponent;

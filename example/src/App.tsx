@@ -4,7 +4,9 @@ import {
   DateDrumPicker,
   DrumPicker,
   withVirtualized,
+  type DateDrumPickerRef,
   type DateDrumPickerValue,
+  type DrumPickerRef,
 } from 'react-native-drum-picker';
 
 const VirtualizedDrumPicker = withVirtualized(DrumPicker);
@@ -43,6 +45,9 @@ function useDebouncedCallback<T extends (...args: never[]) => void>(
 }
 
 export default function App() {
+  const controlledRef = useRef<DrumPickerRef>(null);
+  const cityRef = useRef<DrumPickerRef>(null);
+  const dateRef = useRef<DateDrumPickerRef>(null);
   const [example, setExample] = useState<
     'basic' | 'time' | 'hw' | 'date' | 'controlled' | 'debounce' | 'large'
   >('basic');
@@ -182,11 +187,28 @@ export default function App() {
         <View style={styles.section}>
           <Text style={styles.label}>DateDrumPicker</Text>
           <DateDrumPicker
+            ref={dateRef}
             mode="day-month-year"
             value={date}
             onChange={setDate}
             monthFormat="short"
           />
+          <Pressable
+            style={styles.button}
+            onPress={() => {
+              const today = new Date();
+              dateRef.current?.scrollToDate(
+                {
+                  day: today.getDate(),
+                  month: today.getMonth() + 1,
+                  year: today.getFullYear(),
+                },
+                { animated: true }
+              );
+            }}
+          >
+            <Text>Today (ref)</Text>
+          </Pressable>
           <Text style={styles.value}>
             {date.day}.{date.month}.{date.year}
           </Text>
@@ -197,11 +219,18 @@ export default function App() {
         <View style={styles.section}>
           <Text style={styles.label}>Controlled selectedIndex</Text>
           <DrumPicker
+            ref={controlledRef}
             items={SIZES}
             selectedIndex={controlledIndex}
             onChange={(e) => setControlledIndex(e.nativeEvent.index)}
             style={styles.pickerW120}
           />
+          <Pressable
+            style={styles.button}
+            onPress={() => controlledRef.current?.scrollToIndex(0)}
+          >
+            <Text>Reset via ref</Text>
+          </Pressable>
           <View style={styles.row}>
             <Pressable
               style={styles.button}
@@ -226,6 +255,7 @@ export default function App() {
         <View style={styles.section}>
           <Text style={styles.label}>withVirtualized (500 cities)</Text>
           <VirtualizedDrumPicker
+            ref={cityRef}
             items={CITIES}
             selectedIndex={cityIndex}
             windowSize={20}
@@ -233,6 +263,12 @@ export default function App() {
             onChange={(e) => setCityIndex(e.nativeEvent.index)}
             style={styles.pickerW140}
           />
+          <Pressable
+            style={styles.button}
+            onPress={() => cityRef.current?.scrollToIndex(0)}
+          >
+            <Text>City 0 via ref</Text>
+          </Pressable>
           <Text style={styles.value}>{CITIES[cityIndex]}</Text>
         </View>
       )}

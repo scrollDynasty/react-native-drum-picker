@@ -18,6 +18,7 @@ exports[`DrumPicker snapshots matches default render 1`] = `
   }
   onValueChange={[Function]}
   onValueChangingEnabled={false}
+  scrollAnimated={false}
   selectedIndex={0}
   selectedTextColor="#1C1C1E"
   selectedTextSize={22}

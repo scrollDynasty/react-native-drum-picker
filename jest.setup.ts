@@ -11,7 +11,8 @@ beforeAll(() => {
     if (
       message.includes(
         'react-native-drum-picker: DrumPicker needs a visible height'
-      )
+      ) ||
+      message.includes('read-only web preview')
     ) {
       return;
     }

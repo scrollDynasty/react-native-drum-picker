@@ -27,6 +27,7 @@ class DrumPickerViewManager :
     for ((key, value) in props.toMap()) {
       when (key) {
         "items" -> view.setItemsProp(value)
+        "scrollAnimated" -> view.setScrollAnimatedProp(value)
         "selectedIndex" -> view.setSelectedIndexProp(value)
         "itemHeight" -> view.setItemHeightProp(value)
         "visibleItemCount" -> view.setVisibleItemCountProp(value)
@@ -51,6 +52,10 @@ class DrumPickerViewManager :
 
   override fun setItems(view: DrumPickerView?, value: ReadableArray?) {
     view?.setItemsProp(value)
+  }
+
+  override fun setScrollAnimated(view: DrumPickerView?, value: Boolean) {
+    view?.setScrollAnimatedProp(value)
   }
 
   override fun setSelectedIndex(view: DrumPickerView?, value: Int) {
