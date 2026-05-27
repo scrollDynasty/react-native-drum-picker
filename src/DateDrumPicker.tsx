@@ -26,7 +26,7 @@ import {
   type DateDrumPickerMonthFormat,
   type DateDrumPickerValue,
 } from './dateDrumPickerLogic';
-import { DrumPicker } from './DrumPicker';
+import { DrumPicker } from './DrumPicker.native';
 import type {
   DateDrumPickerRef,
   DrumPickerChangeEvent,
@@ -109,38 +109,40 @@ const COLUMN_WIDTH: Record<DateColumnKey, number> = {
 const DEFAULT_ITEM_HEIGHT = 44;
 const DEFAULT_VISIBLE_ITEM_COUNT = 5;
 
-export const DateDrumPicker = forwardRef<DateDrumPickerRef, DateDrumPickerProps>(
-  function DateDrumPicker(
-    {
-      mode = 'day-month-year',
-      value,
-      onChange,
-      onValueChanging,
-      minYear: minYearProp,
-      maxYear: maxYearProp,
-      monthFormat = 'short',
-      locale = 'en',
-      itemHeight = DEFAULT_ITEM_HEIGHT,
-      visibleItemCount = DEFAULT_VISIBLE_ITEM_COUNT,
-      textColor,
-      selectedTextColor,
-      textSize,
-      selectedTextSize,
-      showSelectionIndicator,
-      selectionIndicatorColor,
-      selectionIndicatorHeight,
-      backgroundColor = 'transparent',
-      itemBackgroundColor = 'transparent',
-      containerBackgroundColor = 'transparent',
-      hapticFeedback = false,
-      enableScrollByTapOnItem = false,
-      style,
-      columnStyle,
-      columnStyles,
-      columnTestIDs,
-    },
-    ref
-  ) {
+export const DateDrumPicker = forwardRef<
+  DateDrumPickerRef,
+  DateDrumPickerProps
+>(function DateDrumPicker(
+  {
+    mode = 'day-month-year',
+    value,
+    onChange,
+    onValueChanging,
+    minYear: minYearProp,
+    maxYear: maxYearProp,
+    monthFormat = 'short',
+    locale = 'en',
+    itemHeight = DEFAULT_ITEM_HEIGHT,
+    visibleItemCount = DEFAULT_VISIBLE_ITEM_COUNT,
+    textColor,
+    selectedTextColor,
+    textSize,
+    selectedTextSize,
+    showSelectionIndicator,
+    selectionIndicatorColor,
+    selectionIndicatorHeight,
+    backgroundColor = 'transparent',
+    itemBackgroundColor = 'transparent',
+    containerBackgroundColor = 'transparent',
+    hapticFeedback = false,
+    enableScrollByTapOnItem = false,
+    style,
+    columnStyle,
+    columnStyles,
+    columnTestIDs,
+  },
+  ref
+) {
   const dayRef = useRef<DrumPickerRef>(null);
   const monthRef = useRef<DrumPickerRef>(null);
   const yearRef = useRef<DrumPickerRef>(null);
@@ -360,8 +362,7 @@ export const DateDrumPicker = forwardRef<DateDrumPickerRef, DateDrumPickerProps>
       {columns.map((column) => renderColumn(column))}
     </View>
   );
-  }
-);
+});
 
 DateDrumPicker.displayName = 'DateDrumPicker';
 
