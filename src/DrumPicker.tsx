@@ -1,7 +1,12 @@
-import type { DrumPickerProps } from './types';
+import { forwardRef } from 'react';
+import type { DrumPickerProps, DrumPickerRef } from './types';
 
-export function DrumPicker(_props: DrumPickerProps): never {
-  throw new Error(
-    "'react-native-drum-picker' is only supported on native platforms."
-  );
-}
+export const DrumPicker = forwardRef<DrumPickerRef, DrumPickerProps>(
+  function DrumPicker(_props, _ref) {
+    throw new Error(
+      "'react-native-drum-picker' is only supported on native platforms."
+    );
+  }
+);
+
+DrumPicker.displayName = 'DrumPicker';

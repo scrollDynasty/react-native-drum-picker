@@ -15,12 +15,8 @@ export type DrumPickerChangeEvent = {
  */
 export interface DrumPickerRef {
   /**
-   * Scroll to a specific index.
-   * Clamped to valid range — never throws on out-of-bounds.
-   */
-  /**
-   * @param options.animated Defaults to `true`.
-   * Fires `onChange` when the index changes (keeps controlled pickers in sync).
+   * Scroll to a specific index. Clamped to valid range — never throws on out-of-bounds.
+   * `options.animated` defaults to `true`. Fires `onChange` when the index changes.
    */
   scrollToIndex(index: number, options?: { animated?: boolean }): void;
 
@@ -40,12 +36,8 @@ export interface DrumPickerRef {
 
 export interface DateDrumPickerRef {
   /**
-   * Scroll visible columns to the given date.
-   * Omitted fields leave those columns unchanged.
-   */
-  /**
-   * Clamps invalid days (e.g. day 31 → February) and calls `onChange` with the
-   * resulting date when provided.
+   * Scroll visible columns to the given date. Omitted fields leave those columns unchanged.
+   * Clamps invalid days (e.g. day 31 → February) and calls `onChange` when provided.
    */
   scrollToDate(
     date: { day?: number; month?: number; year?: number },

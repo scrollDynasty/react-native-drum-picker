@@ -204,7 +204,7 @@ Control the picker programmatically using a ref. `scrollToIndex` / `scrollToValu
 ```tsx
 import { useRef } from 'react';
 import { Button } from 'react-native';
-import DrumPicker, { type DrumPickerRef } from 'react-native-drum-picker';
+import { DrumPicker, type DrumPickerRef } from 'react-native-drum-picker';
 
 const months = ['Jan', 'Feb', 'Mar', 'Jun'];
 
@@ -241,25 +241,29 @@ import {
   type DateDrumPickerRef,
 } from 'react-native-drum-picker';
 
-const today = new Date();
-const dateRef = useRef<DateDrumPickerRef>(null);
+function DateWithToday() {
+  const today = new Date();
+  const dateRef = useRef<DateDrumPickerRef>(null);
 
-<>
-  <DateDrumPicker ref={dateRef} mode="day-month-year" onChange={setDate} />
-  <Button
-    title="Today"
-    onPress={() =>
-      dateRef.current?.scrollToDate(
-        {
-          day: today.getDate(),
-          month: today.getMonth() + 1,
-          year: today.getFullYear(),
-        },
-        { animated: true }
-      )
-    }
-  />
-</>;
+  return (
+    <>
+      <DateDrumPicker ref={dateRef} mode="day-month-year" onChange={setDate} />
+      <Button
+        title="Today"
+        onPress={() =>
+          dateRef.current?.scrollToDate(
+            {
+              day: today.getDate(),
+              month: today.getMonth() + 1,
+              year: today.getFullYear(),
+            },
+            { animated: true }
+          )
+        }
+      />
+    </>
+  );
+}
 ```
 
 ### DrumPickerRef API
