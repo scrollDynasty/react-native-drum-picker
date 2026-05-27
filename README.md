@@ -232,6 +232,8 @@ export function DateExample() {
 
 Day count follows month/year (e.g. February has 28/29 days).
 
+`onValueChanging`, if used, receives the column key first: `(column, event) => …` where `column` is `'day' | 'month' | 'year'`.
+
 ## withVirtualized
 
 For large item lists (cities, timezones, country codes), wrap `DrumPicker` with `withVirtualized` to render only items near the visible window:
@@ -260,6 +262,8 @@ Optional `windowRecenterDebounceMs` (default `100`) debounces slice recentering 
 **Requirements:** each entry in `items` must be a **unique** string. Duplicate labels break index recovery during slice swaps and on iOS tap hit-testing.
 
 Not intended for `DateDrumPicker` (small fixed column lists).
+
+`onValueChanging` is supported: indices are remapped to the full list (same as `onChange`), so live preview works on large lists.
 
 ### `withVirtualized(DrumPicker)` props
 
@@ -303,6 +307,7 @@ In addition to all `DrumPicker` props (on the wrapped instance):
 | `mode` | `DateDrumPickerMode` | `day-month-year` | Which columns to show |
 | `value` | `{ day?, month?, year? }` | — | Controlled value |
 | `onChange` | `function` | — | `{ day, month, year }` |
+| `onValueChanging` | `function` | — | `(column, event) => …` while scrolling; `column` is `day` / `month` / `year` |
 | `minYear` | `number` | now − 100 | Year range start |
 | `maxYear` | `number` | now + 50 | Year range end |
 | `monthFormat` | `'short' \| 'long' \| 'number'` | `short` | Month labels |

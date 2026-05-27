@@ -111,6 +111,7 @@ export function withVirtualized(WrappedPicker: ComponentType<DrumPickerProps>) {
     items,
     selectedIndex = 0,
     onChange,
+    onValueChanging,
     windowSize = 20,
     windowRecenterDebounceMs = 100,
     ...rest
@@ -289,12 +290,42 @@ export function withVirtualized(WrappedPicker: ComponentType<DrumPickerProps>) {
       [items, onChange, scheduleWindowRecenter]
     );
 
+    const handleValueChanging = useCallback(
+      (event: NativeSyntheticEvent<DrumPickerChangeEvent>) => {
+        if (isUpdatingSliceRef.current || onValueChanging == null) {
+          return;
+        }
+
+        const localIdx = event.nativeEvent.index;
+        const currentWindow = windowRef.current;
+        const realIdx = resolveRealIndex(
+          localIdx,
+          currentWindow,
+          event.nativeEvent.value,
+          items
+        );
+
+        onValueChanging({
+          ...event,
+          nativeEvent: {
+            ...event.nativeEvent,
+            index: realIdx,
+            value: items[realIdx] ?? event.nativeEvent.value,
+          },
+        });
+      },
+      [items, onValueChanging]
+    );
+
     return (
       <WrappedPicker
         {...rest}
         items={slicedItems}
         selectedIndex={localIndex}
         onChange={handleChange}
+        onValueChanging={
+          onValueChanging != null ? handleValueChanging : undefined
+        }
       />
     );
   };

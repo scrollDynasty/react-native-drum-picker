@@ -51,6 +51,8 @@ export default function App() {
   const [sizeIndex, setSizeIndex] = useState(1);
   const [hourIndex, setHourIndex] = useState(9);
   const [minuteIndex, setMinuteIndex] = useState(30);
+  const [previewHourIndex, setPreviewHourIndex] = useState(9);
+  const [previewMinuteIndex, setPreviewMinuteIndex] = useState(30);
   const [heightIndex, setHeightIndex] = useState(75);
   const [weightIndex, setWeightIndex] = useState(90);
   const [controlledIndex, setControlledIndex] = useState(2);
@@ -122,19 +124,31 @@ export default function App() {
             <DrumPicker
               items={HOURS}
               selectedIndex={hourIndex}
-              onChange={(e) => setHourIndex(e.nativeEvent.index)}
+              onValueChanging={(e) => setPreviewHourIndex(e.nativeEvent.index)}
+              onChange={(e) => {
+                const index = e.nativeEvent.index;
+                setHourIndex(index);
+                setPreviewHourIndex(index);
+              }}
               style={styles.pickerW72}
             />
             <Text style={styles.sep}>:</Text>
             <DrumPicker
               items={MINUTES}
               selectedIndex={minuteIndex}
-              onChange={(e) => setMinuteIndex(e.nativeEvent.index)}
+              onValueChanging={(e) =>
+                setPreviewMinuteIndex(e.nativeEvent.index)
+              }
+              onChange={(e) => {
+                const index = e.nativeEvent.index;
+                setMinuteIndex(index);
+                setPreviewMinuteIndex(index);
+              }}
               style={styles.pickerW72}
             />
           </View>
           <Text style={styles.value}>
-            {HOURS[hourIndex]}:{MINUTES[minuteIndex]}
+            {HOURS[previewHourIndex]}:{MINUTES[previewMinuteIndex]}
           </Text>
         </View>
       )}

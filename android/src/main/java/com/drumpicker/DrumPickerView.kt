@@ -86,9 +86,11 @@ class DrumPickerView @JvmOverloads constructor(
           return
         }
         when (newState) {
-          RecyclerView.SCROLL_STATE_DRAGGING,
-          RecyclerView.SCROLL_STATE_SETTLING,
-          -> updateVisibleItemStyles()
+          RecyclerView.SCROLL_STATE_DRAGGING -> {
+            lastChangingIndex = -1
+            updateVisibleItemStyles()
+          }
+          RecyclerView.SCROLL_STATE_SETTLING -> updateVisibleItemStyles()
           RecyclerView.SCROLL_STATE_IDLE -> {
             updateVisibleItemStyles()
             if (suppressChangeEvent) {

@@ -147,7 +147,8 @@ public final class DrumPickerWheelView: UIView, UIPickerViewDataSource, UIPicker
 
   public override func didMoveToWindow() {
     super.didMoveToWindow()
-    attachScrollHapticObserver()
+    attachPickerScrollViewIfNeeded()
+    attachScrollChangingObserverIfNeeded()
   }
 
   public override var accessibilityIdentifier: String? {
@@ -161,7 +162,7 @@ public final class DrumPickerWheelView: UIView, UIPickerViewDataSource, UIPicker
     updatePickerFrame()
     updateIndicators()
     attachPickerScrollViewIfNeeded()
-    updateScrollChangingObserver()
+    attachScrollChangingObserverIfNeeded()
     if picker.accessibilityIdentifier != accessibilityIdentifier {
       picker.accessibilityIdentifier = accessibilityIdentifier
     }
@@ -180,14 +181,18 @@ public final class DrumPickerWheelView: UIView, UIPickerViewDataSource, UIPicker
     }
   }
 
-  private func updateScrollChangingObserver() {
-    scrollOffsetObservation?.invalidate()
-    scrollOffsetObservation = nil
-    guard onValueChangingEnabled, let scrollView = pickerScrollView else { return }
+  private func attachScrollChangingObserverIfNeeded() {
+    guard onValueChangingEnabled, scrollOffsetObservation == nil else { return }
+    guard let scrollView = pickerScrollView else { return }
     scrollOffsetObservation = scrollView.observe(\.contentOffset, options: [.new]) {
       [weak self] _, _ in
       self?.handlePickerScrollChanged()
     }
+  }
+
+  private func detachScrollChangingObserver() {
+    scrollOffsetObservation?.invalidate()
+    scrollOffsetObservation = nil
   }
 
   private func handlePickerScrollChanged() {
@@ -209,7 +214,11 @@ public final class DrumPickerWheelView: UIView, UIPickerViewDataSource, UIPicker
   }
 
   @objc private func handlePickerPanBegan(_ recognizer: UIGestureRecognizer) {
-    guard recognizer.state == .began, hapticFeedback else { return }
+    guard recognizer.state == .began else { return }
+    if onValueChangingEnabled {
+      lastChangingIndex = -1
+    }
+    guard hapticFeedback else { return }
     ensureSelectionGenerator()
   }
 
@@ -339,10 +348,17 @@ public final class DrumPickerWheelView: UIView, UIPickerViewDataSource, UIPicker
 
   @objc public func setOnValueChangingEnabled(_ value: Bool) {
     onValueChangingEnabled = value
-    if !value {
+    if value {
+      attachPickerScrollViewIfNeeded()
+      attachScrollChangingObserverIfNeeded()
+    } else {
       lastChangingIndex = -1
+      detachScrollChangingObserver()
     }
-    updateScrollChangingObserver()
+  }
+
+  deinit {
+    detachScrollChangingObserver()
   }
 
   public override var intrinsicContentSize: CGSize {
