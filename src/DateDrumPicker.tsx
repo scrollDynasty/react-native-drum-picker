@@ -67,16 +67,14 @@ export type DateDrumPickerProps = {
   minYear?: number;
   maxYear?: number;
   /**
-   * Minimum selectable date (inclusive).
-   * Partial — omitted fields default to absolute minimum
-   * (day=1, month=1, year=1900).
+   * Minimum selectable date (inclusive). Partial fields use defaults
+   * (day=1, month=1; year from `minYear` or now−100 when only legacy props).
    * Takes precedence over `minYear` when both are set.
    */
   minDate?: DateConstraint;
   /**
-   * Maximum selectable date (inclusive).
-   * Partial — omitted fields default to absolute maximum
-   * (day=31, month=12, year=2100).
+   * Maximum selectable date (inclusive). Partial fields use defaults
+   * (day=31, month=12; year from `maxYear` or now+50 when only legacy props).
    * Takes precedence over `maxYear` when both are set.
    */
   maxDate?: DateConstraint;
@@ -246,11 +244,12 @@ export const DateDrumPicker = forwardRef<
     [clampValue, isControlled, onChange, resolvedValue]
   );
 
-  // Clamp when constraints change (uncontrolled).
+  // Clamp when constraints change (uncontrolled) and notify parent.
   useEffect(() => {
     if (isControlled) {
       return;
     }
+    let clampedForNotify: Required<DateDrumPickerValue> | undefined;
     setInternalValue((prev) => {
       const clamped = clampValue(prev);
       if (
@@ -260,9 +259,13 @@ export const DateDrumPicker = forwardRef<
       ) {
         return prev;
       }
+      clampedForNotify = clamped;
       return clamped;
     });
-  }, [clampValue, constraints, isControlled]);
+    if (clampedForNotify != null) {
+      onChange?.(clampedForNotify);
+    }
+  }, [clampValue, constraints, isControlled, onChange]);
 
   // Controlled: parent may pass invalid date — clamp and notify once.
   useEffect(() => {
@@ -284,16 +287,21 @@ export const DateDrumPicker = forwardRef<
 
   const readDateFromColumns = useCallback((): DateDrumPickerValue => {
     const day = columns.includes('day')
-      ? (dayRef.current?.getCurrentIndex() ?? resolvedValue.day - 1) + 1
+      ? dayRange.min +
+        (dayRef.current?.getCurrentIndex() ??
+          resolvedValue.day - dayRange.min)
       : resolvedValue.day;
     const month = columns.includes('month')
-      ? (monthRef.current?.getCurrentIndex() ?? resolvedValue.month - 1) + 1
+      ? monthRange.min +
+        (monthRef.current?.getCurrentIndex() ??
+          resolvedValue.month - monthRange.min)
       : resolvedValue.month;
     const year = columns.includes('year')
-      ? minYear + (yearRef.current?.getCurrentIndex() ?? 0)
+      ? minYear +
+        (yearRef.current?.getCurrentIndex() ?? resolvedValue.year - minYear)
       : resolvedValue.year;
     return { day, month, year };
-  }, [columns, minYear, resolvedValue]);
+  }, [columns, dayRange.min, minYear, monthRange.min, resolvedValue]);
 
   const syncDateAfterImperativeScroll = useCallback(
     (options?: { animated?: boolean }) => {
@@ -379,6 +387,22 @@ export const DateDrumPicker = forwardRef<
     enableScrollByTapOnItem,
   };
 
+  const mapValueChangingEvent = useCallback(
+    (
+      column: DateColumnKey,
+      event: NativeSyntheticEvent<DrumPickerChangeEvent>,
+      absoluteIndex: number,
+      absoluteValue: string
+    ): NativeSyntheticEvent<DrumPickerChangeEvent> => ({
+      ...event,
+      nativeEvent: {
+        index: absoluteIndex,
+        value: absoluteValue,
+      },
+    }),
+    []
+  );
+
   const columnContainerStyle = (
     column: DateColumnKey
   ): StyleProp<ViewStyle> => [
@@ -408,7 +432,18 @@ export const DateDrumPicker = forwardRef<
           }}
           onValueChanging={
             onValueChanging != null
-              ? (event) => onValueChanging('day', event)
+              ? (event) => {
+                  const day = dayRange.min + event.nativeEvent.index;
+                  onValueChanging(
+                    'day',
+                    mapValueChangingEvent(
+                      'day',
+                      event,
+                      day - 1,
+                      String(day)
+                    )
+                  );
+                }
               : undefined
           }
         />
@@ -434,7 +469,21 @@ export const DateDrumPicker = forwardRef<
           }}
           onValueChanging={
             onValueChanging != null
-              ? (event) => onValueChanging('month', event)
+              ? (event) => {
+                  const month = monthRange.min + event.nativeEvent.index;
+                  const label =
+                    monthItems[event.nativeEvent.index] ??
+                    event.nativeEvent.value;
+                  onValueChanging(
+                    'month',
+                    mapValueChangingEvent(
+                      'month',
+                      event,
+                      month - 1,
+                      label
+                    )
+                  );
+                }
               : undefined
           }
         />
@@ -456,7 +505,18 @@ export const DateDrumPicker = forwardRef<
         }}
         onValueChanging={
           onValueChanging != null
-            ? (event) => onValueChanging('year', event)
+            ? (event) => {
+                const year = minYear + event.nativeEvent.index;
+                onValueChanging(
+                  'year',
+                  mapValueChangingEvent(
+                    'year',
+                    event,
+                    year - minYear,
+                    String(year)
+                  )
+                );
+              }
             : undefined
         }
       />

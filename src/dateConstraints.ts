@@ -1,4 +1,7 @@
-import { getDaysInMonth } from './dateDrumPickerLogic';
+import {
+  getDaysInMonth,
+  normalizeYearRange,
+} from './dateDrumPickerLogic';
 import type { DateConstraint } from './types';
 
 export interface ResolvedConstraint {
@@ -14,12 +17,22 @@ export function resolveConstraints(
   minDate?: DateConstraint,
   maxDate?: DateConstraint
 ): ResolvedConstraint {
-  const minY = minDate?.year ?? 1900;
-  const maxY = maxDate?.year ?? 2100;
-  const minM = minDate?.month ?? 1;
-  const maxM = maxDate?.month ?? 12;
-  const minD = minDate?.day ?? 1;
-  const maxD = maxDate?.day ?? 31;
+  let minM = minDate?.month ?? 1;
+  let maxM = maxDate?.month ?? 12;
+  if (minM > maxM) {
+    [minM, maxM] = [maxM, minM];
+  }
+
+  let minD = minDate?.day ?? 1;
+  let maxD = maxDate?.day ?? 31;
+  if (minD > maxD) {
+    [minD, maxD] = [maxD, minD];
+  }
+
+  const { minYear: minY, maxYear: maxY } = normalizeYearRange(
+    minDate?.year ?? 1900,
+    maxDate?.year ?? 2100
+  );
 
   return {
     minYear: minY,
@@ -60,14 +73,31 @@ export function clampToConstraints(
   date: { day: number; month: number; year: number },
   c: ResolvedConstraint
 ): { day: number; month: number; year: number } {
-  const year = Math.min(Math.max(date.year, c.minYear), c.maxYear);
-  const month = Math.min(
-    Math.max(date.month, c.minMonth(year)),
-    c.maxMonth(year)
-  );
-  const day = Math.min(
-    Math.max(date.day, c.minDay(year, month)),
-    c.maxDay(year, month)
-  );
+  let year = date.year;
+  let month = date.month;
+  let day = date.day;
+
+  for (let pass = 0; pass < 4; pass += 1) {
+    const nextYear = Math.min(Math.max(year, c.minYear), c.maxYear);
+    const nextMonth = Math.min(
+      Math.max(month, c.minMonth(nextYear)),
+      c.maxMonth(nextYear)
+    );
+    const nextDay = Math.min(
+      Math.max(day, c.minDay(nextYear, nextMonth)),
+      c.maxDay(nextYear, nextMonth)
+    );
+    if (
+      nextYear === year &&
+      nextMonth === month &&
+      nextDay === day
+    ) {
+      return { day: nextDay, month: nextMonth, year: nextYear };
+    }
+    year = nextYear;
+    month = nextMonth;
+    day = nextDay;
+  }
+
   return { day, month, year };
 }

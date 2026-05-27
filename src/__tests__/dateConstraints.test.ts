@@ -38,6 +38,12 @@ describe('resolveConstraints', () => {
     expect(c.minMonth(2022)).toBe(1);
     expect(c.minDay(2022, 1)).toBe(1);
   });
+
+  it('swaps inverted year range', () => {
+    const c = resolveConstraints({ year: 2030 }, { year: 2020 });
+    expect(c.minYear).toBe(2020);
+    expect(c.maxYear).toBe(2030);
+  });
 });
 
 describe('clampToConstraints', () => {
@@ -63,6 +69,15 @@ describe('clampToConstraints', () => {
     const c = resolveConstraints({ year: 2024, month: 6, day: 15 });
     const result = clampToConstraints({ day: 5, month: 6, year: 2024 }, c);
     expect(result.day).toBe(15);
+  });
+
+  it('clamps month after year moves to boundary year', () => {
+    const c = resolveConstraints({ year: 2024, month: 6, day: 1 });
+    const result = clampToConstraints(
+      { day: 1, month: 1, year: 2010 },
+      c
+    );
+    expect(result).toEqual({ day: 1, month: 6, year: 2024 });
   });
 
   it('does not clamp when date is inside range', () => {

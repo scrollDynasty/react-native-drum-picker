@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- `minDate` / `maxDate` props on `DateDrumPicker` for constraining selectable date range (inclusive, partial). Year/month/day columns update dynamically based on current selection. Values outside range are auto-clamped. Backward compatible with existing `minYear` / `maxYear` props.
+- `minDate` / `maxDate` props on `DateDrumPicker` for constraining selectable date range (inclusive, partial). Year/month/day columns update dynamically based on current selection. Values outside range are auto-clamped. Backward compatible with existing `minYear` / `maxYear` props. `onValueChanging` uses calendar indices; uncontrolled mode fires `onChange` when constraints change.
 - `onValueChanging` event — fires on every scroll tick while the user is dragging, before the picker settles. Enables live synchronization between multiple pickers.
 - `withVirtualized` remaps `onValueChanging` indices to the full list (same as `onChange`).
 - `DateDrumPicker.onValueChanging(column, event)` passes the column key (`day` / `month` / `year`) as the first argument.
