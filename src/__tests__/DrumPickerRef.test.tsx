@@ -120,6 +120,30 @@ describe('DrumPickerRef', () => {
     expect(ref.current?.getCurrentIndex()).toBe(3);
   });
 
+  it('clamps refs when items shrink', () => {
+    const ref = createRef<DrumPickerRef>();
+    const { rerender } = render(
+      <DrumPicker
+        ref={ref}
+        items={ITEMS}
+        selectedIndex={4}
+        onChange={() => {}}
+      />
+    );
+    expect(ref.current?.getCurrentIndex()).toBe(4);
+    rerender(
+      <DrumPicker
+        ref={ref}
+        items={['Only']}
+        selectedIndex={4}
+        onChange={() => {}}
+      />
+    );
+    expect(ref.current?.getCurrentIndex()).toBe(0);
+    expect(ref.current?.getCurrentValue()).toBe('Only');
+    expect(getLatestNativeDrumPickerProps()?.selectedIndex).toBe(0);
+  });
+
   it('currentIndex stays in sync after onChange', () => {
     const ref = createRef<DrumPickerRef>();
     render(<DrumPicker ref={ref} items={ITEMS} onChange={() => {}} />);

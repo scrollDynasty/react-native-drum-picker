@@ -74,22 +74,35 @@ export const DrumPicker = forwardRef<DrumPickerRef, DrumPickerProps>(
     );
 
     const nativeRef = useRef<ElementRef<typeof DrumPickerNative>>(null);
-    const currentIndexRef = useRef(selectedIndex);
-    const lastEmittedIndexRef = useRef(selectedIndex);
+    const resolvedSelectedIndex = selectedIndex ?? DEFAULTS.selectedIndex;
+    const initialClampedIndex = clampIndex(
+      resolvedSelectedIndex,
+      items.length
+    );
+    const currentIndexRef = useRef(initialClampedIndex);
+    const lastEmittedIndexRef = useRef(initialClampedIndex);
     const [imperativeScroll, setImperativeScroll] = useState<{
       index: number;
       animated: boolean;
     } | null>(null);
 
+    const clampedSelectedIndex = clampIndex(
+      resolvedSelectedIndex,
+      items.length
+    );
     const nativeSelectedIndex =
-      imperativeScroll?.index ?? selectedIndex ?? DEFAULTS.selectedIndex;
+      imperativeScroll?.index ?? clampedSelectedIndex;
     const scrollAnimated = imperativeScroll?.animated ?? false;
 
     useEffect(() => {
-      currentIndexRef.current = selectedIndex;
-      lastEmittedIndexRef.current = selectedIndex;
+      const clamped = clampIndex(
+        selectedIndex ?? DEFAULTS.selectedIndex,
+        items.length
+      );
+      currentIndexRef.current = clamped;
+      lastEmittedIndexRef.current = clamped;
       setImperativeScroll(null);
-    }, [selectedIndex]);
+    }, [selectedIndex, items.length]);
 
     const applyScrollToIndex = useCallback(
       (index: number, animated: boolean) => {
@@ -128,10 +141,11 @@ export const DrumPicker = forwardRef<DrumPickerRef, DrumPickerProps>(
           applyScrollToIndex(index, options.animated ?? true);
         },
         getCurrentIndex() {
-          return currentIndexRef.current;
+          return clampIndex(currentIndexRef.current, items.length);
         },
         getCurrentValue() {
-          return items[currentIndexRef.current] ?? '';
+          const index = clampIndex(currentIndexRef.current, items.length);
+          return items[index] ?? '';
         },
       }),
       [applyScrollToIndex, items]
