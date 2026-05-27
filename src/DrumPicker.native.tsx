@@ -69,9 +69,17 @@ export function DrumPicker({
 
   const handleValueChanging = useCallback(
     (event: NativeSyntheticEvent<DrumPickerChangeEvent>) => {
-      onValueChanging?.(event);
+      if (onValueChanging == null) {
+        return;
+      }
+      const { index } = event.nativeEvent;
+      const value = items[index] ?? event.nativeEvent.value;
+      onValueChanging({
+        ...event,
+        nativeEvent: { index, value },
+      });
     },
-    [onValueChanging]
+    [items, onValueChanging]
   );
 
   return (

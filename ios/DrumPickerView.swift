@@ -194,11 +194,10 @@ public final class DrumPickerWheelView: UIView, UIPickerViewDataSource, UIPicker
     guard onValueChangingEnabled, !suppressSelectionEvents, !isProgrammaticSelection else {
       return
     }
-    guard itemHeight > 0, !items.isEmpty, let scrollView = pickerScrollView else { return }
+    guard !items.isEmpty, pickerScrollView != nil else { return }
 
-    let offset = scrollView.contentOffset.y
-    let rawIndex = Int(round(offset / itemHeight))
-    let clamped = min(max(rawIndex, 0), items.count - 1)
+    let row = picker.selectedRow(inComponent: 0)
+    let clamped = min(max(row, 0), items.count - 1)
     guard clamped != lastChangingIndex else { return }
 
     lastChangingIndex = clamped
