@@ -63,15 +63,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * update release-please workflow token for improved security ([81167d4](https://github.com/scrollDynasty/react-native-drum-picker/commit/81167d4fb7ba665afb62b819797bc1ad1fea1c7f))
 * update release-please workflow token for improved security ([1cb6a09](https://github.com/scrollDynasty/react-native-drum-picker/commit/1cb6a09d4f1d51ee2a9fd4e70ea8f5632d1abb8f))
 
-## [Unreleased]
-
-### Added
-
-- `withVirtualized` HOC for efficient rendering of large item lists (1000+ items) via windowed rendering (anchor index, slice-update lock, debounced recenter by latest anchor, O(1) index resolution when labels match, reclamp when list length changes)
-- `enableScrollByTapOnItem` prop — tap any visible item to scroll it to the center position (Android + iOS); also on `DateDrumPicker` columns
-- iOS tap uses visible-row label hit-testing (aligned with Android row taps); native unit / instrumented tests on both platforms
-- Documented requirement: unique `items` strings for `withVirtualized` and iOS tap hit-testing
-
 ## [0.2.0] - 2026-05-22
 
 ### Added

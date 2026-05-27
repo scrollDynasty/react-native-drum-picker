@@ -242,7 +242,11 @@ class DrumPickerView @JvmOverloads constructor(
   }
 
   fun setOnValueChangingEnabledProp(value: Any?) {
-    onValueChangingEnabled = toBoolean(value, false)
+    val enabled = toBoolean(value, false)
+    if (onValueChangingEnabled != enabled) {
+      onValueChangingEnabled = enabled
+      lastChangingIndex = -1
+    }
   }
 
   private fun scrollToPositionFromTap(position: Int) {
@@ -654,6 +658,9 @@ class DrumPickerView @JvmOverloads constructor(
     }
     val centerIndex = findSnapCenterIndex()
     if (centerIndex == RecyclerView.NO_POSITION || centerIndex == lastChangingIndex) {
+      return
+    }
+    if (centerIndex !in items.indices) {
       return
     }
     lastChangingIndex = centerIndex
