@@ -14,22 +14,29 @@ export function resolveConstraints(
   minDate?: DateConstraint,
   maxDate?: DateConstraint
 ): ResolvedConstraint {
+  const { minYear: minY, maxYear: maxY } = normalizeYearRange(
+    minDate?.year ?? 1900,
+    maxDate?.year ?? 2100
+  );
+
   let minM = minDate?.month ?? 1;
   let maxM = maxDate?.month ?? 12;
-  if (minM > maxM) {
+  // Only swap when both bounds apply to the same year (inverted partial on one year).
+  if (minY === maxY && minM > maxM) {
     [minM, maxM] = [maxM, minM];
   }
 
   let minD = minDate?.day ?? 1;
   let maxD = maxDate?.day ?? 31;
-  if (minD > maxD) {
+  const minMonthForDaySwap = minDate?.month ?? minM;
+  const maxMonthForDaySwap = maxDate?.month ?? maxM;
+  if (
+    minY === maxY &&
+    minMonthForDaySwap === maxMonthForDaySwap &&
+    minD > maxD
+  ) {
     [minD, maxD] = [maxD, minD];
   }
-
-  const { minYear: minY, maxYear: maxY } = normalizeYearRange(
-    minDate?.year ?? 1900,
-    maxDate?.year ?? 2100
-  );
 
   return {
     minYear: minY,

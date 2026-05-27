@@ -44,6 +44,26 @@ describe('resolveConstraints', () => {
     expect(c.minYear).toBe(2020);
     expect(c.maxYear).toBe(2030);
   });
+
+  it('swaps inverted month only on the same boundary year', () => {
+    const c = resolveConstraints(
+      { year: 2024, month: 9 },
+      { year: 2024, month: 3 }
+    );
+    expect(c.minMonth(2024)).toBe(3);
+    expect(c.maxMonth(2024)).toBe(9);
+  });
+
+  it('does not swap months across different boundary years', () => {
+    const c = resolveConstraints(
+      { year: 2020, month: 12 },
+      { year: 2025, month: 1 }
+    );
+    expect(c.minMonth(2020)).toBe(12);
+    expect(c.maxMonth(2025)).toBe(1);
+    expect(c.minMonth(2023)).toBe(1);
+    expect(c.maxMonth(2023)).toBe(12);
+  });
 });
 
 describe('clampToConstraints', () => {

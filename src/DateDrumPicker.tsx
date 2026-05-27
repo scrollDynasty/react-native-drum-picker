@@ -186,8 +186,9 @@ export const DateDrumPicker = forwardRef<
         maxDate,
         minYear: minYearProp,
         maxYear: maxYearProp,
+        currentYear,
       }),
-    [minDate, maxDate, minYearProp, maxYearProp]
+    [minDate, maxDate, minYearProp, maxYearProp, currentYear]
   );
 
   useEffect(() => {
@@ -220,6 +221,7 @@ export const DateDrumPicker = forwardRef<
   internalValueRef.current = internalValue;
   const onChangeRef = useRef(onChange);
   onChangeRef.current = onChange;
+  const lastControlledClampNotifyRef = useRef<string | null>(null);
 
   const resolvedValue = useMemo(() => {
     if (isControlled) {
@@ -293,9 +295,10 @@ export const DateDrumPicker = forwardRef<
     onChangeRef.current?.(clamped);
   }, [clampValue, constraintKey, isControlled]);
 
-  // Controlled: parent may pass invalid date — clamp and notify once.
+  // Controlled: parent may pass invalid date — clamp and notify once per distinct invalid value.
   useEffect(() => {
     if (!isControlled || !onChange || value === undefined) {
+      lastControlledClampNotifyRef.current = null;
       return;
     }
     const clamped = clampValue(value);
@@ -303,13 +306,22 @@ export const DateDrumPicker = forwardRef<
     const month = value.month ?? clamped.month;
     const year = value.year ?? clamped.year;
     if (
-      day !== clamped.day ||
-      month !== clamped.month ||
-      year !== clamped.year
+      day === clamped.day &&
+      month === clamped.month &&
+      year === clamped.year
     ) {
-      onChange(clamped);
+      lastControlledClampNotifyRef.current = null;
+      return;
     }
-  }, [clampValue, isControlled, onChange, value]);
+    const notifyKey = `${day}-${month}-${year}->${clamped.day}-${clamped.month}-${clamped.year}`;
+    if (lastControlledClampNotifyRef.current === notifyKey) {
+      return;
+    }
+    lastControlledClampNotifyRef.current = notifyKey;
+    onChangeRef.current?.(clamped);
+    // onChange is read via onChangeRef to avoid re-clamp when callback identity changes.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [clampValue, constraintKey, isControlled, value]);
 
   const readDateFromColumns = useCallback((): DateDrumPickerValue => {
     const day = columns.includes('day')
