@@ -54,7 +54,7 @@ npx react-native run-android
 |----------|--------|
 | Android | Supported |
 | iOS | Supported |
-| Web | Not supported |
+| Web | Read-only preview stub (`DrumPicker.tsx`); ref API works, no native wheel |
 
 Requires **React Native 0.76+** with the **New Architecture** enabled.
 
