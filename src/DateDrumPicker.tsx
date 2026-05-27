@@ -249,7 +249,6 @@ export const DateDrumPicker = forwardRef<
     if (isControlled) {
       return;
     }
-    let clampedForNotify: Required<DateDrumPickerValue> | undefined;
     setInternalValue((prev) => {
       const clamped = clampValue(prev);
       if (
@@ -259,12 +258,9 @@ export const DateDrumPicker = forwardRef<
       ) {
         return prev;
       }
-      clampedForNotify = clamped;
+      onChange?.(clamped);
       return clamped;
     });
-    if (clampedForNotify != null) {
-      onChange?.(clampedForNotify);
-    }
   }, [clampValue, constraints, isControlled, onChange]);
 
   // Controlled: parent may pass invalid date — clamp and notify once.

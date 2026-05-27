@@ -333,30 +333,41 @@ Day count follows month/year (e.g. February has 28/29 days).
 ### Date range constraints
 
 ```tsx
-// Booking form — only future dates up to 1 year ahead
-const today = new Date();
-const nextYear = new Date();
-nextYear.setFullYear(today.getFullYear() + 1);
+import { useState } from 'react';
+import {
+  DateDrumPicker,
+  type DateDrumPickerValue,
+} from 'react-native-drum-picker';
 
-<DateDrumPicker
-  mode="day-month-year"
-  minDate={{
-    day: today.getDate(),
-    month: today.getMonth() + 1,
-    year: today.getFullYear(),
-  }}
-  maxDate={{
-    day: nextYear.getDate(),
-    month: nextYear.getMonth() + 1,
-    year: nextYear.getFullYear(),
-  }}
-  onChange={setBookingDate}
-/>
+function BookingDatePicker() {
+  const [bookingDate, setBookingDate] = useState<DateDrumPickerValue>({});
+  const today = new Date();
+  const nextYear = new Date();
+  nextYear.setFullYear(today.getFullYear() + 1);
+
+  return (
+    <DateDrumPicker
+      mode="day-month-year"
+      minDate={{
+        day: today.getDate(),
+        month: today.getMonth() + 1,
+        year: today.getFullYear(),
+      }}
+      maxDate={{
+        day: nextYear.getDate(),
+        month: nextYear.getMonth() + 1,
+        year: nextYear.getFullYear(),
+      }}
+      value={bookingDate}
+      onChange={setBookingDate}
+    />
+  );
+}
 ```
 
 `minDate` / `maxDate` take precedence over `minYear` / `maxYear` when both are set.
 
-`onValueChanging`, if used, receives the column key first: `(column, event) => …` where `column` is `'day' | 'month' | 'year'`.
+`onValueChanging`, if used, receives the column key first: `(column, event) => …` where `column` is `'day' | 'month' | 'year'`. Event `nativeEvent.index` uses calendar indices (month 1–12 → index 0–11; day uses day-of-month minus 1).
 
 ## withVirtualized
 
