@@ -6,7 +6,8 @@ import {
   resetNativeDrumPickerMocks,
 } from '../__mocks__/DrumPickerViewNativeComponent';
 import { DateDrumPicker } from '../DateDrumPicker';
-import { buildMonthItems } from '../dateDrumPickerLogic';
+import { DrumPicker } from '../DrumPicker.native';
+import { buildMonthItems, getDaysInMonth } from '../dateDrumPickerLogic';
 
 const MODES = [
   'day',
@@ -208,5 +209,158 @@ describe('DateDrumPicker', () => {
       />
     );
     expect(getLatestNativeDrumPickerProps()?.hapticFeedback).toBe(true);
+  });
+});
+
+describe('minDate / maxDate', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    resetNativeDrumPickerMocks();
+  });
+
+  it('year column respects minYear from minDate', () => {
+    const { UNSAFE_getAllByType } = render(
+      <DateDrumPicker
+        mode="day-month-year"
+        minDate={{ year: 2022 }}
+        maxDate={{ year: 2026 }}
+        onChange={() => {}}
+      />
+    );
+    const pickers = UNSAFE_getAllByType(DrumPicker);
+    const yearPicker = pickers[2];
+    const firstYear = Number.parseInt(yearPicker.props.items[0] as string, 10);
+    expect(firstYear).toBe(2022);
+    expect(yearPicker.props.items).toHaveLength(5);
+  });
+
+  it('month column starts at minDate.month in boundary year', () => {
+    const { UNSAFE_getAllByType } = render(
+      <DateDrumPicker
+        mode="day-month-year"
+        minDate={{ year: 2024, month: 6 }}
+        maxDate={{ year: 2026 }}
+        value={{ day: 1, month: 6, year: 2024 }}
+        onChange={() => {}}
+      />
+    );
+    const pickers = UNSAFE_getAllByType(DrumPicker);
+    const monthPicker = pickers[1];
+    expect(monthPicker.props.items).toHaveLength(7);
+  });
+
+  it('clamps value when outside minDate', () => {
+    const onChange = jest.fn();
+    render(
+      <DateDrumPicker
+        mode="day-month-year"
+        minDate={{ year: 2024, month: 6, day: 15 }}
+        value={{ day: 1, month: 1, year: 2023 }}
+        onChange={onChange}
+      />
+    );
+    expect(onChange).toHaveBeenCalledWith(
+      expect.objectContaining({ day: 15, month: 6, year: 2024 })
+    );
+  });
+
+  it('backward compat: minYear/maxYear still works', () => {
+    const { UNSAFE_getAllByType } = render(
+      <DateDrumPicker
+        mode="day-month-year"
+        minYear={2020}
+        maxYear={2025}
+        onChange={() => {}}
+      />
+    );
+    const pickers = UNSAFE_getAllByType(DrumPicker);
+    const yearPicker = pickers[2];
+    expect(yearPicker.props.items).toHaveLength(6);
+  });
+
+  it('day column respects minDate.day', () => {
+    const { UNSAFE_getAllByType } = render(
+      <DateDrumPicker
+        mode="day-month-year"
+        minDate={{ year: 2024, month: 6, day: 15 }}
+        maxDate={{ year: 2026 }}
+        value={{ day: 20, month: 6, year: 2024 }}
+        onChange={() => {}}
+      />
+    );
+    const dayPicker = UNSAFE_getAllByType(DrumPicker)[0];
+    expect(dayPicker.props.items).toHaveLength(
+      getDaysInMonth(6, 2024) - 15 + 1
+    );
+    expect(dayPicker.props.items[0]).toBe('15');
+  });
+
+  it('getCurrentDate uses constrained day offset', () => {
+    const ref = React.createRef<import('../types').DateDrumPickerRef>();
+    render(
+      <DateDrumPicker
+        ref={ref}
+        mode="day-month-year"
+        minDate={{ year: 2024, month: 6, day: 15 }}
+        value={{ day: 20, month: 6, year: 2024 }}
+        onChange={() => {}}
+      />
+    );
+    expect(ref.current?.getCurrentDate().day).toBe(20);
+  });
+
+  it('onValueChanging reports calendar month index', () => {
+    const onValueChanging = jest.fn();
+    render(
+      <DateDrumPicker
+        mode="month-year"
+        minDate={{ year: 2024, month: 6 }}
+        value={{ month: 6, year: 2024 }}
+        onValueChanging={onValueChanging}
+        onChange={() => {}}
+      />
+    );
+    const monthPicker = getNativePickers()[0];
+    act(() => {
+      monthPicker.props.onValueChanging?.({
+        nativeEvent: { index: 2, value: 'Aug' },
+      });
+    });
+    expect(onValueChanging).toHaveBeenCalledWith(
+      'month',
+      expect.objectContaining({
+        nativeEvent: expect.objectContaining({ index: 7, value: 'Aug' }),
+      })
+    );
+  });
+
+  it('notifies onChange when uncontrolled constraints tighten', () => {
+    const onChange = jest.fn();
+    const { rerender } = render(
+      <DateDrumPicker
+        mode="year"
+        minYear={2010}
+        maxYear={2030}
+        onChange={onChange}
+      />
+    );
+    const yearPicker = getNativePickers()[0];
+    act(() => {
+      yearPicker.props.onValueChange?.({
+        nativeEvent: { index: 20, value: '2030' },
+      });
+    });
+    onChange.mockClear();
+    rerender(
+      <DateDrumPicker
+        mode="year"
+        minYear={2010}
+        maxYear={2024}
+        onChange={onChange}
+      />
+    );
+    expect(onChange).toHaveBeenCalledWith(
+      expect.objectContaining({ year: 2024 })
+    );
   });
 });

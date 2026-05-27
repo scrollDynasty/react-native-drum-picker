@@ -59,6 +59,22 @@ export function buildDayItems(month: number, year: number): string[] {
   return Array.from({ length: count }, (_, index) => String(index + 1));
 }
 
+export function buildDayItemsInRange(minDay: number, maxDay: number): string[] {
+  return Array.from({ length: maxDay - minDay + 1 }, (_, index) =>
+    String(minDay + index)
+  );
+}
+
+export function buildMonthItemsInRange(
+  minMonth: number,
+  maxMonth: number,
+  monthFormat: DateDrumPickerMonthFormat,
+  locale: string
+): string[] {
+  const all = buildMonthItems(monthFormat, locale);
+  return all.slice(minMonth - 1, maxMonth);
+}
+
 export function buildMonthItems(
   monthFormat: DateDrumPickerMonthFormat,
   locale: string
