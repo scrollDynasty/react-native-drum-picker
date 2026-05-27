@@ -5,6 +5,31 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.3](https://github.com/scrollDynasty/react-native-drum-picker/compare/v0.2.2...v0.2.3) (2026-05-27)
+
+
+### Features
+
+* add booking option to App and enhance DateDrumPicker with min/max date warnings ([79d2068](https://github.com/scrollDynasty/react-native-drum-picker/commit/79d2068818931ea6efb86290882b97eaec18e049))
+* add minDate/maxDate constraints to DateDrumPicker ([8477992](https://github.com/scrollDynasty/react-native-drum-picker/commit/8477992bf569df1a191d850241845dd5f88a1e30))
+* add onValueChanging event for live scroll tracking ([3c018fd](https://github.com/scrollDynasty/react-native-drum-picker/commit/3c018fd3dcf2377b4ae79601dff0d4a276c7c1b8))
+* add read-only web preview and enhance testing for DrumPicker ([0ad0c88](https://github.com/scrollDynasty/react-native-drum-picker/commit/0ad0c88a70083fdda961d9873ce696b251a2a572))
+* add scroll animation support to DrumPicker components ([da8d9dc](https://github.com/scrollDynasty/react-native-drum-picker/commit/da8d9dcb7f6537f880c1beb06ec32a8d44dd12a6))
+* enhance DateDrumPicker and DrumPicker with improved scrolling and ref handling ([fb1ad33](https://github.com/scrollDynasty/react-native-drum-picker/commit/fb1ad336c86512ffe32b9c74306efdbda7766b21))
+* enhance DateDrumPicker with improved date constraints and event handling ([1eff42d](https://github.com/scrollDynasty/react-native-drum-picker/commit/1eff42d30175ccfcf8171fd6c07a5abe34feb661))
+* enhance onValueChanging functionality for improved user experience ([26d866f](https://github.com/scrollDynasty/react-native-drum-picker/commit/26d866f295a9a850bc3601de04ce0373a3ebc083))
+* implement BookingDatePicker component with integrated DateDrumPicker ([6bc7521](https://github.com/scrollDynasty/react-native-drum-picker/commit/6bc7521fe60ce0f698785fcfcb0ddf7deef63ab1))
+* implement enhanced scroll tracking for DrumPicker components ([8b3d737](https://github.com/scrollDynasty/react-native-drum-picker/commit/8b3d737528ce69f99451113af9c66d60530b9d55))
+* refine date constraint logic in resolveConstraints and enhance DateDrumPicker notifications ([0eb4906](https://github.com/scrollDynasty/react-native-drum-picker/commit/0eb49066b2309ea6ca2ae4b0422181a33c889649))
+* update DateWithToday component to manage selected date state ([c0c3bcb](https://github.com/scrollDynasty/react-native-drum-picker/commit/c0c3bcb89a0de645108bdf41364a7100444f8051))
+
+
+### Bug Fixes
+
+* ensure clamping of selected index in DrumPicker ([9eff4c2](https://github.com/scrollDynasty/react-native-drum-picker/commit/9eff4c26d861ab9cee275e3ae463282181048ba6))
+* improve onValueChanging logic and add index validation ([ab47136](https://github.com/scrollDynasty/react-native-drum-picker/commit/ab47136541d71793359174705c48a06b94b5f1a2))
+* prevent infinite render loop in native mock ([6c99a16](https://github.com/scrollDynasty/react-native-drum-picker/commit/6c99a16855d605c2063206a512fbbd43eacd9f8e))
+
 ## [Unreleased]
 
 ### Added
