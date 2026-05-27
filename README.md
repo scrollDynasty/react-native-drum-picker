@@ -234,20 +234,31 @@ function MyPicker() {
 ### DateDrumPicker ref — "Today" button
 
 ```tsx
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import { Button } from 'react-native';
 import {
   DateDrumPicker,
   type DateDrumPickerRef,
+  type DateDrumPickerValue,
 } from 'react-native-drum-picker';
 
 function DateWithToday() {
+  const [date, setDate] = useState<DateDrumPickerValue>({
+    day: 1,
+    month: 1,
+    year: 2026,
+  });
   const today = new Date();
   const dateRef = useRef<DateDrumPickerRef>(null);
 
   return (
     <>
-      <DateDrumPicker ref={dateRef} mode="day-month-year" onChange={setDate} />
+      <DateDrumPicker
+        ref={dateRef}
+        mode="day-month-year"
+        value={date}
+        onChange={setDate}
+      />
       <Button
         title="Today"
         onPress={() =>
