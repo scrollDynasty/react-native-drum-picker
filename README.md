@@ -197,6 +197,87 @@ const [previewIndex, setPreviewIndex] = useState(1);
 
 See the **example** app (`example/src/App.tsx`) for basic, time, height/weight, date, controlled, and debounced demos.
 
+## Imperative ref API
+
+Control the picker programmatically using a ref:
+
+```tsx
+import { useRef } from 'react';
+import { Button } from 'react-native';
+import DrumPicker, { type DrumPickerRef } from 'react-native-drum-picker';
+
+const months = ['Jan', 'Feb', 'Mar', 'Jun'];
+
+function MyPicker() {
+  const ref = useRef<DrumPickerRef>(null);
+
+  return (
+    <>
+      <DrumPicker
+        ref={ref}
+        items={months}
+        onChange={({ nativeEvent }) => console.log(nativeEvent.value)}
+      />
+      <Button
+        title="Jump to June"
+        onPress={() => ref.current?.scrollToValue('Jun')}
+      />
+      <Button
+        title="Reset to first"
+        onPress={() => ref.current?.scrollToIndex(0, { animated: true })}
+      />
+    </>
+  );
+}
+```
+
+### DateDrumPicker ref — "Today" button
+
+```tsx
+import { useRef } from 'react';
+import { Button } from 'react-native';
+import {
+  DateDrumPicker,
+  type DateDrumPickerRef,
+} from 'react-native-drum-picker';
+
+const today = new Date();
+const dateRef = useRef<DateDrumPickerRef>(null);
+
+<>
+  <DateDrumPicker ref={dateRef} mode="day-month-year" onChange={setDate} />
+  <Button
+    title="Today"
+    onPress={() =>
+      dateRef.current?.scrollToDate(
+        {
+          day: today.getDate(),
+          month: today.getMonth() + 1,
+          year: today.getFullYear(),
+        },
+        { animated: true }
+      )
+    }
+  />
+</>;
+```
+
+### DrumPickerRef API
+
+| Method | Description |
+|--------|-------------|
+| `scrollToIndex(index, options?)` | Scroll to index. Clamped to valid range. |
+| `scrollToValue(value, options?)` | Scroll to first matching value. No-op if not found. |
+| `getCurrentIndex()` | Returns current selected index. |
+| `getCurrentValue()` | Returns current selected value string. |
+
+### DateDrumPickerRef API
+
+| Method | Description |
+|--------|-------------|
+| `scrollToDate(date, options?)` | Scroll columns to given date. Partial updates supported. |
+| `getCurrentDate()` | Returns `{ day, month, year }` of current selection. |
+
 ## DateDrumPicker
 
 Higher-level date columns (TypeScript only). Renders **wheels only** — no built-in titles; add labels in your app if needed.
