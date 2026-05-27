@@ -27,7 +27,9 @@ interface NativeProps extends ViewProps {
   itemBackgroundColor?: ColorValue;
   hapticFeedback?: CodegenTypes.WithDefault<boolean, false>;
   enableScrollByTapOnItem?: CodegenTypes.WithDefault<boolean, false>;
+  onValueChangingEnabled?: CodegenTypes.WithDefault<boolean, false>;
   onValueChange?: CodegenTypes.DirectEventHandler<DrumPickerChangeEventPayload>;
+  onValueChanging?: CodegenTypes.DirectEventHandler<DrumPickerChangeEventPayload>;
 }
 
 export default codegenNativeComponent<NativeProps>('DrumPickerView');

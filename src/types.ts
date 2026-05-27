@@ -27,6 +27,17 @@ export type DrumPickerProps = {
    * @default false
    */
   enableScrollByTapOnItem?: boolean;
+  /**
+   * Fires on every scroll tick while the user is dragging.
+   * Called before the picker settles — use for live sync
+   * between multiple pickers (e.g. hours + minutes).
+   *
+   * Note: may fire many times per second. Keep the handler fast.
+   * Do NOT setState in render-blocking ways here.
+   */
+  onValueChanging?: (
+    event: NativeSyntheticEvent<DrumPickerChangeEvent>
+  ) => void;
   onChange?: (event: NativeSyntheticEvent<DrumPickerChangeEvent>) => void;
   style?: StyleProp<ViewStyle>;
   testID?: string;

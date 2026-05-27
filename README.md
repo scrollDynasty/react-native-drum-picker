@@ -175,6 +175,26 @@ const save = useMemo(() => {
 <DrumPicker onChange={(e) => save(e.nativeEvent.value)} ... />
 ```
 
+### Live sync between pickers
+
+Use `onValueChanging` to update a preview while the user is still scrolling — before they lift their finger:
+
+```tsx
+const [previewIndex, setPreviewIndex] = useState(1);
+
+<DrumPicker
+  items={['AM', 'PM']}
+  onValueChanging={({ nativeEvent }) => {
+    setPreviewIndex(nativeEvent.index);
+  }}
+  onChange={({ nativeEvent }) => {
+    setPreviewIndex(nativeEvent.index);
+  }}
+/>
+```
+
+`onValueChanging` can fire many times per second while the wheel moves. Keep the handler light; for UI updates prefer a ref or debounce/`requestAnimationFrame` instead of heavy `setState` on every tick. Use `onChange` for the final committed value.
+
 See the **example** app (`example/src/App.tsx`) for basic, time, height/weight, date, controlled, and debounced demos.
 
 ## DateDrumPicker
@@ -214,6 +234,8 @@ export function DateExample() {
 
 Day count follows month/year (e.g. February has 28/29 days).
 
+`onValueChanging`, if used, receives the column key first: `(column, event) => …` where `column` is `'day' | 'month' | 'year'`.
+
 ## withVirtualized
 
 For large item lists (cities, timezones, country codes), wrap `DrumPicker` with `withVirtualized` to render only items near the visible window:
@@ -242,6 +264,8 @@ Optional `windowRecenterDebounceMs` (default `100`) debounces slice recentering 
 **Requirements:** each entry in `items` must be a **unique** string. Duplicate labels break index recovery during slice swaps and on iOS tap hit-testing.
 
 Not intended for `DateDrumPicker` (small fixed column lists).
+
+`onValueChanging` is supported: indices are remapped to the full list (same as `onChange`), so live preview works on large lists.
 
 ### `withVirtualized(DrumPicker)` props
 
@@ -275,6 +299,7 @@ In addition to all `DrumPicker` props (on the wrapped instance):
 | `hapticFeedback` | `boolean` | `false` | Light haptic on snap (Android + iOS) |
 | `enableScrollByTapOnItem` | `boolean` | `false` | Tap a visible row to scroll it to center (Android + iOS) |
 | `onChange` | `function` | — | `nativeEvent: { index, value }` |
+| `onValueChanging` | `function` | — | Fires on each scroll tick while dragging. Use for live sync; debounce heavy UI work. |
 | `style` | `ViewStyle` | — | Size and layout |
 
 ### `DateDrumPicker`
@@ -284,6 +309,7 @@ In addition to all `DrumPicker` props (on the wrapped instance):
 | `mode` | `DateDrumPickerMode` | `day-month-year` | Which columns to show |
 | `value` | `{ day?, month?, year? }` | — | Controlled value |
 | `onChange` | `function` | — | `{ day, month, year }` |
+| `onValueChanging` | `function` | — | `(column, event) => …` while scrolling; `column` is `day` / `month` / `year` |
 | `minYear` | `number` | now − 100 | Year range start |
 | `maxYear` | `number` | now + 50 | Year range end |
 | `monthFormat` | `'short' \| 'long' \| 'number'` | `short` | Month labels |

@@ -7,7 +7,11 @@ type MockProps = ViewProps & {
   selectedIndex?: number;
   hapticFeedback?: boolean;
   enableScrollByTapOnItem?: boolean;
+  onValueChangingEnabled?: boolean;
   onValueChange?: (event: {
+    nativeEvent: DrumPickerChangeEventPayload;
+  }) => void;
+  onValueChanging?: (event: {
     nativeEvent: DrumPickerChangeEventPayload;
   }) => void;
 };
@@ -24,6 +28,15 @@ export function getLatestNativeDrumPickerProps(): MockProps | null {
 
 export function fireNativeDrumPickerChange(index: number, value: string): void {
   latestProps?.onValueChange?.({
+    nativeEvent: { index, value },
+  });
+}
+
+export function fireNativeDrumPickerChanging(
+  index: number,
+  value: string
+): void {
+  latestProps?.onValueChanging?.({
     nativeEvent: { index, value },
   });
 }

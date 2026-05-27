@@ -2,6 +2,7 @@ import { act, render } from '@testing-library/react-native';
 import React from 'react';
 import {
   fireNativeDrumPickerChange,
+  fireNativeDrumPickerChanging,
   getLatestNativeDrumPickerProps,
   resetNativeDrumPickerMocks,
 } from '../__mocks__/DrumPickerViewNativeComponent';
@@ -29,6 +30,27 @@ describe('withVirtualized', () => {
     );
     const props = getLatestNativeDrumPickerProps();
     expect(props?.items?.length).toBeLessThanOrEqual(41);
+  });
+
+  it('remaps local index to real index in onValueChanging', () => {
+    const onValueChanging = jest.fn();
+    render(
+      <VirtualizedDrumPicker
+        items={CITIES}
+        selectedIndex={500}
+        windowSize={20}
+        onValueChanging={onValueChanging}
+        onChange={() => {}}
+      />
+    );
+    act(() => {
+      fireNativeDrumPickerChanging(5, 'City 485');
+    });
+    expect(onValueChanging).toHaveBeenCalledWith(
+      expect.objectContaining({
+        nativeEvent: expect.objectContaining({ index: 485, value: 'City 485' }),
+      })
+    );
   });
 
   it('remaps local index to real index in onChange', () => {

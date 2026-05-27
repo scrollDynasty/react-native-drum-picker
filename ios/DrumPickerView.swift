@@ -7,6 +7,12 @@ import UIKit
     value: String,
     userInitiated: Bool
   )
+
+  @objc optional func drumPickerWheelView(
+    _ view: DrumPickerWheelView,
+    isChangingToIndex row: Int,
+    value: String
+  )
 }
 
 private enum DrumPickerDefaults {
@@ -29,12 +35,14 @@ public final class DrumPickerWheelView: UIView, UIPickerViewDataSource, UIPicker
   private let bottomIndicator = UIView()
   private var selectionGenerator: UISelectionFeedbackGenerator?
   private weak var pickerScrollView: UIScrollView?
+  private var scrollOffsetObservation: NSKeyValueObservation?
 
   private var items: [String] = []
   private var selectedIndex: Int = 0
   private var suppressSelectionEvents = false
   private var isProgrammaticSelection = false
   private var lastSelectedIndex = -1
+  private var lastChangingIndex = -1
 
   private var itemHeight: CGFloat = DrumPickerDefaults.itemHeight
   private var visibleItemCount: Int = DrumPickerDefaults.visibleItemCount
@@ -48,6 +56,7 @@ public final class DrumPickerWheelView: UIView, UIPickerViewDataSource, UIPicker
   private var itemBackgroundColor: UIColor = .clear
   private var hapticFeedback = false
   private var enableScrollByTapOnItem = false
+  private var onValueChangingEnabled = false
 
   public override init(frame: CGRect) {
     super.init(frame: frame)
@@ -138,7 +147,8 @@ public final class DrumPickerWheelView: UIView, UIPickerViewDataSource, UIPicker
 
   public override func didMoveToWindow() {
     super.didMoveToWindow()
-    attachScrollHapticObserver()
+    attachPickerScrollViewIfNeeded()
+    attachScrollChangingObserverIfNeeded()
   }
 
   public override var accessibilityIdentifier: String? {
@@ -151,13 +161,13 @@ public final class DrumPickerWheelView: UIView, UIPickerViewDataSource, UIPicker
     super.layoutSubviews()
     updatePickerFrame()
     updateIndicators()
-    attachScrollHapticObserver()
+    attachPickerScrollViewIfNeeded()
     if picker.accessibilityIdentifier != accessibilityIdentifier {
       picker.accessibilityIdentifier = accessibilityIdentifier
     }
   }
 
-  private func attachScrollHapticObserver() {
+  private func attachPickerScrollViewIfNeeded() {
     guard pickerScrollView == nil else { return }
     for subview in picker.subviews {
       guard let scrollView = subview as? UIScrollView else { continue }
@@ -166,12 +176,49 @@ public final class DrumPickerWheelView: UIView, UIPickerViewDataSource, UIPicker
         self,
         action: #selector(handlePickerPanBegan(_:))
       )
+      attachScrollChangingObserverIfNeeded()
       break
     }
   }
 
+  private func attachScrollChangingObserverIfNeeded() {
+    guard onValueChangingEnabled, scrollOffsetObservation == nil else { return }
+    guard let scrollView = pickerScrollView else { return }
+    scrollOffsetObservation = scrollView.observe(\.contentOffset, options: [.new]) {
+      [weak self] _, _ in
+      self?.handlePickerScrollChanged()
+    }
+  }
+
+  private func detachScrollChangingObserver() {
+    scrollOffsetObservation?.invalidate()
+    scrollOffsetObservation = nil
+  }
+
+  private func handlePickerScrollChanged() {
+    guard onValueChangingEnabled, !suppressSelectionEvents, !isProgrammaticSelection else {
+      return
+    }
+    guard !items.isEmpty, pickerScrollView != nil else { return }
+
+    let row = picker.selectedRow(inComponent: 0)
+    let clamped = min(max(row, 0), items.count - 1)
+    guard clamped != lastChangingIndex else { return }
+
+    lastChangingIndex = clamped
+    wheelDelegate?.drumPickerWheelView?(
+      self,
+      isChangingToIndex: clamped,
+      value: items[clamped]
+    )
+  }
+
   @objc private func handlePickerPanBegan(_ recognizer: UIGestureRecognizer) {
-    guard recognizer.state == .began, hapticFeedback else { return }
+    guard recognizer.state == .began else { return }
+    if onValueChangingEnabled {
+      lastChangingIndex = -1
+    }
+    guard hapticFeedback else { return }
     ensureSelectionGenerator()
   }
 
@@ -207,6 +254,7 @@ public final class DrumPickerWheelView: UIView, UIPickerViewDataSource, UIPicker
 
   @objc public func setItems(_ items: [String]) {
     self.items = items
+    lastChangingIndex = -1
     performProgrammaticUpdate {
       self.picker.reloadAllComponents()
       guard !self.items.isEmpty else {
@@ -296,6 +344,21 @@ public final class DrumPickerWheelView: UIView, UIPickerViewDataSource, UIPicker
 
   @objc public func setEnableScrollByTapOnItem(_ value: Bool) {
     enableScrollByTapOnItem = value
+  }
+
+  @objc public func setOnValueChangingEnabled(_ value: Bool) {
+    onValueChangingEnabled = value
+    if value {
+      attachPickerScrollViewIfNeeded()
+      attachScrollChangingObserverIfNeeded()
+    } else {
+      lastChangingIndex = -1
+      detachScrollChangingObserver()
+    }
+  }
+
+  deinit {
+    detachScrollChangingObserver()
   }
 
   public override var intrinsicContentSize: CGSize {

@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- `onValueChanging` event — fires on every scroll tick while the user is dragging, before the picker settles. Enables live synchronization between multiple pickers.
+- `withVirtualized` remaps `onValueChanging` indices to the full list (same as `onChange`).
+- `DateDrumPicker.onValueChanging(column, event)` passes the column key (`day` / `month` / `year`) as the first argument.
+
 ## [0.2.2](https://github.com/scrollDynasty/react-native-drum-picker/compare/v0.2.1...v0.2.2) (2026-05-25)
 
 
@@ -54,15 +62,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * **ci:** resolve js-tests build and codecov action ([581ce80](https://github.com/scrollDynasty/react-native-drum-picker/commit/581ce80a132079e9a908923f5bb27452b73c65c1))
 * update release-please workflow token for improved security ([81167d4](https://github.com/scrollDynasty/react-native-drum-picker/commit/81167d4fb7ba665afb62b819797bc1ad1fea1c7f))
 * update release-please workflow token for improved security ([1cb6a09](https://github.com/scrollDynasty/react-native-drum-picker/commit/1cb6a09d4f1d51ee2a9fd4e70ea8f5632d1abb8f))
-
-## [Unreleased]
-
-### Added
-
-- `withVirtualized` HOC for efficient rendering of large item lists (1000+ items) via windowed rendering (anchor index, slice-update lock, debounced recenter by latest anchor, O(1) index resolution when labels match, reclamp when list length changes)
-- `enableScrollByTapOnItem` prop — tap any visible item to scroll it to the center position (Android + iOS); also on `DateDrumPicker` columns
-- iOS tap uses visible-row label hit-testing (aligned with Android row taps); native unit / instrumented tests on both platforms
-- Documented requirement: unique `items` strings for `withVirtualized` and iOS tap hit-testing
 
 ## [0.2.0] - 2026-05-22
 
@@ -172,7 +171,8 @@ First release on [npm](https://www.npmjs.com/package/react-native-drum-picker).
 
 Initial GitHub release. See [v0.0.1](https://github.com/scrollDynasty/react-native-drum-picker/releases/tag/v0.0.1).
 
-[Unreleased]: https://github.com/scrollDynasty/react-native-drum-picker/compare/v0.1.5...HEAD
+[Unreleased]: https://github.com/scrollDynasty/react-native-drum-picker/compare/v0.2.2...HEAD
+[0.2.2]: https://github.com/scrollDynasty/react-native-drum-picker/compare/v0.2.1...v0.2.2
 [0.1.5]: https://github.com/scrollDynasty/react-native-drum-picker/releases/tag/v0.1.5
 [0.1.4]: https://github.com/scrollDynasty/react-native-drum-picker/releases/tag/v0.1.4
 [0.1.2]: https://github.com/scrollDynasty/react-native-drum-picker/releases/tag/v0.1.2

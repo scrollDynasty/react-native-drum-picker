@@ -44,6 +44,13 @@ export type DateDrumPickerProps = {
   mode?: DateDrumPickerMode;
   value?: DateDrumPickerValue;
   onChange?: (value: DateDrumPickerValue) => void;
+  /**
+   * Fires while a column is scrolling. First argument identifies the column.
+   */
+  onValueChanging?: (
+    column: DateDrumPickerColumnKey,
+    event: NativeSyntheticEvent<DrumPickerChangeEvent>
+  ) => void;
   minYear?: number;
   maxYear?: number;
   monthFormat?: DateDrumPickerMonthFormat;
@@ -94,6 +101,7 @@ export function DateDrumPicker({
   mode = 'day-month-year',
   value,
   onChange,
+  onValueChanging,
   minYear: minYearProp,
   maxYear: maxYearProp,
   monthFormat = 'short',
@@ -232,6 +240,11 @@ export function DateDrumPicker({
             );
             emitChange({ day });
           }}
+          onValueChanging={
+            onValueChanging != null
+              ? (event) => onValueChanging('day', event)
+              : undefined
+          }
         />
       );
     }
@@ -253,6 +266,11 @@ export function DateDrumPicker({
             );
             emitChange({ month });
           }}
+          onValueChanging={
+            onValueChanging != null
+              ? (event) => onValueChanging('month', event)
+              : undefined
+          }
         />
       );
     }
@@ -273,6 +291,11 @@ export function DateDrumPicker({
           );
           emitChange({ year });
         }}
+        onValueChanging={
+          onValueChanging != null
+            ? (event) => onValueChanging('year', event)
+            : undefined
+        }
       />
     );
   };
