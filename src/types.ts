@@ -34,6 +34,12 @@ export interface DrumPickerRef {
   getCurrentValue(): string;
 }
 
+export interface DateConstraint {
+  day?: number;
+  month?: number;
+  year?: number;
+}
+
 export interface DateDrumPickerRef {
   /**
    * Scroll visible columns to the given date. Omitted fields leave those columns unchanged.

@@ -330,6 +330,32 @@ export function DateExample() {
 
 Day count follows month/year (e.g. February has 28/29 days).
 
+### Date range constraints
+
+```tsx
+// Booking form — only future dates up to 1 year ahead
+const today = new Date();
+const nextYear = new Date();
+nextYear.setFullYear(today.getFullYear() + 1);
+
+<DateDrumPicker
+  mode="day-month-year"
+  minDate={{
+    day: today.getDate(),
+    month: today.getMonth() + 1,
+    year: today.getFullYear(),
+  }}
+  maxDate={{
+    day: nextYear.getDate(),
+    month: nextYear.getMonth() + 1,
+    year: nextYear.getFullYear(),
+  }}
+  onChange={setBookingDate}
+/>
+```
+
+`minDate` / `maxDate` take precedence over `minYear` / `maxYear` when both are set.
+
 `onValueChanging`, if used, receives the column key first: `(column, event) => …` where `column` is `'day' | 'month' | 'year'`.
 
 ## withVirtualized
@@ -406,8 +432,10 @@ In addition to all `DrumPicker` props (on the wrapped instance):
 | `value` | `{ day?, month?, year? }` | — | Controlled value |
 | `onChange` | `function` | — | `{ day, month, year }` |
 | `onValueChanging` | `function` | — | `(column, event) => …` while scrolling; `column` is `day` / `month` / `year` |
-| `minYear` | `number` | now − 100 | Year range start |
-| `maxYear` | `number` | now + 50 | Year range end |
+| `minYear` | `number` | now − 100 | Year range start (use `minDate` for full date bounds) |
+| `maxYear` | `number` | now + 50 | Year range end (use `maxDate` for full date bounds) |
+| `minDate` | `DateConstraint` | — | Minimum selectable date (inclusive). Partial — omit any field. |
+| `maxDate` | `DateConstraint` | — | Maximum selectable date (inclusive). Partial — omit any field. |
 | `monthFormat` | `'short' \| 'long' \| 'number'` | `short` | Month labels |
 | `locale` | `string` | `en` | `Intl` locale for month names |
 | `itemHeight` | `number` | `44` | Passed to each column |

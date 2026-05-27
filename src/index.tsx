@@ -7,6 +7,7 @@ export {
 } from './DateDrumPicker';
 export { withVirtualized } from './withVirtualized';
 export type {
+  DateConstraint,
   DateDrumPickerRef,
   DrumPickerChangeEvent,
   DrumPickerProps,

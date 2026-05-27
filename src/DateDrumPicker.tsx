@@ -14,20 +14,18 @@ import {
   type StyleProp,
   type ViewStyle,
 } from 'react-native';
+import { clampToConstraints, resolveConstraints } from './dateConstraints';
 import {
-  buildDayItems,
-  buildMonthItems,
+  buildDayItemsInRange,
+  buildMonthItemsInRange,
   buildYearItems,
   clampDateDrumPickerValue,
-  clampDayForMonth,
-  clampYear,
-  normalizeYearRange,
-  parseMonthFromLabel,
   type DateDrumPickerMonthFormat,
   type DateDrumPickerValue,
 } from './dateDrumPickerLogic';
 import { DrumPicker } from './DrumPicker.native';
 import type {
+  DateConstraint,
   DateDrumPickerRef,
   DrumPickerChangeEvent,
   DrumPickerRef,
@@ -49,6 +47,9 @@ export {
   getDaysInMonth,
   normalizeYearRange,
 } from './dateDrumPickerLogic';
+export type { DateConstraint } from './types';
+export { clampToConstraints, resolveConstraints } from './dateConstraints';
+export type { ResolvedConstraint } from './dateConstraints';
 
 export type DateDrumPickerColumnKey = 'day' | 'month' | 'year';
 
@@ -65,6 +66,20 @@ export type DateDrumPickerProps = {
   ) => void;
   minYear?: number;
   maxYear?: number;
+  /**
+   * Minimum selectable date (inclusive).
+   * Partial — omitted fields default to absolute minimum
+   * (day=1, month=1, year=1900).
+   * Takes precedence over `minYear` when both are set.
+   */
+  minDate?: DateConstraint;
+  /**
+   * Maximum selectable date (inclusive).
+   * Partial — omitted fields default to absolute maximum
+   * (day=31, month=12, year=2100).
+   * Takes precedence over `maxYear` when both are set.
+   */
+  maxDate?: DateConstraint;
   monthFormat?: DateDrumPickerMonthFormat;
   locale?: string;
   itemHeight?: number;
@@ -120,6 +135,8 @@ export const DateDrumPicker = forwardRef<
     onValueChanging,
     minYear: minYearProp,
     maxYear: maxYearProp,
+    minDate,
+    maxDate,
     monthFormat = 'short',
     locale = 'en',
     itemHeight = DEFAULT_ITEM_HEIGHT,
@@ -147,35 +164,69 @@ export const DateDrumPicker = forwardRef<
   const monthRef = useRef<DrumPickerRef>(null);
   const yearRef = useRef<DrumPickerRef>(null);
   const currentYear = new Date().getFullYear();
-  const { minYear, maxYear } = useMemo(
-    () =>
-      normalizeYearRange(
-        minYearProp ?? currentYear - 100,
-        maxYearProp ?? currentYear + 50
-      ),
-    [minYearProp, maxYearProp, currentYear]
+  const constraints = useMemo(() => {
+    const min =
+      minDate ??
+      (minYearProp != null
+        ? { year: minYearProp }
+        : { year: currentYear - 100 });
+    const max =
+      maxDate ??
+      (maxYearProp != null
+        ? { year: maxYearProp }
+        : { year: currentYear + 50 });
+    return resolveConstraints(min, max);
+  }, [minDate, maxDate, minYearProp, maxYearProp, currentYear]);
+
+  const minYear = constraints.minYear;
+  const maxYear = constraints.maxYear;
+
+  const clampValue = useCallback(
+    (input: DateDrumPickerValue | undefined) => {
+      const calendar = clampDateDrumPickerValue(input ?? {}, minYear, maxYear);
+      return clampToConstraints(calendar, constraints);
+    },
+    [constraints, minYear, maxYear]
   );
 
   const isControlled = value !== undefined;
-  const [internalValue, setInternalValue] = useState(() =>
-    clampDateDrumPickerValue(value ?? {}, minYear, maxYear)
-  );
+  const [internalValue, setInternalValue] = useState(() => clampValue(value));
 
   const resolvedValue = useMemo(() => {
     if (isControlled) {
-      return clampDateDrumPickerValue(value, minYear, maxYear);
+      return clampValue(value);
     }
     return internalValue;
-  }, [isControlled, value, internalValue, minYear, maxYear]);
+  }, [isControlled, value, internalValue, clampValue]);
 
   const columns = COLUMN_ORDER[mode];
+  const monthRange = useMemo(
+    () => ({
+      min: constraints.minMonth(resolvedValue.year),
+      max: constraints.maxMonth(resolvedValue.year),
+    }),
+    [constraints, resolvedValue.year]
+  );
+  const dayRange = useMemo(
+    () => ({
+      min: constraints.minDay(resolvedValue.year, resolvedValue.month),
+      max: constraints.maxDay(resolvedValue.year, resolvedValue.month),
+    }),
+    [constraints, resolvedValue.month, resolvedValue.year]
+  );
   const dayItems = useMemo(
-    () => buildDayItems(resolvedValue.month, resolvedValue.year),
-    [resolvedValue.month, resolvedValue.year]
+    () => buildDayItemsInRange(dayRange.min, dayRange.max),
+    [dayRange.min, dayRange.max]
   );
   const monthItems = useMemo(
-    () => buildMonthItems(monthFormat, locale),
-    [monthFormat, locale]
+    () =>
+      buildMonthItemsInRange(
+        monthRange.min,
+        monthRange.max,
+        monthFormat,
+        locale
+      ),
+    [monthRange.min, monthRange.max, monthFormat, locale]
   );
   const yearItems = useMemo(
     () => buildYearItems(minYear, maxYear),
@@ -186,25 +237,39 @@ export const DateDrumPicker = forwardRef<
 
   const emitChange = useCallback(
     (patch: Partial<DateDrumPickerValue>) => {
-      const next = clampDateDrumPickerValue(
-        { ...resolvedValue, ...patch },
-        minYear,
-        maxYear
-      );
+      const next = clampValue({ ...resolvedValue, ...patch });
       if (!isControlled) {
         setInternalValue(next);
       }
       onChange?.(next);
     },
-    [isControlled, onChange, resolvedValue, minYear, maxYear]
+    [clampValue, isControlled, onChange, resolvedValue]
   );
 
-  // Controlled: parent may pass day 31 + April — clamp and notify once.
+  // Clamp when constraints change (uncontrolled).
+  useEffect(() => {
+    if (isControlled) {
+      return;
+    }
+    setInternalValue((prev) => {
+      const clamped = clampValue(prev);
+      if (
+        clamped.day === prev.day &&
+        clamped.month === prev.month &&
+        clamped.year === prev.year
+      ) {
+        return prev;
+      }
+      return clamped;
+    });
+  }, [clampValue, constraints, isControlled]);
+
+  // Controlled: parent may pass invalid date — clamp and notify once.
   useEffect(() => {
     if (!isControlled || !onChange || value === undefined) {
       return;
     }
-    const clamped = clampDateDrumPickerValue(value, minYear, maxYear);
+    const clamped = clampValue(value);
     const day = value.day ?? clamped.day;
     const month = value.month ?? clamped.month;
     const year = value.year ?? clamped.year;
@@ -215,7 +280,7 @@ export const DateDrumPicker = forwardRef<
     ) {
       onChange(clamped);
     }
-  }, [isControlled, onChange, value, minYear, maxYear]);
+  }, [clampValue, isControlled, onChange, value]);
 
   const readDateFromColumns = useCallback((): DateDrumPickerValue => {
     const day = columns.includes('day')
@@ -233,9 +298,14 @@ export const DateDrumPicker = forwardRef<
   const syncDateAfterImperativeScroll = useCallback(
     (options?: { animated?: boolean }) => {
       const raw = readDateFromColumns();
-      const clamped = clampDateDrumPickerValue(raw, minYear, maxYear);
+      const clamped = clampValue(raw);
+      const minD = constraints.minDay(clamped.year, clamped.month);
       if (columns.includes('day') && clamped.day !== raw.day) {
-        dayRef.current?.scrollToIndex(clamped.day - 1, options);
+        dayRef.current?.scrollToIndex(clamped.day - minD, options);
+      }
+      const minM = constraints.minMonth(clamped.year);
+      if (columns.includes('month') && clamped.month !== raw.month) {
+        monthRef.current?.scrollToIndex(clamped.month - minM, options);
       }
       if (!isControlled) {
         setInternalValue(clamped);
@@ -243,7 +313,14 @@ export const DateDrumPicker = forwardRef<
       onChange?.(clamped);
       return clamped;
     },
-    [columns, isControlled, minYear, maxYear, onChange, readDateFromColumns]
+    [
+      clampValue,
+      columns,
+      constraints,
+      isControlled,
+      onChange,
+      readDateFromColumns,
+    ]
   );
 
   useImperativeHandle(
@@ -257,26 +334,29 @@ export const DateDrumPicker = forwardRef<
           }
         }
         if (date.month != null && columns.includes('month')) {
-          monthRef.current?.scrollToIndex(date.month - 1, options);
+          const year = date.year ?? resolvedValue.year;
+          const minM = constraints.minMonth(year);
+          monthRef.current?.scrollToIndex(date.month - minM, options);
         }
         if (date.day != null && columns.includes('day')) {
-          dayRef.current?.scrollToIndex(date.day - 1, options);
+          const year = date.year ?? resolvedValue.year;
+          const month = date.month ?? resolvedValue.month;
+          const minD = constraints.minDay(year, month);
+          dayRef.current?.scrollToIndex(date.day - minD, options);
         }
         syncDateAfterImperativeScroll(options);
       },
       getCurrentDate() {
-        return clampDateDrumPickerValue(
-          readDateFromColumns(),
-          minYear,
-          maxYear
-        );
+        return clampValue(readDateFromColumns());
       },
     }),
     [
+      clampValue,
       columns,
+      constraints,
       minYear,
-      maxYear,
       readDateFromColumns,
+      resolvedValue,
       syncDateAfterImperativeScroll,
       yearItems.length,
     ]
@@ -318,13 +398,12 @@ export const DateDrumPicker = forwardRef<
           testID={columnTestIDs?.day}
           style={columnContainerStyle('day')}
           items={dayItems}
-          selectedIndex={Math.min(resolvedValue.day - 1, dayItems.length - 1)}
+          selectedIndex={Math.min(
+            resolvedValue.day - dayRange.min,
+            Math.max(dayItems.length - 1, 0)
+          )}
           onChange={(event: NativeSyntheticEvent<DrumPickerChangeEvent>) => {
-            const day = clampDayForMonth(
-              event.nativeEvent.index + 1,
-              resolvedValue.month,
-              resolvedValue.year
-            );
+            const day = dayRange.min + event.nativeEvent.index;
             emitChange({ day });
           }}
           onValueChanging={
@@ -345,13 +424,12 @@ export const DateDrumPicker = forwardRef<
           testID={columnTestIDs?.month}
           style={columnContainerStyle('month')}
           items={monthItems}
-          selectedIndex={resolvedValue.month - 1}
+          selectedIndex={Math.min(
+            resolvedValue.month - monthRange.min,
+            Math.max(monthItems.length - 1, 0)
+          )}
           onChange={(event: NativeSyntheticEvent<DrumPickerChangeEvent>) => {
-            const month = parseMonthFromLabel(
-              event.nativeEvent.value,
-              monthFormat,
-              monthItems
-            );
+            const month = monthRange.min + event.nativeEvent.index;
             emitChange({ month });
           }}
           onValueChanging={
@@ -373,11 +451,7 @@ export const DateDrumPicker = forwardRef<
         items={yearItems}
         selectedIndex={resolvedValue.year - minYear}
         onChange={(event: NativeSyntheticEvent<DrumPickerChangeEvent>) => {
-          const year = clampYear(
-            minYear + event.nativeEvent.index,
-            minYear,
-            maxYear
-          );
+          const year = minYear + event.nativeEvent.index;
           emitChange({ year });
         }}
         onValueChanging={

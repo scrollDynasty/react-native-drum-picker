@@ -6,6 +6,7 @@ import {
   resetNativeDrumPickerMocks,
 } from '../__mocks__/DrumPickerViewNativeComponent';
 import { DateDrumPicker } from '../DateDrumPicker';
+import { DrumPicker } from '../DrumPicker.native';
 import { buildMonthItems } from '../dateDrumPickerLogic';
 
 const MODES = [
@@ -208,5 +209,72 @@ describe('DateDrumPicker', () => {
       />
     );
     expect(getLatestNativeDrumPickerProps()?.hapticFeedback).toBe(true);
+  });
+});
+
+describe('minDate / maxDate', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    resetNativeDrumPickerMocks();
+  });
+
+  it('year column respects minYear from minDate', () => {
+    const { UNSAFE_getAllByType } = render(
+      <DateDrumPicker
+        mode="day-month-year"
+        minDate={{ year: 2022 }}
+        maxDate={{ year: 2026 }}
+        onChange={() => {}}
+      />
+    );
+    const pickers = UNSAFE_getAllByType(DrumPicker);
+    const yearPicker = pickers[2];
+    const firstYear = Number.parseInt(yearPicker.props.items[0] as string, 10);
+    expect(firstYear).toBe(2022);
+    expect(yearPicker.props.items).toHaveLength(5);
+  });
+
+  it('month column starts at minDate.month in boundary year', () => {
+    const { UNSAFE_getAllByType } = render(
+      <DateDrumPicker
+        mode="day-month-year"
+        minDate={{ year: 2024, month: 6 }}
+        maxDate={{ year: 2026 }}
+        value={{ day: 1, month: 6, year: 2024 }}
+        onChange={() => {}}
+      />
+    );
+    const pickers = UNSAFE_getAllByType(DrumPicker);
+    const monthPicker = pickers[1];
+    expect(monthPicker.props.items).toHaveLength(7);
+  });
+
+  it('clamps value when outside minDate', () => {
+    const onChange = jest.fn();
+    render(
+      <DateDrumPicker
+        mode="day-month-year"
+        minDate={{ year: 2024, month: 6, day: 15 }}
+        value={{ day: 1, month: 1, year: 2023 }}
+        onChange={onChange}
+      />
+    );
+    expect(onChange).toHaveBeenCalledWith(
+      expect.objectContaining({ day: 15, month: 6, year: 2024 })
+    );
+  });
+
+  it('backward compat: minYear/maxYear still works', () => {
+    const { UNSAFE_getAllByType } = render(
+      <DateDrumPicker
+        mode="day-month-year"
+        minYear={2020}
+        maxYear={2025}
+        onChange={() => {}}
+      />
+    );
+    const pickers = UNSAFE_getAllByType(DrumPicker);
+    const yearPicker = pickers[2];
+    expect(yearPicker.props.items).toHaveLength(6);
   });
 });
