@@ -103,7 +103,9 @@ export function DrumPicker({
       hapticFeedback={hapticFeedback}
       enableScrollByTapOnItem={enableScrollByTapOnItem}
       onValueChangingEnabled={onValueChanging != null}
-      onValueChanging={onValueChanging != null ? handleValueChanging : undefined}
+      onValueChanging={
+        onValueChanging != null ? handleValueChanging : undefined
+      }
       onValueChange={handleValueChange}
       style={pickerStyle}
     />
