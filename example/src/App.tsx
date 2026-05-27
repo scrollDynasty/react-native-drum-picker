@@ -49,7 +49,14 @@ export default function App() {
   const cityRef = useRef<DrumPickerRef>(null);
   const dateRef = useRef<DateDrumPickerRef>(null);
   const [example, setExample] = useState<
-    'basic' | 'time' | 'hw' | 'date' | 'controlled' | 'debounce' | 'large'
+    | 'basic'
+    | 'time'
+    | 'hw'
+    | 'date'
+    | 'booking'
+    | 'controlled'
+    | 'debounce'
+    | 'large'
   >('basic');
   const [cityIndex, setCityIndex] = useState(0);
 
@@ -67,6 +74,25 @@ export default function App() {
     month: 9,
     year: 2026,
   });
+  const [bookingDate, setBookingDate] = useState<DateDrumPickerValue>({});
+
+  const bookingMinMax = useMemo(() => {
+    const today = new Date();
+    const nextYear = new Date(today);
+    nextYear.setFullYear(today.getFullYear() + 1);
+    return {
+      minDate: {
+        day: today.getDate(),
+        month: today.getMonth() + 1,
+        year: today.getFullYear(),
+      },
+      maxDate: {
+        day: nextYear.getDate(),
+        month: nextYear.getMonth() + 1,
+        year: nextYear.getFullYear(),
+      },
+    };
+  }, []);
 
   const saveDebounced = useDebouncedCallback((value: string) => {
     setDebouncedLog(value);
@@ -79,6 +105,7 @@ export default function App() {
         ['time', 'Time'],
         ['hw', 'Height / weight'],
         ['date', 'Date'],
+        ['booking', 'Booking'],
         ['controlled', 'Controlled'],
         ['debounce', 'Debounce'],
         ['large', 'Large list'],
@@ -211,6 +238,24 @@ export default function App() {
           </Pressable>
           <Text style={styles.value}>
             {date.day}.{date.month}.{date.year}
+          </Text>
+        </View>
+      )}
+
+      {example === 'booking' && (
+        <View style={styles.section}>
+          <Text style={styles.label}>minDate / maxDate (today → +1 year)</Text>
+          <DateDrumPicker
+            mode="day-month-year"
+            value={bookingDate}
+            onChange={setBookingDate}
+            minDate={bookingMinMax.minDate}
+            maxDate={bookingMinMax.maxDate}
+            monthFormat="short"
+          />
+          <Text style={styles.value}>
+            {bookingDate.day ?? '—'}.{bookingDate.month ?? '—'}.
+            {bookingDate.year ?? '—'}
           </Text>
         </View>
       )}

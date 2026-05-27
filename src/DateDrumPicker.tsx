@@ -179,6 +179,33 @@ export const DateDrumPicker = forwardRef<
   const minYear = constraints.minYear;
   const maxYear = constraints.maxYear;
 
+  const constraintKey = useMemo(
+    () =>
+      JSON.stringify({
+        minDate,
+        maxDate,
+        minYear: minYearProp,
+        maxYear: maxYearProp,
+      }),
+    [minDate, maxDate, minYearProp, maxYearProp]
+  );
+
+  useEffect(() => {
+    if (!__DEV__) {
+      return;
+    }
+    if (minDate != null && minYearProp != null) {
+      console.warn(
+        'DateDrumPicker: minDate takes precedence over minYear when both are set.'
+      );
+    }
+    if (maxDate != null && maxYearProp != null) {
+      console.warn(
+        'DateDrumPicker: maxDate takes precedence over maxYear when both are set.'
+      );
+    }
+  }, [minDate, maxDate, minYearProp, maxYearProp]);
+
   const clampValue = useCallback(
     (input: DateDrumPickerValue | undefined) => {
       const calendar = clampDateDrumPickerValue(input ?? {}, minYear, maxYear);
@@ -189,6 +216,10 @@ export const DateDrumPicker = forwardRef<
 
   const isControlled = value !== undefined;
   const [internalValue, setInternalValue] = useState(() => clampValue(value));
+  const internalValueRef = useRef(internalValue);
+  internalValueRef.current = internalValue;
+  const onChangeRef = useRef(onChange);
+  onChangeRef.current = onChange;
 
   const resolvedValue = useMemo(() => {
     if (isControlled) {
@@ -249,19 +280,18 @@ export const DateDrumPicker = forwardRef<
     if (isControlled) {
       return;
     }
-    setInternalValue((prev) => {
-      const clamped = clampValue(prev);
-      if (
-        clamped.day === prev.day &&
-        clamped.month === prev.month &&
-        clamped.year === prev.year
-      ) {
-        return prev;
-      }
-      onChange?.(clamped);
-      return clamped;
-    });
-  }, [clampValue, constraints, isControlled, onChange]);
+    const prev = internalValueRef.current;
+    const clamped = clampValue(prev);
+    if (
+      clamped.day === prev.day &&
+      clamped.month === prev.month &&
+      clamped.year === prev.year
+    ) {
+      return;
+    }
+    setInternalValue(clamped);
+    onChangeRef.current?.(clamped);
+  }, [clampValue, constraintKey, isControlled]);
 
   // Controlled: parent may pass invalid date — clamp and notify once.
   useEffect(() => {
