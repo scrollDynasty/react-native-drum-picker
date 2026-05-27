@@ -5,6 +5,48 @@ export type DrumPickerChangeEvent = {
   value: string;
 };
 
+/**
+ * Imperative handle exposed via ref on DrumPicker.
+ *
+ * @example
+ * const ref = useRef<DrumPickerRef>(null);
+ * ref.current?.scrollToIndex(3, { animated: true });
+ * ref.current?.scrollToValue('March');
+ */
+export interface DrumPickerRef {
+  /**
+   * Scroll to a specific index.
+   * Clamped to valid range — never throws on out-of-bounds.
+   */
+  scrollToIndex(index: number, options?: { animated?: boolean }): void;
+
+  /**
+   * Scroll to the first item matching the value string.
+   * No-op if value not found in items.
+   */
+  scrollToValue(value: string, options?: { animated?: boolean }): void;
+
+  /** Returns the currently selected index. */
+  getCurrentIndex(): number;
+
+  /** Returns the currently selected value string. */
+  getCurrentValue(): string;
+}
+
+export interface DateDrumPickerRef {
+  /**
+   * Scroll visible columns to the given date.
+   * Omitted fields leave those columns unchanged.
+   */
+  scrollToDate(
+    date: { day?: number; month?: number; year?: number },
+    options?: { animated?: boolean }
+  ): void;
+
+  /** Returns the current selection as day / month / year. */
+  getCurrentDate(): { day: number; month: number; year: number };
+}
+
 export type DrumPickerProps = {
   items: string[];
   selectedIndex?: number;

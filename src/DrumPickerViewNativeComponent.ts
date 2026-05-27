@@ -13,6 +13,7 @@ export type DrumPickerChangeEventPayload = {
 interface NativeProps extends ViewProps {
   items: ReadonlyArray<string>;
   selectedIndex?: CodegenTypes.Int32;
+  scrollAnimated?: CodegenTypes.WithDefault<boolean, false>;
   itemHeight?: CodegenTypes.Float;
   visibleItemCount?: CodegenTypes.Int32;
   textColor?: ColorValue;

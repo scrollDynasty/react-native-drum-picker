@@ -62,8 +62,10 @@ using namespace facebook::react;
     [_wheelView setItems:items];
   }
 
-  if (oldViewProps.selectedIndex != newViewProps.selectedIndex) {
-    [_wheelView setSelectedIndex:newViewProps.selectedIndex animated:NO];
+  if (oldViewProps.selectedIndex != newViewProps.selectedIndex ||
+      oldViewProps.scrollAnimated != newViewProps.scrollAnimated) {
+    [_wheelView setSelectedIndex:newViewProps.selectedIndex
+                        animated:newViewProps.scrollAnimated];
   }
 
   if (oldViewProps.itemHeight != newViewProps.itemHeight) {

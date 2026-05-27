@@ -1,4 +1,12 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import {
+  forwardRef,
+  useCallback,
+  useEffect,
+  useImperativeHandle,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import {
   StyleSheet,
   View,
@@ -19,7 +27,11 @@ import {
   type DateDrumPickerValue,
 } from './dateDrumPickerLogic';
 import { DrumPicker } from './DrumPicker';
-import type { DrumPickerChangeEvent } from './types';
+import type {
+  DateDrumPickerRef,
+  DrumPickerChangeEvent,
+  DrumPickerRef,
+} from './types';
 
 export type DateDrumPickerMode =
   | 'day'
@@ -97,34 +109,41 @@ const COLUMN_WIDTH: Record<DateColumnKey, number> = {
 const DEFAULT_ITEM_HEIGHT = 44;
 const DEFAULT_VISIBLE_ITEM_COUNT = 5;
 
-export function DateDrumPicker({
-  mode = 'day-month-year',
-  value,
-  onChange,
-  onValueChanging,
-  minYear: minYearProp,
-  maxYear: maxYearProp,
-  monthFormat = 'short',
-  locale = 'en',
-  itemHeight = DEFAULT_ITEM_HEIGHT,
-  visibleItemCount = DEFAULT_VISIBLE_ITEM_COUNT,
-  textColor,
-  selectedTextColor,
-  textSize,
-  selectedTextSize,
-  showSelectionIndicator,
-  selectionIndicatorColor,
-  selectionIndicatorHeight,
-  backgroundColor = 'transparent',
-  itemBackgroundColor = 'transparent',
-  containerBackgroundColor = 'transparent',
-  hapticFeedback = false,
-  enableScrollByTapOnItem = false,
-  style,
-  columnStyle,
-  columnStyles,
-  columnTestIDs,
-}: DateDrumPickerProps) {
+export const DateDrumPicker = forwardRef<DateDrumPickerRef, DateDrumPickerProps>(
+  function DateDrumPicker(
+    {
+      mode = 'day-month-year',
+      value,
+      onChange,
+      onValueChanging,
+      minYear: minYearProp,
+      maxYear: maxYearProp,
+      monthFormat = 'short',
+      locale = 'en',
+      itemHeight = DEFAULT_ITEM_HEIGHT,
+      visibleItemCount = DEFAULT_VISIBLE_ITEM_COUNT,
+      textColor,
+      selectedTextColor,
+      textSize,
+      selectedTextSize,
+      showSelectionIndicator,
+      selectionIndicatorColor,
+      selectionIndicatorHeight,
+      backgroundColor = 'transparent',
+      itemBackgroundColor = 'transparent',
+      containerBackgroundColor = 'transparent',
+      hapticFeedback = false,
+      enableScrollByTapOnItem = false,
+      style,
+      columnStyle,
+      columnStyles,
+      columnTestIDs,
+    },
+    ref
+  ) {
+  const dayRef = useRef<DrumPickerRef>(null);
+  const monthRef = useRef<DrumPickerRef>(null);
+  const yearRef = useRef<DrumPickerRef>(null);
   const currentYear = new Date().getFullYear();
   const { minYear, maxYear } = useMemo(
     () =>
@@ -196,6 +215,39 @@ export function DateDrumPicker({
     }
   }, [isControlled, onChange, value, minYear, maxYear]);
 
+  useImperativeHandle(
+    ref,
+    () => ({
+      scrollToDate(date, options = {}) {
+        if (date.day != null) {
+          dayRef.current?.scrollToIndex(date.day - 1, options);
+        }
+        if (date.month != null) {
+          monthRef.current?.scrollToIndex(date.month - 1, options);
+        }
+        if (date.year != null) {
+          const yearIndex = date.year - minYear;
+          if (yearIndex >= 0 && yearIndex < yearItems.length) {
+            yearRef.current?.scrollToIndex(yearIndex, options);
+          }
+        }
+      },
+      getCurrentDate() {
+        const day = columns.includes('day')
+          ? (dayRef.current?.getCurrentIndex() ?? resolvedValue.day - 1) + 1
+          : (resolvedValue.day ?? 1);
+        const month = columns.includes('month')
+          ? (monthRef.current?.getCurrentIndex() ?? resolvedValue.month - 1) + 1
+          : (resolvedValue.month ?? 1);
+        const year = columns.includes('year')
+          ? minYear + (yearRef.current?.getCurrentIndex() ?? 0)
+          : (resolvedValue.year ?? minYear);
+        return { day, month, year };
+      },
+    }),
+    [columns, minYear, resolvedValue, yearItems.length]
+  );
+
   const sharedPickerProps = {
     itemHeight,
     visibleItemCount,
@@ -226,6 +278,7 @@ export function DateDrumPicker({
     if (column === 'day') {
       return (
         <DrumPicker
+          ref={dayRef}
           key="day"
           {...sharedPickerProps}
           testID={columnTestIDs?.day}
@@ -252,6 +305,7 @@ export function DateDrumPicker({
     if (column === 'month') {
       return (
         <DrumPicker
+          ref={monthRef}
           key="month"
           {...sharedPickerProps}
           testID={columnTestIDs?.month}
@@ -277,6 +331,7 @@ export function DateDrumPicker({
 
     return (
       <DrumPicker
+        ref={yearRef}
         key="year"
         {...sharedPickerProps}
         testID={columnTestIDs?.year}
@@ -305,7 +360,10 @@ export function DateDrumPicker({
       {columns.map((column) => renderColumn(column))}
     </View>
   );
-}
+  }
+);
+
+DateDrumPicker.displayName = 'DateDrumPicker';
 
 const styles = StyleSheet.create({
   row: {
