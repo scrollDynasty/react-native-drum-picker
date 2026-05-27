@@ -339,20 +339,28 @@ describe('minDate / maxDate', () => {
     const { rerender } = render(
       <DateDrumPicker
         mode="year"
-        minYear={2020}
-        maxYear={2025}
+        minYear={2010}
+        maxYear={2030}
         onChange={onChange}
       />
     );
+    const yearPicker = getNativePickers()[0];
+    act(() => {
+      yearPicker.props.onValueChange?.({
+        nativeEvent: { index: 20, value: '2030' },
+      });
+    });
     onChange.mockClear();
     rerender(
       <DateDrumPicker
         mode="year"
-        minYear={2022}
-        maxYear={2025}
+        minYear={2010}
+        maxYear={2024}
         onChange={onChange}
       />
     );
-    expect(onChange).toHaveBeenCalled();
+    expect(onChange).toHaveBeenCalledWith(
+      expect.objectContaining({ year: 2024 })
+    );
   });
 });

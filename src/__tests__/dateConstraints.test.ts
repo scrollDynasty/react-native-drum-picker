@@ -73,10 +73,7 @@ describe('clampToConstraints', () => {
 
   it('clamps month after year moves to boundary year', () => {
     const c = resolveConstraints({ year: 2024, month: 6, day: 1 });
-    const result = clampToConstraints(
-      { day: 1, month: 1, year: 2010 },
-      c
-    );
+    const result = clampToConstraints({ day: 1, month: 1, year: 2010 }, c);
     expect(result).toEqual({ day: 1, month: 6, year: 2024 });
   });
 

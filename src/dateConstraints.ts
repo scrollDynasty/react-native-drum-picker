@@ -1,7 +1,4 @@
-import {
-  getDaysInMonth,
-  normalizeYearRange,
-} from './dateDrumPickerLogic';
+import { getDaysInMonth, normalizeYearRange } from './dateDrumPickerLogic';
 import type { DateConstraint } from './types';
 
 export interface ResolvedConstraint {
@@ -87,11 +84,7 @@ export function clampToConstraints(
       Math.max(day, c.minDay(nextYear, nextMonth)),
       c.maxDay(nextYear, nextMonth)
     );
-    if (
-      nextYear === year &&
-      nextMonth === month &&
-      nextDay === day
-    ) {
+    if (nextYear === year && nextMonth === month && nextDay === day) {
       return { day: nextDay, month: nextMonth, year: nextYear };
     }
     year = nextYear;

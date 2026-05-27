@@ -288,8 +288,7 @@ export const DateDrumPicker = forwardRef<
   const readDateFromColumns = useCallback((): DateDrumPickerValue => {
     const day = columns.includes('day')
       ? dayRange.min +
-        (dayRef.current?.getCurrentIndex() ??
-          resolvedValue.day - dayRange.min)
+        (dayRef.current?.getCurrentIndex() ?? resolvedValue.day - dayRange.min)
       : resolvedValue.day;
     const month = columns.includes('month')
       ? monthRange.min +
@@ -389,7 +388,6 @@ export const DateDrumPicker = forwardRef<
 
   const mapValueChangingEvent = useCallback(
     (
-      column: DateColumnKey,
       event: NativeSyntheticEvent<DrumPickerChangeEvent>,
       absoluteIndex: number,
       absoluteValue: string
@@ -436,12 +434,7 @@ export const DateDrumPicker = forwardRef<
                   const day = dayRange.min + event.nativeEvent.index;
                   onValueChanging(
                     'day',
-                    mapValueChangingEvent(
-                      'day',
-                      event,
-                      day - 1,
-                      String(day)
-                    )
+                    mapValueChangingEvent(event, day - 1, String(day))
                   );
                 }
               : undefined
@@ -476,12 +469,7 @@ export const DateDrumPicker = forwardRef<
                     event.nativeEvent.value;
                   onValueChanging(
                     'month',
-                    mapValueChangingEvent(
-                      'month',
-                      event,
-                      month - 1,
-                      label
-                    )
+                    mapValueChangingEvent(event, month - 1, label)
                   );
                 }
               : undefined
@@ -509,12 +497,7 @@ export const DateDrumPicker = forwardRef<
                 const year = minYear + event.nativeEvent.index;
                 onValueChanging(
                   'year',
-                  mapValueChangingEvent(
-                    'year',
-                    event,
-                    year - minYear,
-                    String(year)
-                  )
+                  mapValueChangingEvent(event, year - minYear, String(year))
                 );
               }
             : undefined
