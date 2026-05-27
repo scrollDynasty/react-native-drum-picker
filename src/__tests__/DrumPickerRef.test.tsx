@@ -90,6 +90,36 @@ describe('DrumPickerRef', () => {
     expect(ref.current?.getCurrentValue()).toBe('Gamma');
   });
 
+  it('scrollToIndex fires onChange for controlled picker', () => {
+    const onChange = jest.fn();
+    const ref = createRef<DrumPickerRef>();
+    const { rerender } = render(
+      <DrumPicker
+        ref={ref}
+        items={ITEMS}
+        selectedIndex={0}
+        onChange={onChange}
+      />
+    );
+    act(() => {
+      ref.current?.scrollToIndex(3);
+    });
+    expect(onChange).toHaveBeenCalledWith(
+      expect.objectContaining({
+        nativeEvent: { index: 3, value: 'Delta' },
+      })
+    );
+    rerender(
+      <DrumPicker
+        ref={ref}
+        items={ITEMS}
+        selectedIndex={3}
+        onChange={onChange}
+      />
+    );
+    expect(ref.current?.getCurrentIndex()).toBe(3);
+  });
+
   it('currentIndex stays in sync after onChange', () => {
     const ref = createRef<DrumPickerRef>();
     render(<DrumPicker ref={ref} items={ITEMS} onChange={() => {}} />);

@@ -94,6 +94,7 @@ export const DrumPicker = forwardRef<DrumPickerRef, DrumPickerProps>(
     const applyScrollToIndex = useCallback(
       (index: number, animated: boolean) => {
         const clamped = clampIndex(index, items.length);
+        const previousEmitted = lastEmittedIndexRef.current;
         currentIndexRef.current = clamped;
         lastEmittedIndexRef.current = clamped;
         setImperativeScroll({ index: clamped, animated });
@@ -101,8 +102,16 @@ export const DrumPicker = forwardRef<DrumPickerRef, DrumPickerProps>(
           selectedIndex: clamped,
           scrollAnimated: animated,
         });
+        if (onChange != null && clamped !== previousEmitted) {
+          onChange({
+            nativeEvent: {
+              index: clamped,
+              value: items[clamped] ?? '',
+            },
+          } as NativeSyntheticEvent<DrumPickerChangeEvent>);
+        }
       },
-      [items.length]
+      [items, onChange]
     );
 
     useImperativeHandle(

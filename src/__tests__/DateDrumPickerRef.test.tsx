@@ -26,6 +26,25 @@ describe('DateDrumPickerRef', () => {
     expect(date?.year).toBe(2025);
   });
 
+  it('scrollToDate clamps day when month has fewer days', () => {
+    const ref = createRef<DateDrumPickerRef>();
+    render(
+      <DateDrumPicker
+        ref={ref}
+        mode="day-month-year"
+        value={{ day: 31, month: 1, year: 2025 }}
+        onChange={() => {}}
+      />
+    );
+    act(() => {
+      ref.current?.scrollToDate({ month: 2 });
+    });
+    const date = ref.current?.getCurrentDate();
+    expect(date?.month).toBe(2);
+    expect(date?.day).toBe(28);
+    expect(date?.year).toBe(2025);
+  });
+
   it('scrollToDate with partial fields only updates given columns', () => {
     const ref = createRef<DateDrumPickerRef>();
     render(

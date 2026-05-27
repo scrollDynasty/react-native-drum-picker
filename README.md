@@ -199,7 +199,7 @@ See the **example** app (`example/src/App.tsx`) for basic, time, height/weight, 
 
 ## Imperative ref API
 
-Control the picker programmatically using a ref:
+Control the picker programmatically using a ref. `scrollToIndex` / `scrollToValue` default to `animated: true` and invoke `onChange` when the selection changes (so controlled `selectedIndex` stays in sync). `withVirtualized` forwards the same `DrumPickerRef` using **real** list indices.
 
 ```tsx
 import { useRef } from 'react';
@@ -275,8 +275,8 @@ const dateRef = useRef<DateDrumPickerRef>(null);
 
 | Method | Description |
 |--------|-------------|
-| `scrollToDate(date, options?)` | Scroll columns to given date. Partial updates supported. |
-| `getCurrentDate()` | Returns `{ day, month, year }` of current selection. |
+| `scrollToDate(date, options?)` | Scroll columns to given date. Partial updates supported. Clamps invalid days and calls `onChange` when set. |
+| `getCurrentDate()` | Returns clamped `{ day, month, year }` of current selection. |
 
 ## DateDrumPicker
 

@@ -217,37 +217,69 @@ export const DateDrumPicker = forwardRef<
     }
   }, [isControlled, onChange, value, minYear, maxYear]);
 
+  const readDateFromColumns = useCallback((): DateDrumPickerValue => {
+    const day = columns.includes('day')
+      ? (dayRef.current?.getCurrentIndex() ?? resolvedValue.day - 1) + 1
+      : resolvedValue.day;
+    const month = columns.includes('month')
+      ? (monthRef.current?.getCurrentIndex() ?? resolvedValue.month - 1) + 1
+      : resolvedValue.month;
+    const year = columns.includes('year')
+      ? minYear + (yearRef.current?.getCurrentIndex() ?? 0)
+      : resolvedValue.year;
+    return { day, month, year };
+  }, [columns, minYear, resolvedValue]);
+
+  const syncDateAfterImperativeScroll = useCallback(
+    (options?: { animated?: boolean }) => {
+      const raw = readDateFromColumns();
+      const clamped = clampDateDrumPickerValue(raw, minYear, maxYear);
+      if (columns.includes('day') && clamped.day !== raw.day) {
+        dayRef.current?.scrollToIndex(clamped.day - 1, options);
+      }
+      if (!isControlled) {
+        setInternalValue(clamped);
+      }
+      onChange?.(clamped);
+      return clamped;
+    },
+    [columns, isControlled, minYear, maxYear, onChange, readDateFromColumns]
+  );
+
   useImperativeHandle(
     ref,
     () => ({
       scrollToDate(date, options = {}) {
-        if (date.day != null) {
-          dayRef.current?.scrollToIndex(date.day - 1, options);
-        }
-        if (date.month != null) {
-          monthRef.current?.scrollToIndex(date.month - 1, options);
-        }
-        if (date.year != null) {
+        if (date.year != null && columns.includes('year')) {
           const yearIndex = date.year - minYear;
           if (yearIndex >= 0 && yearIndex < yearItems.length) {
             yearRef.current?.scrollToIndex(yearIndex, options);
           }
         }
+        if (date.month != null && columns.includes('month')) {
+          monthRef.current?.scrollToIndex(date.month - 1, options);
+        }
+        if (date.day != null && columns.includes('day')) {
+          dayRef.current?.scrollToIndex(date.day - 1, options);
+        }
+        syncDateAfterImperativeScroll(options);
       },
       getCurrentDate() {
-        const day = columns.includes('day')
-          ? (dayRef.current?.getCurrentIndex() ?? resolvedValue.day - 1) + 1
-          : (resolvedValue.day ?? 1);
-        const month = columns.includes('month')
-          ? (monthRef.current?.getCurrentIndex() ?? resolvedValue.month - 1) + 1
-          : (resolvedValue.month ?? 1);
-        const year = columns.includes('year')
-          ? minYear + (yearRef.current?.getCurrentIndex() ?? 0)
-          : (resolvedValue.year ?? minYear);
-        return { day, month, year };
+        return clampDateDrumPickerValue(
+          readDateFromColumns(),
+          minYear,
+          maxYear
+        );
       },
     }),
-    [columns, minYear, resolvedValue, yearItems.length]
+    [
+      columns,
+      minYear,
+      maxYear,
+      readDateFromColumns,
+      syncDateAfterImperativeScroll,
+      yearItems.length,
+    ]
   );
 
   const sharedPickerProps = {

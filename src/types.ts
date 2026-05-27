@@ -18,11 +18,16 @@ export interface DrumPickerRef {
    * Scroll to a specific index.
    * Clamped to valid range — never throws on out-of-bounds.
    */
+  /**
+   * @param options.animated Defaults to `true`.
+   * Fires `onChange` when the index changes (keeps controlled pickers in sync).
+   */
   scrollToIndex(index: number, options?: { animated?: boolean }): void;
 
   /**
    * Scroll to the first item matching the value string.
    * No-op if value not found in items.
+   * @param options.animated Defaults to `true`.
    */
   scrollToValue(value: string, options?: { animated?: boolean }): void;
 
@@ -37,6 +42,10 @@ export interface DateDrumPickerRef {
   /**
    * Scroll visible columns to the given date.
    * Omitted fields leave those columns unchanged.
+   */
+  /**
+   * Clamps invalid days (e.g. day 31 → February) and calls `onChange` with the
+   * resulting date when provided.
    */
   scrollToDate(
     date: { day?: number; month?: number; year?: number },

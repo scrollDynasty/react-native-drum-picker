@@ -1,5 +1,5 @@
 import { act, render } from '@testing-library/react-native';
-import React from 'react';
+import React, { createRef } from 'react';
 import {
   fireNativeDrumPickerChange,
   fireNativeDrumPickerChanging,
@@ -7,6 +7,7 @@ import {
   resetNativeDrumPickerMocks,
 } from '../__mocks__/DrumPickerViewNativeComponent';
 import { DrumPicker } from '../DrumPicker.native';
+import type { DrumPickerRef } from '../types';
 import { withVirtualized } from '../withVirtualized';
 
 const VirtualizedDrumPicker = withVirtualized(DrumPicker);
@@ -277,6 +278,24 @@ describe('withVirtualized', () => {
     const props = getLatestNativeDrumPickerProps();
     expect(props?.items?.length).toBeLessThanOrEqual(41);
     expect(props?.items?.[props.items.length - 1]).toBe('City 999');
+  });
+
+  it('forwards DrumPickerRef scrollToIndex with real index', () => {
+    const ref = createRef<DrumPickerRef>();
+    render(
+      <VirtualizedDrumPicker
+        ref={ref}
+        items={CITIES}
+        selectedIndex={0}
+        windowSize={20}
+        onChange={() => {}}
+      />
+    );
+    act(() => {
+      ref.current?.scrollToIndex(500);
+    });
+    expect(ref.current?.getCurrentIndex()).toBe(500);
+    expect(ref.current?.getCurrentValue()).toBe('City 500');
   });
 
   it('displayName is set correctly', () => {
