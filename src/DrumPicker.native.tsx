@@ -75,10 +75,7 @@ export const DrumPicker = forwardRef<DrumPickerRef, DrumPickerProps>(
 
     const nativeRef = useRef<ElementRef<typeof DrumPickerNative>>(null);
     const resolvedSelectedIndex = selectedIndex ?? DEFAULTS.selectedIndex;
-    const initialClampedIndex = clampIndex(
-      resolvedSelectedIndex,
-      items.length
-    );
+    const initialClampedIndex = clampIndex(resolvedSelectedIndex, items.length);
     const currentIndexRef = useRef(initialClampedIndex);
     const lastEmittedIndexRef = useRef(initialClampedIndex);
     const [imperativeScroll, setImperativeScroll] = useState<{
@@ -90,8 +87,7 @@ export const DrumPicker = forwardRef<DrumPickerRef, DrumPickerProps>(
       resolvedSelectedIndex,
       items.length
     );
-    const nativeSelectedIndex =
-      imperativeScroll?.index ?? clampedSelectedIndex;
+    const nativeSelectedIndex = imperativeScroll?.index ?? clampedSelectedIndex;
     const scrollAnimated = imperativeScroll?.animated ?? false;
 
     useEffect(() => {
