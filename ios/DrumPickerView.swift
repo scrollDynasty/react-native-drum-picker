@@ -56,7 +56,7 @@ public final class DrumPickerWheelView: UIView, UIPickerViewDataSource, UIPicker
   private var itemBackgroundColor: UIColor = .clear
   private var hapticFeedback = false
   private var enableScrollByTapOnItem = false
-  @objc public var onValueChangingEnabled = false
+  private var onValueChangingEnabled = false
 
   public override init(frame: CGRect) {
     super.init(frame: frame)
