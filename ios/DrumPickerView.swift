@@ -162,7 +162,6 @@ public final class DrumPickerWheelView: UIView, UIPickerViewDataSource, UIPicker
     updatePickerFrame()
     updateIndicators()
     attachPickerScrollViewIfNeeded()
-    attachScrollChangingObserverIfNeeded()
     if picker.accessibilityIdentifier != accessibilityIdentifier {
       picker.accessibilityIdentifier = accessibilityIdentifier
     }
@@ -177,6 +176,7 @@ public final class DrumPickerWheelView: UIView, UIPickerViewDataSource, UIPicker
         self,
         action: #selector(handlePickerPanBegan(_:))
       )
+      attachScrollChangingObserverIfNeeded()
       break
     }
   }

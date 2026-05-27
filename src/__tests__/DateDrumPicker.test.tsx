@@ -117,6 +117,30 @@ describe('DateDrumPicker', () => {
     expect(items[0]).not.toBe('Jan');
   });
 
+  it('forwards onValueChanging with column key', () => {
+    const onValueChanging = jest.fn();
+    render(
+      <DateDrumPicker
+        mode="month-year"
+        value={{ month: 1, year: 2024 }}
+        onValueChanging={onValueChanging}
+        onChange={() => {}}
+      />
+    );
+    const monthPicker = getNativePickers()[0];
+    act(() => {
+      monthPicker.props.onValueChanging?.({
+        nativeEvent: { index: 2, value: 'Mar' },
+      });
+    });
+    expect(onValueChanging).toHaveBeenCalledWith(
+      'month',
+      expect.objectContaining({
+        nativeEvent: expect.objectContaining({ index: 2, value: 'Mar' }),
+      })
+    );
+  });
+
   it('month-year mode onChange updates month from month column', () => {
     const onChange = jest.fn();
     render(

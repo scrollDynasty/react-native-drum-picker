@@ -171,7 +171,8 @@ First release on [npm](https://www.npmjs.com/package/react-native-drum-picker).
 
 Initial GitHub release. See [v0.0.1](https://github.com/scrollDynasty/react-native-drum-picker/releases/tag/v0.0.1).
 
-[Unreleased]: https://github.com/scrollDynasty/react-native-drum-picker/compare/v0.1.5...HEAD
+[Unreleased]: https://github.com/scrollDynasty/react-native-drum-picker/compare/v0.2.2...HEAD
+[0.2.2]: https://github.com/scrollDynasty/react-native-drum-picker/compare/v0.2.1...v0.2.2
 [0.1.5]: https://github.com/scrollDynasty/react-native-drum-picker/releases/tag/v0.1.5
 [0.1.4]: https://github.com/scrollDynasty/react-native-drum-picker/releases/tag/v0.1.4
 [0.1.2]: https://github.com/scrollDynasty/react-native-drum-picker/releases/tag/v0.1.2
