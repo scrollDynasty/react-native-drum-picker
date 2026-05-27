@@ -122,6 +122,10 @@ using namespace facebook::react;
     [_wheelView setEnableScrollByTapOnItem:newViewProps.enableScrollByTapOnItem];
   }
 
+  if (oldViewProps.onValueChangingEnabled != newViewProps.onValueChangingEnabled) {
+    [_wheelView setOnValueChangingEnabled:newViewProps.onValueChangingEnabled];
+  }
+
   [super updateProps:props oldProps:oldProps];
 }
 
@@ -142,6 +146,22 @@ using namespace facebook::react;
       .value = std::string([value UTF8String]),
   };
   emitter->onValueChange(payload);
+}
+
+- (void)drumPickerWheelView:(DrumPickerWheelView *)view
+        isChangingToIndex:(NSInteger)row
+                      value:(NSString *)value
+{
+  if (_eventEmitter == nullptr) {
+    return;
+  }
+
+  auto emitter = std::static_pointer_cast<const DrumPickerViewEventEmitter>(_eventEmitter);
+  DrumPickerViewEventEmitter::OnValueChanging payload = {
+      .index = static_cast<int>(row),
+      .value = std::string([value UTF8String]),
+  };
+  emitter->onValueChanging(payload);
 }
 
 @end

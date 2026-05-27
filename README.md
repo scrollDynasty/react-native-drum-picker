@@ -175,6 +175,24 @@ const save = useMemo(() => {
 <DrumPicker onChange={(e) => save(e.nativeEvent.value)} ... />
 ```
 
+### Live sync between pickers
+
+Use `onValueChanging` to update a preview while the user is still scrolling — before they lift their finger:
+
+```tsx
+const [previewIndex, setPreviewIndex] = useState(1);
+
+<DrumPicker
+  items={['AM', 'PM']}
+  onValueChanging={({ nativeEvent }) => {
+    setPreviewIndex(nativeEvent.index);
+  }}
+  onChange={({ nativeEvent }) => {
+    setPreviewIndex(nativeEvent.index);
+  }}
+/>
+```
+
 See the **example** app (`example/src/App.tsx`) for basic, time, height/weight, date, controlled, and debounced demos.
 
 ## DateDrumPicker
@@ -275,6 +293,7 @@ In addition to all `DrumPicker` props (on the wrapped instance):
 | `hapticFeedback` | `boolean` | `false` | Light haptic on snap (Android + iOS) |
 | `enableScrollByTapOnItem` | `boolean` | `false` | Tap a visible row to scroll it to center (Android + iOS) |
 | `onChange` | `function` | — | `nativeEvent: { index, value }` |
+| `onValueChanging` | `function` | — | Fires on each scroll tick while dragging. Use for live sync between pickers. |
 | `style` | `ViewStyle` | — | Size and layout |
 
 ### `DateDrumPicker`

@@ -49,9 +49,11 @@ class DrumPickerView @JvmOverloads constructor(
   private var itemBackgroundColor = DrumPickerDefaults.TRANSPARENT
   private var hapticFeedback = false
   private var enableScrollByTapOnItem = false
+  private var onValueChangingEnabled = false
 
   private var itemHeightPx = dpToPx(itemHeightDp)
   private var lastHapticIndex = -1
+  private var lastChangingIndex = -1
   private var selectionIndicatorHeightPx = dpToPx(selectionIndicatorHeightDp)
   private var lastEmittedIndex = -1
   private var suppressChangeEvent = false
@@ -76,6 +78,7 @@ class DrumPickerView @JvmOverloads constructor(
           return
         }
         scheduleVisibleItemStyleUpdate()
+        maybeEmitValueChanging()
       }
 
       override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
@@ -144,6 +147,7 @@ class DrumPickerView @JvmOverloads constructor(
     adapter.updateItems(newItems)
     lastEmittedIndex = -1
     lastHapticIndex = -1
+    lastChangingIndex = -1
 
     if (items.isEmpty()) {
       selectedIndex = selectedIndex.coerceAtLeast(0)
@@ -233,6 +237,10 @@ class DrumPickerView @JvmOverloads constructor(
   fun setEnableScrollByTapOnItemProp(value: Any?) {
     enableScrollByTapOnItem = toBoolean(value, false)
     adapter.enableScrollByTapOnItem = enableScrollByTapOnItem
+  }
+
+  fun setOnValueChangingEnabledProp(value: Any?) {
+    onValueChangingEnabled = toBoolean(value, false)
   }
 
   private fun scrollToPositionFromTap(position: Int) {
@@ -631,6 +639,39 @@ class DrumPickerView @JvmOverloads constructor(
       val distance = abs(childCenterY - pickerCenterY) / rowHeight
       adapter.applyItemStyle(holder, distance)
     }
+  }
+
+  private fun maybeEmitValueChanging() {
+    if (
+      !onValueChangingEnabled ||
+      !isLifecycleActive() ||
+      suppressChangeEvent ||
+      items.isEmpty()
+    ) {
+      return
+    }
+    val centerIndex = findSnapCenterIndex()
+    if (centerIndex == RecyclerView.NO_POSITION || centerIndex == lastChangingIndex) {
+      return
+    }
+    lastChangingIndex = centerIndex
+    val value = items[centerIndex]
+
+    val reactContext = context as? ReactContext ?: return
+    if (!reactContext.hasActiveReactInstance()) {
+      return
+    }
+    @Suppress("DEPRECATION")
+    val dispatcher: EventDispatcher? =
+      UIManagerHelper.getEventDispatcher(reactContext, UIManagerType.FABRIC)
+    dispatcher?.dispatchEvent(
+      DrumPickerValueChangingEvent(
+        UIManagerHelper.getSurfaceId(reactContext),
+        id,
+        centerIndex,
+        value,
+      ),
+    )
   }
 
   private fun maybeEmitChange(index: Int) {

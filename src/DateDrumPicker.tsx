@@ -44,6 +44,9 @@ export type DateDrumPickerProps = {
   mode?: DateDrumPickerMode;
   value?: DateDrumPickerValue;
   onChange?: (value: DateDrumPickerValue) => void;
+  onValueChanging?: (
+    event: NativeSyntheticEvent<DrumPickerChangeEvent>
+  ) => void;
   minYear?: number;
   maxYear?: number;
   monthFormat?: DateDrumPickerMonthFormat;
@@ -94,6 +97,7 @@ export function DateDrumPicker({
   mode = 'day-month-year',
   value,
   onChange,
+  onValueChanging,
   minYear: minYearProp,
   maxYear: maxYearProp,
   monthFormat = 'short',
@@ -203,6 +207,7 @@ export function DateDrumPicker({
     containerBackgroundColor,
     hapticFeedback,
     enableScrollByTapOnItem,
+    onValueChanging,
   };
 
   const columnContainerStyle = (

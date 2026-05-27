@@ -39,6 +39,7 @@ export function DrumPicker({
   containerBackgroundColor = DEFAULTS.containerBackgroundColor,
   hapticFeedback = DEFAULTS.hapticFeedback,
   enableScrollByTapOnItem = DEFAULTS.enableScrollByTapOnItem,
+  onValueChanging,
   onChange,
   style,
   testID,
@@ -66,6 +67,13 @@ export function DrumPicker({
     [onChange]
   );
 
+  const handleValueChanging = useCallback(
+    (event: NativeSyntheticEvent<DrumPickerChangeEvent>) => {
+      onValueChanging?.(event);
+    },
+    [onValueChanging]
+  );
+
   return (
     <DrumPickerNative
       {...(testID != null ? { testID } : {})}
@@ -86,6 +94,8 @@ export function DrumPicker({
       containerBackgroundColor={containerBackgroundColor}
       hapticFeedback={hapticFeedback}
       enableScrollByTapOnItem={enableScrollByTapOnItem}
+      onValueChangingEnabled={onValueChanging != null}
+      onValueChanging={onValueChanging != null ? handleValueChanging : undefined}
       onValueChange={handleValueChange}
       style={pickerStyle}
     />
