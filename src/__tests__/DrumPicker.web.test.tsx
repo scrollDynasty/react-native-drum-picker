@@ -1,5 +1,6 @@
 import React, { createRef } from 'react';
 import { act, render } from '@testing-library/react-native';
+import { Pressable, Text } from 'react-native';
 // Jest resolves `.native` by default; import the web stub explicitly.
 import { DrumPicker } from '../DrumPicker.tsx';
 import type { DrumPickerRef } from '../types';
@@ -45,5 +46,34 @@ describe('DrumPicker (web stub)', () => {
       ref.current?.scrollToValue('Alpha');
     });
     expect(ref.current?.getCurrentValue()).toBe('Alpha');
+  });
+
+  it('supports renderItem and updates centered row via ref', () => {
+    const onChange = jest.fn();
+    const ref = createRef<DrumPickerRef>();
+    const { getByText } = render(
+      <DrumPicker
+        ref={ref}
+        items={ITEMS}
+        selectedIndex={0}
+        onChange={onChange}
+        renderItem={({ item, isSelected }) => (
+          <Pressable>
+            <Text>{`${item}-${isSelected ? 'selected' : 'idle'}`}</Text>
+          </Pressable>
+        )}
+      />
+    );
+
+    expect(getByText('Alpha-selected')).toBeTruthy();
+    act(() => {
+      ref.current?.scrollToIndex(1);
+    });
+    expect(getByText('Beta-selected')).toBeTruthy();
+    expect(onChange).toHaveBeenCalledWith(
+      expect.objectContaining({
+        nativeEvent: { index: 1, value: 'Beta' },
+      })
+    );
   });
 });

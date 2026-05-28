@@ -341,6 +341,32 @@ const countries = [
 > Performance note: keep `renderItem` lightweight. It can rerender frequently during wheel movement.
 > For complex rows, wrap heavy subtrees with `React.memo` and pass a stable renderer via `useCallback`.
 
+```tsx
+const Row = React.memo(function Row({
+  flag,
+  label,
+  isSelected,
+}: {
+  flag: string;
+  label: string;
+  isSelected: boolean;
+}) {
+  return (
+    <View style={{ flexDirection: 'row', gap: 8 }}>
+      <Text>{flag}</Text>
+      <Text style={{ color: isSelected ? '#111' : '#999' }}>{label}</Text>
+    </View>
+  );
+});
+
+const renderCountry = useCallback(
+  ({ item, isSelected }) => (
+    <Row flag={item.flag} label={item.label} isSelected={isSelected} />
+  ),
+  []
+);
+```
+
 ## DateDrumPicker
 
 Higher-level date columns (TypeScript only). Renders **wheels only** — no built-in titles; add labels in your app if needed.
