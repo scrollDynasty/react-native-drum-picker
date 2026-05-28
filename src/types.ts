@@ -112,6 +112,23 @@ export interface PickerGroupHandle {
 export type DrumPickerProps<T = string> = {
   items: T[];
   selectedIndex?: number;
+  /**
+   * Enable circular (infinite loop) scrolling.
+   * When user scrolls past the last item, wraps to first.
+   * When user scrolls before the first item, wraps to last.
+   *
+   * Best for: hours (0-23), minutes (0-59), days of week,
+   * months, compass directions.
+   *
+   * Not recommended for: long lists (cities, countries),
+   * lists where first/last item has clear meaning (years).
+   *
+   * @default false
+   *
+   * @example
+   * <DrumPicker circular items={minutes} />
+   */
+  circular?: boolean;
   itemHeight?: number;
   visibleItemCount?: number;
   textColor?: string;

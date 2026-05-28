@@ -25,6 +25,10 @@ class DrumPickerView @JvmOverloads constructor(
   context: Context,
   attrs: AttributeSet? = null,
 ) : FrameLayout(context, attrs) {
+  companion object {
+    private const val CIRCULAR_MULTIPLIER_SMALL_LIST = 200
+    private const val CIRCULAR_MULTIPLIER_LARGE_LIST = 100
+  }
 
   private val recyclerView = RecyclerView(context)
   private val topIndicator = View(context)
@@ -50,6 +54,8 @@ class DrumPickerView @JvmOverloads constructor(
   private var hapticFeedback = false
   private var enableScrollByTapOnItem = false
   private var onValueChangingEnabled = false
+  private var isCircular = false
+  private var circularRealItemCount = 0
   private var scrollAnimatedForNextIndex = false
 
   private var itemHeightPx = dpToPx(itemHeightDp)
@@ -103,6 +109,7 @@ class DrumPickerView @JvmOverloads constructor(
               suppressChangeEvent = false
             } else {
               updateCenterFromSnap()
+              maybeRecenterCircularIfNeeded()
             }
           }
         }
@@ -147,6 +154,7 @@ class DrumPickerView @JvmOverloads constructor(
 
     recyclerView.stopScroll()
     items = newItems
+    circularRealItemCount = resolveCircularRealItemCount(newItems.size)
     adapter.updateItems(newItems)
     lastEmittedIndex = -1
     lastHapticIndex = -1
@@ -253,6 +261,11 @@ class DrumPickerView @JvmOverloads constructor(
       onValueChangingEnabled = enabled
       lastChangingIndex = -1
     }
+  }
+
+  fun setCircularProp(value: Any?) {
+    isCircular = toBoolean(value, false)
+    circularRealItemCount = resolveCircularRealItemCount(items.size)
   }
 
   private fun scrollToPositionFromTap(position: Int) {
@@ -595,6 +608,43 @@ class DrumPickerView @JvmOverloads constructor(
     maybeEmitChange(centerIndex)
   }
 
+  private fun maybeRecenterCircularIfNeeded() {
+    if (!isCircular || !isLifecycleActive() || items.isEmpty()) {
+      return
+    }
+    val realCount = circularRealItemCount
+    if (realCount <= 1) {
+      return
+    }
+    val totalItems = items.size
+    if (totalItems <= realCount) {
+      return
+    }
+    val centerIndex = findSnapCenterIndex()
+    if (centerIndex == RecyclerView.NO_POSITION) {
+      return
+    }
+    val threshold = totalItems / 4
+    if (centerIndex >= threshold && centerIndex <= totalItems - threshold) {
+      return
+    }
+    val realIndex = ((centerIndex % realCount) + realCount) % realCount
+    val centerBase = (totalItems / 2 / realCount) * realCount
+    val centerVirtual = centerBase + realIndex
+    if (centerVirtual == centerIndex) {
+      return
+    }
+    if (recyclerView.height <= 0) {
+      recyclerView.scrollToPosition(centerVirtual)
+    } else {
+      val centerOffset = ((recyclerView.height - itemHeightPx) / 2).coerceAtLeast(0)
+      layoutManager.scrollToPositionWithOffset(centerVirtual, centerOffset)
+    }
+    selectedIndex = centerVirtual
+    lastEmittedIndex = centerVirtual
+    lastChangingIndex = centerVirtual
+  }
+
   private fun maybePerformHaptic(index: Int) {
     if (!hapticFeedback || !isLifecycleActive() || index < 0) {
       return
@@ -807,5 +857,24 @@ class DrumPickerView @JvmOverloads constructor(
       }
     }
     return true
+  }
+
+  private fun resolveCircularRealItemCount(totalCount: Int): Int {
+    if (!isCircular || totalCount <= 1) {
+      return totalCount
+    }
+    if (totalCount % CIRCULAR_MULTIPLIER_SMALL_LIST == 0) {
+      val real = totalCount / CIRCULAR_MULTIPLIER_SMALL_LIST
+      if (real in 2..100) {
+        return real
+      }
+    }
+    if (totalCount % CIRCULAR_MULTIPLIER_LARGE_LIST == 0) {
+      val real = totalCount / CIRCULAR_MULTIPLIER_LARGE_LIST
+      if (real > 1) {
+        return real
+      }
+    }
+    return totalCount
   }
 }

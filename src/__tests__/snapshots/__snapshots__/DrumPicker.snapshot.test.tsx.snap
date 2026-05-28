@@ -3,6 +3,7 @@
 exports[`DrumPicker snapshots matches default render 1`] = `
 <View
   backgroundColor="transparent"
+  circular={false}
   collapsable={false}
   containerBackgroundColor="transparent"
   enableScrollByTapOnItem={false}
