@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import type { NativeSyntheticEvent, StyleProp, ViewStyle } from 'react-native';
 
 export type DrumPickerChangeEvent = {
@@ -54,8 +55,19 @@ export interface DateDrumPickerRef {
   getCurrentDate(): { day: number; month: number; year: number };
 }
 
-export type DrumPickerProps = {
-  items: string[];
+export interface DrumPickerRenderItemInfo<T = string> {
+  /** The item value */
+  item: T;
+  /** Display label string */
+  label: string;
+  /** Index in the items array */
+  index: number;
+  /** Whether this item is currently centered / selected */
+  isSelected: boolean;
+}
+
+export type DrumPickerProps<T = string> = {
+  items: T[];
   selectedIndex?: number;
   itemHeight?: number;
   visibleItemCount?: number;
@@ -88,6 +100,11 @@ export type DrumPickerProps = {
     event: NativeSyntheticEvent<DrumPickerChangeEvent>
   ) => void;
   onChange?: (event: NativeSyntheticEvent<DrumPickerChangeEvent>) => void;
+  /**
+   * Custom renderer for each picker item.
+   * Native scroll physics and snap behavior stay unchanged.
+   */
+  renderItem?: (info: DrumPickerRenderItemInfo<T>) => ReactNode;
   style?: StyleProp<ViewStyle>;
   testID?: string;
 };

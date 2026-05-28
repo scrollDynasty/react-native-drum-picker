@@ -8,11 +8,13 @@ import {
 } from 'react';
 import {
   StyleSheet,
+  Pressable,
   Text,
   View,
   type NativeSyntheticEvent,
 } from 'react-native';
 import { resolveDrumPickerStyle } from './drumPickerLayout';
+import { getItemLabel } from './itemLabel';
 import type {
   DrumPickerChangeEvent,
   DrumPickerProps,
@@ -32,7 +34,7 @@ function clampIndex(index: number, itemCount: number): number {
  * Web / non-native fallback: read-only preview + working ref API (no native wheel).
  * Metro resolves `DrumPicker.native.tsx` on iOS and Android.
  */
-export const DrumPicker = forwardRef<DrumPickerRef, DrumPickerProps>(
+export const DrumPicker = forwardRef<DrumPickerRef, DrumPickerProps<any>>(
   function DrumPicker(
     {
       items,
@@ -43,6 +45,7 @@ export const DrumPicker = forwardRef<DrumPickerRef, DrumPickerProps>(
       selectedTextColor = '#1C1C1E',
       textSize = 20,
       onChange,
+      renderItem,
       style,
       testID,
     },
@@ -118,6 +121,52 @@ export const DrumPicker = forwardRef<DrumPickerRef, DrumPickerProps>(
       style
     );
     const value = items[index] ?? '';
+    const centerOffset = Math.floor(visibleItemCount / 2);
+    const visibleItems = Array.from({ length: visibleItemCount }, (_, i) => {
+      const itemIndex = index - centerOffset + i;
+      return {
+        item: items[itemIndex],
+        index: itemIndex,
+        isSelected: itemIndex === index,
+        position: i,
+      };
+    });
+
+    if (renderItem != null) {
+      return (
+        <View
+          testID={testID}
+          accessibilityRole="adjustable"
+          accessibilityLabel={value}
+          style={[pickerStyle, styles.container]}
+        >
+          {visibleItems.map(
+            ({ item, index: itemIndex, isSelected, position }) => (
+              <Pressable
+                key={`${itemIndex}-${position}`}
+                style={[
+                  styles.webRow,
+                  {
+                    top: position * itemHeight,
+                    height: itemHeight,
+                  },
+                ]}
+                onPress={() => applyScroll(itemIndex)}
+              >
+                {item != null
+                  ? renderItem({
+                      item,
+                      label: getItemLabel(item),
+                      index: itemIndex,
+                      isSelected,
+                    })
+                  : null}
+              </Pressable>
+            )
+          )}
+        </View>
+      );
+    }
 
     return (
       <View
@@ -144,9 +193,18 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: 'transparent',
+    position: 'relative',
+    overflow: 'hidden',
   },
   hint: {
     fontSize: 10,
     marginTop: 4,
+  },
+  webRow: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });
