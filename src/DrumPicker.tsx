@@ -6,6 +6,7 @@ import {
   useRef,
   useState,
 } from 'react';
+import type { ReactElement, RefAttributes } from 'react';
 import {
   StyleSheet,
   Pressable,
@@ -34,7 +35,11 @@ function clampIndex(index: number, itemCount: number): number {
  * Web / non-native fallback: read-only preview + working ref API (no native wheel).
  * Metro resolves `DrumPicker.native.tsx` on iOS and Android.
  */
-export const DrumPicker = forwardRef<DrumPickerRef, DrumPickerProps<any>>(
+type DrumPickerComponent = <T = string>(
+  props: DrumPickerProps<T> & RefAttributes<DrumPickerRef>
+) => ReactElement | null;
+
+const DrumPickerImpl = forwardRef<DrumPickerRef, DrumPickerProps<any>>(
   function DrumPicker(
     {
       items,
@@ -186,8 +191,9 @@ export const DrumPicker = forwardRef<DrumPickerRef, DrumPickerProps<any>>(
     );
   }
 );
+DrumPickerImpl.displayName = 'DrumPicker';
 
-DrumPicker.displayName = 'DrumPicker';
+export const DrumPicker = DrumPickerImpl as DrumPickerComponent;
 
 const styles = StyleSheet.create({
   container: {
