@@ -44,7 +44,10 @@ export const DrumPicker = forwardRef<DrumPickerRef, DrumPickerProps<any>>(
       textColor = '#8E8E93',
       selectedTextColor = '#1C1C1E',
       textSize = 20,
+      onValueChanging,
       onChange,
+      pickerGroup,
+      pickerName,
       renderItem,
       style,
       testID,
@@ -75,6 +78,25 @@ export const DrumPicker = forwardRef<DrumPickerRef, DrumPickerProps<any>>(
       }
     }, []);
 
+    useEffect(() => {
+      if (__DEV__ && pickerGroup && !pickerName) {
+        console.warn(
+          '[DrumPicker] pickerGroup provided without pickerName. Add pickerName="uniqueName" to this picker.'
+        );
+      }
+    }, [pickerGroup, pickerName]);
+
+    useEffect(() => {
+      if (!pickerGroup || !pickerName) {
+        return;
+      }
+      const unregister = pickerGroup._register(pickerName, {
+        onChanged: () => {},
+        onChanging: () => {},
+      });
+      return unregister;
+    }, [pickerGroup, pickerName]);
+
     const applyScroll = useCallback(
       (nextIndex: number) => {
         const clamped = clampIndex(nextIndex, items.length);
@@ -82,6 +104,26 @@ export const DrumPicker = forwardRef<DrumPickerRef, DrumPickerProps<any>>(
         indexRef.current = clamped;
         lastEmittedRef.current = clamped;
         setIndex(clamped);
+        if (clamped !== previous) {
+          if (pickerGroup && pickerName) {
+            const groupEvent = {
+              pickerName,
+              index: clamped,
+              value: labels[clamped] ?? '',
+              item: items[clamped] ?? labels[clamped] ?? '',
+            };
+            pickerGroup._notifyChanging(pickerName, groupEvent);
+            pickerGroup._notifyChanged(pickerName, groupEvent);
+          }
+        }
+        if (onValueChanging != null && clamped !== previous) {
+          onValueChanging({
+            nativeEvent: {
+              index: clamped,
+              value: labels[clamped] ?? '',
+            },
+          } as NativeSyntheticEvent<DrumPickerChangeEvent>);
+        }
         if (onChange != null && clamped !== previous) {
           onChange({
             nativeEvent: {
@@ -91,7 +133,7 @@ export const DrumPicker = forwardRef<DrumPickerRef, DrumPickerProps<any>>(
           } as NativeSyntheticEvent<DrumPickerChangeEvent>);
         }
       },
-      [items.length, labels, onChange]
+      [items, labels, onChange, onValueChanging, pickerGroup, pickerName]
     );
 
     useImperativeHandle(

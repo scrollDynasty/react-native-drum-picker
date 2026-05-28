@@ -47,7 +47,12 @@ export function usePickerGroup(): PickerGroupHandle {
     },
 
     getState() {
-      return { ...stateRef.current };
+      return Object.fromEntries(
+        Object.entries(stateRef.current).map(([pickerName, state]) => [
+          pickerName,
+          { ...state },
+        ])
+      );
     },
   });
 

@@ -137,6 +137,36 @@ describe('usePickerGroup', () => {
     expect(capturedGroup?.getState().hours).toEqual({ index: 4, value: '04' });
   });
 
+  it('getState returns immutable snapshot objects', () => {
+    let capturedGroup: ReturnType<typeof usePickerGroup> | undefined;
+    function Capture() {
+      const group = usePickerGroup();
+      capturedGroup = group;
+      return (
+        <DrumPicker
+          pickerGroup={group}
+          pickerName="hours"
+          items={HOURS}
+          onChange={() => {}}
+        />
+      );
+    }
+    render(<Capture />);
+
+    act(() => {
+      fireNativeDrumPickerChange(2, '02');
+    });
+
+    const snapshot = capturedGroup?.getState();
+    if (!snapshot) {
+      throw new Error('group was not captured');
+    }
+    snapshot.hours.index = 999;
+    snapshot.hours.value = 'mutated';
+
+    expect(capturedGroup?.getState().hours).toEqual({ index: 2, value: '02' });
+  });
+
   it('unregisters observers on unmount', () => {
     const onGroupChanged = jest.fn();
     const { unmount } = render(
