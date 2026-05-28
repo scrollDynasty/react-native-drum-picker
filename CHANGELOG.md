@@ -5,6 +5,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.4](https://github.com/scrollDynasty/react-native-drum-picker/compare/v0.2.3...v0.2.4) (2026-05-28)
+
+
+### Features
+
+* add circular prop for infinite loop scrolling ([b2ee0f6](https://github.com/scrollDynasty/react-native-drum-picker/commit/b2ee0f6475f0c9e54e239766f5e1be07ea4ee582))
+* add custom item rendering support to DrumPicker ([b6fc727](https://github.com/scrollDynasty/react-native-drum-picker/commit/b6fc727bb11a4c2af7dfa3d5fd78bbf2e4863761))
+* add Row component and enhance renderItem test in DrumPicker ([b45aea5](https://github.com/scrollDynasty/react-native-drum-picker/commit/b45aea5d066eb992fefc8e400a16ad2e64b819a4))
+* enhance DrumPicker to notify picker group on index change ([a956ee7](https://github.com/scrollDynasty/react-native-drum-picker/commit/a956ee7565b57a921c9184af1fe9f31312cbb891))
+* enhance DrumPicker with pickerGroup and pickerName support ([840f090](https://github.com/scrollDynasty/react-native-drum-picker/commit/840f090c6a5d2a2f48c9b0a0c38b6b4aafcae18b))
+* enhance renderItem functionality in withVirtualized ([f23f3f0](https://github.com/scrollDynasty/react-native-drum-picker/commit/f23f3f0f7878a7b32e1ef48689ce3ffddae7e8ca))
+* introduce PickerGroup for synchronized DrumPickers ([51f97c0](https://github.com/scrollDynasty/react-native-drum-picker/commit/51f97c0b72058fd57c091b06f7cf732ecfc4e23d))
+
+
+### Bug Fixes
+
+* synchronize currentIndex and changingIndex with selectedIndex in DrumPicker ([a9a32e0](https://github.com/scrollDynasty/react-native-drum-picker/commit/a9a32e0a19a979c4d3bbd8c9ffff51837b98ce99))
+* update event types in TestTimePicker for better type safety ([61fe1f5](https://github.com/scrollDynasty/react-native-drum-picker/commit/61fe1f5d4affbf1253daf6daf1a00be94d740a0d))
+* update README images to use direct URLs and improve DrumPicker item handling ([c9909a3](https://github.com/scrollDynasty/react-native-drum-picker/commit/c9909a3240a83fb016d27e8476daeaf179e2be32))
+
 ## [0.2.3](https://github.com/scrollDynasty/react-native-drum-picker/compare/v0.2.2...v0.2.3) (2026-05-27)
 
 ### Features
