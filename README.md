@@ -305,6 +305,83 @@ function DateWithToday() {
 | `scrollToDate(date, options?)` | Scroll columns to given date. Partial updates supported. Clamps invalid days and calls `onChange` when set. |
 | `getCurrentDate()`             | Returns clamped `{ day, month, year }` of current selection.                                                |
 
+## PickerGroup - synchronize multiple pickers
+
+Connect multiple DrumPickers so they can react to each other:
+
+```tsx
+import { useState } from 'react';
+import { View } from 'react-native';
+import {
+  DrumPicker,
+  usePickerGroup,
+  usePickerGroupChangedEffect,
+  usePickerGroupChangingEffect,
+} from 'react-native-drum-picker';
+
+const HOURS = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, '0'));
+const MINUTES = [
+  '00',
+  '05',
+  '10',
+  '15',
+  '20',
+  '25',
+  '30',
+  '35',
+  '40',
+  '45',
+  '50',
+  '55',
+];
+
+function TimePickerGroup() {
+  const group = usePickerGroup();
+  const [time, setTime] = useState({ hour: 0, minute: 0 });
+
+  usePickerGroupChangedEffect(group, ({ pickerName, index }) => {
+    setTime((prev) => ({ ...prev, [pickerName]: index }));
+  });
+
+  usePickerGroupChangingEffect(group, ({ pickerName, value }) => {
+    console.log(`${pickerName} is at ${value}`);
+  });
+
+  return (
+    <View style={{ flexDirection: 'row' }}>
+      <DrumPicker
+        pickerGroup={group}
+        pickerName="hour"
+        items={HOURS}
+        onChange={() => {}}
+      />
+      <DrumPicker
+        pickerGroup={group}
+        pickerName="minute"
+        items={MINUTES}
+        onChange={() => {}}
+      />
+    </View>
+  );
+}
+```
+
+### PickerGroup API
+
+| Export                                    | Description                                      |
+| ----------------------------------------- | ------------------------------------------------ |
+| `usePickerGroup()`                        | Creates a group handle. Call once per component. |
+| `usePickerGroupChangedEffect(group, cb)`  | Fires when any picker settles.                   |
+| `usePickerGroupChangingEffect(group, cb)` | Fires on every scroll tick.                      |
+| `group.getState()`                        | Snapshot of all current picker values.           |
+
+### DrumPicker group props
+
+| Prop          | Type                | Description                   |
+| ------------- | ------------------- | ----------------------------- |
+| `pickerGroup` | `PickerGroupHandle` | Group from `usePickerGroup()` |
+| `pickerName`  | `string`            | Unique name within the group  |
+
 ## Custom item rendering
 
 Use `renderItem` to replace the default text label with your own React UI:

@@ -66,6 +66,49 @@ export interface DrumPickerRenderItemInfo<T = string> {
   isSelected: boolean;
 }
 
+// Event from a single picker within a group
+export interface PickerGroupEvent<T = string> {
+  /** Which picker fired */
+  pickerName: string;
+  /** The new selected index */
+  index: number;
+  /** The new selected value string */
+  value: string;
+  /** The raw item */
+  item: T;
+}
+
+// Map of pickerName -> current state
+export interface PickerGroupState {
+  [pickerName: string]: {
+    index: number;
+    value: string;
+  };
+}
+
+// The group object returned by usePickerGroup
+export interface PickerGroupHandle {
+  /** @internal - used by DrumPicker, do not call directly */
+  _register(
+    name: string,
+    handlers: {
+      onChanged: (e: PickerGroupEvent) => void;
+      onChanging: (e: PickerGroupEvent) => void;
+    }
+  ): () => void;
+
+  /** @internal */
+  _notifyChanged(name: string, event: PickerGroupEvent): void;
+
+  /** @internal */
+  _notifyChanging(name: string, event: PickerGroupEvent): void;
+
+  /**
+   * Get current state snapshot of all pickers in the group.
+   */
+  getState(): PickerGroupState;
+}
+
 export type DrumPickerProps<T = string> = {
   items: T[];
   selectedIndex?: number;
@@ -100,6 +143,16 @@ export type DrumPickerProps<T = string> = {
     event: NativeSyntheticEvent<DrumPickerChangeEvent>
   ) => void;
   onChange?: (event: NativeSyntheticEvent<DrumPickerChangeEvent>) => void;
+  /**
+   * Attach this picker to a PickerGroup created with usePickerGroup().
+   * Use pickerName to identify this picker within the group.
+   */
+  pickerGroup?: PickerGroupHandle;
+  /**
+   * Unique name for this picker within its group.
+   * Required when pickerGroup is provided.
+   */
+  pickerName?: string;
   /**
    * Custom renderer for each picker item.
    * Native scroll physics and snap behavior stay unchanged.
