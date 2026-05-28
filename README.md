@@ -12,10 +12,6 @@ A smooth **cross-platform native** iOS-style drum/wheel picker for React Native 
 
 ## Preview
 
-`DateDrumPicker` preview (Android) (day · month · year):
-
-![DateDrumPicker preview — day, month, year columns](https://raw.githubusercontent.com/scrollDynasty/react-native-drum-picker/main/img/image.png)
-
 iOS preview coming soon — see the `ios-build` CI job for validation status.
 
 ## Features
@@ -123,7 +119,13 @@ In `__DEV__`, a **one-time** warning is logged if neither height nor flex sizing
 
 ## Examples
 
+### Basic picker
+
+![Basic picker demo](./func-gif/basic.gif)
+
 ### Time picker (hour · minute)
+
+![Time picker demo](./func-gif/time.gif)
 
 ```tsx
 const hours = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, '0'));
@@ -139,6 +141,8 @@ const minutes = Array.from({ length: 60 }, (_, i) =>
 
 ### Height / weight row (onboarding style)
 
+![Height/weight demo](./func-gif/heigh-weight.gif)
+
 ```tsx
 <View style={{ flexDirection: 'row', alignItems: 'center' }}>
   <DrumPicker items={heightsCm} style={{ width: 90, height: 220 }} />
@@ -147,6 +151,8 @@ const minutes = Array.from({ length: 60 }, (_, i) =>
 ```
 
 ### Controlled `selectedIndex`
+
+![Controlled picker demo](./func-gif/Controller.gif)
 
 ```tsx
 const [index, setIndex] = useState(1);
@@ -160,6 +166,8 @@ const [index, setIndex] = useState(1);
 ```
 
 ### `onChange` and expensive side effects
+
+![Debounce demo](./func-gif/Debounce.gif)
 
 Native emits `onChange` when the wheel **snaps to idle** and the **centered index changes** (duplicate indices are ignored). Use it for UI state. For AsyncStorage, APIs, or analytics, **debounce** in your app:
 
@@ -234,6 +242,8 @@ function MyPicker() {
 ```
 
 ### DateDrumPicker ref — "Today" button
+
+![Date picker demo](./func-gif/Date.gif)
 
 ```tsx
 import { useRef, useState } from 'react';
@@ -402,6 +412,8 @@ Day count follows month/year (e.g. February has 28/29 days).
 
 ### Date range constraints
 
+![Booking constraints demo](./func-gif/Booking.gif)
+
 ```tsx
 import { useState } from 'react';
 import {
@@ -440,6 +452,8 @@ function BookingDatePicker() {
 `onValueChanging`, if used, receives the column key first: `(column, event) => …` where `column` is `'day' | 'month' | 'year'`. Event `nativeEvent.index` uses calendar indices (month 1–12 → index 0–11; day uses day-of-month minus 1).
 
 ## withVirtualized
+
+![Large list virtualized demo](./func-gif/Large-List.gif)
 
 For large item lists (cities, timezones, country codes), wrap `DrumPicker` with `withVirtualized` to render only items near the visible window:
 
