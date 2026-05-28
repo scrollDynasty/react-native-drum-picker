@@ -94,7 +94,8 @@ export const DrumPickerNativeBase = forwardRef<
     ? Math.floor(circularMultiplier / 2) * labels.length
     : 0;
   const toVirtualIndex = useCallback(
-    (realIndex: number) => (isCircular ? circularOffset + realIndex : realIndex),
+    (realIndex: number) =>
+      isCircular ? circularOffset + realIndex : realIndex,
     [circularOffset, isCircular]
   );
   const toRealIndex = useCallback(
@@ -123,7 +124,8 @@ export const DrumPickerNativeBase = forwardRef<
   } | null>(null);
 
   const clampedSelectedIndex = clampIndex(resolvedSelectedIndex, labels.length);
-  const nativeSelectedIndex = imperativeScroll?.index ?? toVirtualIndex(clampedSelectedIndex);
+  const nativeSelectedIndex =
+    imperativeScroll?.index ?? toVirtualIndex(clampedSelectedIndex);
   const scrollAnimated = imperativeScroll?.animated ?? false;
 
   useEffect(() => {
@@ -215,7 +217,9 @@ export const DrumPickerNativeBase = forwardRef<
   const handleValueChange = useCallback(
     (event: NativeSyntheticEvent<DrumPickerChangeEvent>) => {
       const index = toRealIndex(event.nativeEvent.index);
-      const value = isCircular ? labels[index] ?? event.nativeEvent.value : event.nativeEvent.value;
+      const value = isCircular
+        ? (labels[index] ?? event.nativeEvent.value)
+        : event.nativeEvent.value;
       currentIndexRef.current = index;
       if (index === lastEmittedIndexRef.current) {
         return;
@@ -248,7 +252,9 @@ export const DrumPickerNativeBase = forwardRef<
   const handleValueChanging = useCallback(
     (event: NativeSyntheticEvent<DrumPickerChangeEvent>) => {
       const index = toRealIndex(event.nativeEvent.index);
-      const value = isCircular ? labels[index] ?? event.nativeEvent.value : event.nativeEvent.value;
+      const value = isCircular
+        ? (labels[index] ?? event.nativeEvent.value)
+        : event.nativeEvent.value;
       if (pickerGroup && pickerName) {
         pickerGroup._notifyChanging(pickerName, {
           pickerName,
@@ -266,7 +272,15 @@ export const DrumPickerNativeBase = forwardRef<
         });
       }
     },
-    [isCircular, items, labels, onValueChanging, pickerGroup, pickerName, toRealIndex]
+    [
+      isCircular,
+      items,
+      labels,
+      onValueChanging,
+      pickerGroup,
+      pickerName,
+      toRealIndex,
+    ]
   );
 
   const shouldEmitValueChanging =
@@ -363,7 +377,7 @@ const DrumPickerImpl = forwardRef<DrumPickerRef, DrumPickerProps<any>>(
           onChange={onChange}
           pickerGroup={pickerGroup}
           pickerName={pickerName}
-      circular={circular}
+          circular={circular}
           style={style}
           testID={testID}
           renderItem={renderItem}

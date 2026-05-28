@@ -7,14 +7,21 @@ import {
   resetNativeDrumPickerMocks,
 } from '../__mocks__/DrumPickerViewNativeComponent';
 
-const MINUTES = Array.from({ length: 60 }, (_, i) => String(i).padStart(2, '0'));
+const MINUTES = Array.from({ length: 60 }, (_, i) =>
+  String(i).padStart(2, '0')
+);
 
 describe('circular', () => {
   beforeEach(() => resetNativeDrumPickerMocks());
 
   it('sends multiplied items array to native when circular', () => {
     const { UNSAFE_getByType } = render(
-      <DrumPicker circular items={MINUTES} selectedIndex={0} onChange={() => {}} />
+      <DrumPicker
+        circular
+        items={MINUTES}
+        selectedIndex={0}
+        onChange={() => {}}
+      />
     );
     const native = UNSAFE_getByType(DrumPickerNativeComponent);
     expect(native.props.items.length).toBe(MINUTES.length * 200);
@@ -30,7 +37,12 @@ describe('circular', () => {
 
   it('initial selectedIndex is at center of multiplied array', () => {
     const { UNSAFE_getByType } = render(
-      <DrumPicker circular items={MINUTES} selectedIndex={5} onChange={() => {}} />
+      <DrumPicker
+        circular
+        items={MINUTES}
+        selectedIndex={5}
+        onChange={() => {}}
+      />
     );
     const native = UNSAFE_getByType(DrumPickerNativeComponent);
     const expectedCenter = Math.floor(200 / 2) * 60 + 5;
