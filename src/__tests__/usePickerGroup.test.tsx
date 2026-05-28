@@ -7,6 +7,7 @@ import {
   resetNativeDrumPickerMocks,
 } from '../__mocks__/DrumPickerViewNativeComponent';
 import {
+  type PickerGroupEvent,
   DrumPickerRef,
   usePickerGroup,
   usePickerGroupChangedEffect,
@@ -20,8 +21,8 @@ function TestTimePicker({
   onGroupChanged,
   onGroupChanging,
 }: {
-  onGroupChanged?: (e: unknown) => void;
-  onGroupChanging?: (e: unknown) => void;
+  onGroupChanged?: (e: PickerGroupEvent) => void;
+  onGroupChanging?: (e: PickerGroupEvent) => void;
 }) {
   const group = usePickerGroup();
   usePickerGroupChangedEffect(group, (e) => onGroupChanged?.(e));
