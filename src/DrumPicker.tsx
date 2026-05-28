@@ -6,6 +6,7 @@ import {
   useRef,
   useState,
 } from 'react';
+import type { ReactElement, RefAttributes } from 'react';
 import {
   StyleSheet,
   Pressable,
@@ -34,7 +35,11 @@ function clampIndex(index: number, itemCount: number): number {
  * Web / non-native fallback: read-only preview + working ref API (no native wheel).
  * Metro resolves `DrumPicker.native.tsx` on iOS and Android.
  */
-export const DrumPicker = forwardRef<DrumPickerRef, DrumPickerProps<any>>(
+type DrumPickerComponent = <T = string>(
+  props: DrumPickerProps<T> & RefAttributes<DrumPickerRef>
+) => ReactElement | null;
+
+const DrumPickerImpl = forwardRef<DrumPickerRef, DrumPickerProps<any>>(
   function DrumPicker(
     {
       items,
@@ -44,7 +49,6 @@ export const DrumPicker = forwardRef<DrumPickerRef, DrumPickerProps<any>>(
       textColor = '#8E8E93',
       selectedTextColor = '#1C1C1E',
       textSize = 20,
-      onValueChanging,
       onChange,
       pickerGroup,
       pickerName,
@@ -112,17 +116,8 @@ export const DrumPicker = forwardRef<DrumPickerRef, DrumPickerProps<any>>(
               value: labels[clamped] ?? '',
               item: items[clamped] ?? labels[clamped] ?? '',
             };
-            pickerGroup._notifyChanging(pickerName, groupEvent);
             pickerGroup._notifyChanged(pickerName, groupEvent);
           }
-        }
-        if (onValueChanging != null && clamped !== previous) {
-          onValueChanging({
-            nativeEvent: {
-              index: clamped,
-              value: labels[clamped] ?? '',
-            },
-          } as NativeSyntheticEvent<DrumPickerChangeEvent>);
         }
         if (onChange != null && clamped !== previous) {
           onChange({
@@ -133,7 +128,7 @@ export const DrumPicker = forwardRef<DrumPickerRef, DrumPickerProps<any>>(
           } as NativeSyntheticEvent<DrumPickerChangeEvent>);
         }
       },
-      [items, labels, onChange, onValueChanging, pickerGroup, pickerName]
+      [items, labels, onChange, pickerGroup, pickerName]
     );
 
     useImperativeHandle(
@@ -229,7 +224,8 @@ export const DrumPicker = forwardRef<DrumPickerRef, DrumPickerProps<any>>(
   }
 );
 
-DrumPicker.displayName = 'DrumPicker';
+DrumPickerImpl.displayName = 'DrumPicker';
+export const DrumPicker = DrumPickerImpl as DrumPickerComponent;
 
 const styles = StyleSheet.create({
   container: {

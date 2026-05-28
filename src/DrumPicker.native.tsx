@@ -6,7 +6,7 @@ import {
   useRef,
   useState,
 } from 'react';
-import type { ElementRef } from 'react';
+import type { ElementRef, ReactElement, RefAttributes } from 'react';
 import type { NativeSyntheticEvent } from 'react-native';
 import DrumPickerNative from './DrumPickerViewNativeComponent';
 import { DrumPickerWithRenderItem } from './DrumPickerWithRenderItem';
@@ -253,7 +253,11 @@ export const DrumPickerNativeBase = forwardRef<
   );
 });
 
-export const DrumPicker = forwardRef<DrumPickerRef, DrumPickerProps<any>>(
+type DrumPickerComponent = <T = string>(
+  props: DrumPickerProps<T> & RefAttributes<DrumPickerRef>
+) => ReactElement | null;
+
+const DrumPickerImpl = forwardRef<DrumPickerRef, DrumPickerProps<any>>(
   function DrumPicker(
     {
       items,
@@ -343,4 +347,5 @@ export const DrumPicker = forwardRef<DrumPickerRef, DrumPickerProps<any>>(
   }
 );
 
-DrumPicker.displayName = 'DrumPicker';
+DrumPickerImpl.displayName = 'DrumPicker';
+export const DrumPicker = DrumPickerImpl as DrumPickerComponent;

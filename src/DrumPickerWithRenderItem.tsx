@@ -1,6 +1,7 @@
 import {
   forwardRef,
   useCallback,
+  useEffect,
   useMemo,
   useState,
   type ReactNode,
@@ -42,6 +43,10 @@ export const DrumPickerWithRenderItem = forwardRef<DrumPickerRef, Props<any>>(
   ) {
     const [currentIndex, setCurrentIndex] = useState(selectedIndex);
     const [changingIndex, setChangingIndex] = useState(selectedIndex);
+    useEffect(() => {
+      setCurrentIndex(selectedIndex);
+      setChangingIndex(selectedIndex);
+    }, [selectedIndex]);
     const liveIndex = onValueChanging != null ? changingIndex : currentIndex;
     const pickerStyle = resolveDrumPickerStyle(
       itemHeight,
