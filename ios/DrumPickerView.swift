@@ -24,6 +24,8 @@ private enum DrumPickerDefaults {
   static let selectedTextColor = UIColor(red: 0.110, green: 0.110, blue: 0.118, alpha: 1)
   static let indicatorColor = UIColor(red: 0.820, green: 0.820, blue: 0.839, alpha: 1)
   static let indicatorHeight: CGFloat = 1
+  static let circularMultiplierSmallList = 200
+  static let circularMultiplierLargeList = 100
 }
 
 @objc(DrumPickerWheelView)
@@ -57,6 +59,16 @@ public final class DrumPickerWheelView: UIView, UIPickerViewDataSource, UIPicker
   private var hapticFeedback = false
   private var enableScrollByTapOnItem = false
   private var onValueChangingEnabled = false
+  @objc public var isCircular: Bool = false {
+    didSet {
+      circularRealItemCount = resolveCircularRealItemCount(totalCount: items.count)
+      picker.reloadAllComponents()
+      if isCircular {
+        centerToVirtualMiddle(animated: false)
+      }
+    }
+  }
+  private var circularRealItemCount: Int = 0
 
   public override init(frame: CGRect) {
     super.init(frame: frame)
@@ -254,6 +266,7 @@ public final class DrumPickerWheelView: UIView, UIPickerViewDataSource, UIPicker
 
   @objc public func setItems(_ items: [String]) {
     self.items = items
+    circularRealItemCount = resolveCircularRealItemCount(totalCount: items.count)
     lastChangingIndex = -1
     performProgrammaticUpdate {
       self.picker.reloadAllComponents()
@@ -266,6 +279,9 @@ public final class DrumPickerWheelView: UIView, UIPickerViewDataSource, UIPicker
       self.selectedIndex = clamped
       self.picker.selectRow(clamped, inComponent: 0, animated: false)
       self.lastSelectedIndex = clamped
+    }
+    if isCircular {
+      centerToVirtualMiddle(animated: false)
     }
   }
 
@@ -481,5 +497,64 @@ public final class DrumPickerWheelView: UIView, UIPickerViewDataSource, UIPicker
     lastSelectedIndex = row
     pickerView.reloadComponent(0)
     notifySelection(row: row, userInitiated: true)
+    maybeRecenterCircularIfNeeded(row: row)
+  }
+
+  private func maybeRecenterCircularIfNeeded(row: Int) {
+    guard isCircular, !items.isEmpty else { return }
+    let realCount = circularRealItemCount
+    guard realCount > 1 else { return }
+    let total = items.count
+    guard total > realCount else { return }
+    let threshold = total / 4
+    if row >= threshold && row <= total - threshold {
+      return
+    }
+    let realIndex = ((row % realCount) + realCount) % realCount
+    let centerBase = (total / 2 / realCount) * realCount
+    let center = centerBase + realIndex
+    guard center != row else { return }
+
+    isProgrammaticSelection = true
+    picker.selectRow(center, inComponent: 0, animated: false)
+    selectedIndex = center
+    lastSelectedIndex = center
+    DispatchQueue.main.async {
+      self.isProgrammaticSelection = false
+    }
+  }
+
+  private func centerToVirtualMiddle(animated: Bool) {
+    guard isCircular, !items.isEmpty else { return }
+    let realCount = circularRealItemCount
+    guard realCount > 0 else { return }
+    let current = picker.selectedRow(inComponent: 0)
+    let safeCurrent = min(max(current, 0), max(items.count - 1, 0))
+    let realIndex = ((safeCurrent % realCount) + realCount) % realCount
+    let center = (items.count / 2 / realCount) * realCount + realIndex
+    isProgrammaticSelection = true
+    picker.selectRow(center, inComponent: 0, animated: animated)
+    selectedIndex = center
+    lastSelectedIndex = center
+    DispatchQueue.main.async {
+      self.isProgrammaticSelection = false
+    }
+  }
+
+  private func resolveCircularRealItemCount(totalCount: Int) -> Int {
+    guard isCircular, totalCount > 1 else { return totalCount }
+    if totalCount % DrumPickerDefaults.circularMultiplierSmallList == 0 {
+      let real = totalCount / DrumPickerDefaults.circularMultiplierSmallList
+      if (2...100).contains(real) {
+        return real
+      }
+    }
+    if totalCount % DrumPickerDefaults.circularMultiplierLargeList == 0 {
+      let real = totalCount / DrumPickerDefaults.circularMultiplierLargeList
+      if real > 1 {
+        return real
+      }
+    }
+    return totalCount
   }
 }

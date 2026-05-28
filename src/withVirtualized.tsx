@@ -143,6 +143,7 @@ export function withVirtualized(
       onChange,
       onValueChanging,
       renderItem,
+      circular,
       windowSize = 20,
       windowRecenterDebounceMs = 100,
       ...rest
@@ -175,6 +176,17 @@ export function withVirtualized(
       computeWindow(selectedIndex)
     );
     const [anchorIndex, setAnchorIndex] = useState(selectedIndex);
+
+    useEffect(() => {
+      if (__DEV__ && circular === true && items.length > 100) {
+        console.warn(
+          '[withVirtualized] circular=true with large lists: ' +
+            'the multiplied array (items × 200) may be large. ' +
+            'Consider using circular without withVirtualized ' +
+            'for lists > 100 items.'
+        );
+      }
+    }, [circular, items.length]);
 
     windowRef.current = window;
 
@@ -446,6 +458,7 @@ export function withVirtualized(
       <WrappedPicker
         ref={innerRef}
         {...rest}
+        circular={circular}
         items={slicedItems}
         selectedIndex={localIndex}
         onChange={handleChange}

@@ -47,6 +47,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `DateDrumPickerRef` with `scrollToDate` and `getCurrentDate` — enables "Today" button and external date navigation.
 - `withVirtualized` forwards `DrumPickerRef` (real indices). Imperative scroll syncs controlled `selectedIndex` via `onChange`. `scrollToDate` clamps invalid days.
 - Web `DrumPicker` stub: read-only preview + ref API (no throw on render).
+- `circular` prop — infinite loop scrolling. Wraps last item to first and first to last. Uses multiplied items array for native scroll physics. `onChange` always returns real index (0..N-1). Works with `onValueChanging`, ref API, `renderItem`, and PickerGroup.
 - Android/iOS instrumented tests for `setSelectedIndex(animated)` / `scrollAnimated` prop path.
 
 ## [0.2.2](https://github.com/scrollDynasty/react-native-drum-picker/compare/v0.2.1...v0.2.2) (2026-05-25)

@@ -10,6 +10,7 @@ import type { DrumPickerChangeEventPayload } from '../DrumPickerViewNativeCompon
 type MockProps = ViewProps & {
   items?: ReadonlyArray<string>;
   selectedIndex?: number;
+  circular?: boolean;
   scrollAnimated?: boolean;
   hapticFeedback?: boolean;
   enableScrollByTapOnItem?: boolean;

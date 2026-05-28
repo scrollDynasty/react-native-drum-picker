@@ -561,6 +561,27 @@ Not intended for `DateDrumPicker` (small fixed column lists).
 
 `onValueChanging` is supported: indices are remapped to the full list (same as `onChange`), so live preview works on large lists.
 
+## Circular scroll
+
+Enable infinite looping scroll - when user scrolls past the last item it wraps to the first:
+
+```tsx
+// Minutes: 58 -> 59 -> 00 -> 01
+<DrumPicker
+  circular
+  items={minutes}
+  onChange={({ nativeEvent }) => setMinute(nativeEvent.index)}
+/>
+
+// Combine with TimeDrumPicker
+<TimeDrumPicker circular />
+```
+
+Best for: hours, minutes, seconds, days of week, months.
+Not recommended for: years, long lists (cities, countries).
+
+> **Note:** `circular` and `withVirtualized` can be used together but for lists > 100 items prefer one or the other.
+
 ### `withVirtualized(DrumPicker)` props
 
 In addition to all `DrumPicker` props (on the wrapped instance):
@@ -591,6 +612,7 @@ In addition to all `DrumPicker` props (on the wrapped instance):
 | `selectionIndicatorColor`  | `string`              | `#D1D1D6`     | Line color                                                                           |
 | `selectionIndicatorHeight` | `number`              | `1`           | Line thickness (dp)                                                                  |
 | `hapticFeedback`           | `boolean`             | `false`       | Light haptic on snap (Android + iOS)                                                 |
+| `circular`                 | `boolean`             | `false`       | Enable infinite loop scroll. Wraps last->first and first->last.                      |
 | `enableScrollByTapOnItem`  | `boolean`             | `false`       | Tap a visible row to scroll it to center (Android + iOS)                             |
 | `onChange`                 | `function`            | —             | `nativeEvent: { index, value }`                                                      |
 | `onValueChanging`          | `function`            | —             | Fires on each scroll tick while dragging. Use for live sync; debounce heavy UI work. |

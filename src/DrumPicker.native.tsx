@@ -36,6 +36,9 @@ const DEFAULTS = {
   enableScrollByTapOnItem: false,
 } as const;
 
+const CIRCULAR_MULTIPLIER_SMALL_LIST = 200;
+const CIRCULAR_MULTIPLIER_LARGE_LIST = 100;
+
 function clampIndex(index: number, itemCount: number): number {
   if (itemCount <= 0) {
     return 0;
@@ -72,12 +75,37 @@ export const DrumPickerNativeBase = forwardRef<
     onChange,
     pickerGroup,
     pickerName,
+    circular = false,
     style,
     testID,
   },
   ref
 ) {
   const labels = items.map((item) => getItemLabel(item));
+  const isCircular = circular === true && labels.length > 1;
+  const circularMultiplier =
+    labels.length > 100
+      ? CIRCULAR_MULTIPLIER_LARGE_LIST
+      : CIRCULAR_MULTIPLIER_SMALL_LIST;
+  const nativeItems = isCircular
+    ? Array.from({ length: circularMultiplier }, () => labels).flat()
+    : labels;
+  const circularOffset = isCircular
+    ? Math.floor(circularMultiplier / 2) * labels.length
+    : 0;
+  const toVirtualIndex = useCallback(
+    (realIndex: number) => (isCircular ? circularOffset + realIndex : realIndex),
+    [circularOffset, isCircular]
+  );
+  const toRealIndex = useCallback(
+    (virtualIndex: number) => {
+      if (!isCircular || labels.length <= 0) {
+        return virtualIndex;
+      }
+      return ((virtualIndex % labels.length) + labels.length) % labels.length;
+    },
+    [isCircular, labels.length]
+  );
   const pickerStyle = resolveDrumPickerStyle(
     itemHeight,
     visibleItemCount,
@@ -95,7 +123,7 @@ export const DrumPickerNativeBase = forwardRef<
   } | null>(null);
 
   const clampedSelectedIndex = clampIndex(resolvedSelectedIndex, labels.length);
-  const nativeSelectedIndex = imperativeScroll?.index ?? clampedSelectedIndex;
+  const nativeSelectedIndex = imperativeScroll?.index ?? toVirtualIndex(clampedSelectedIndex);
   const scrollAnimated = imperativeScroll?.animated ?? false;
 
   useEffect(() => {
@@ -115,9 +143,10 @@ export const DrumPickerNativeBase = forwardRef<
       const previousEmitted = lastEmittedIndexRef.current;
       currentIndexRef.current = clamped;
       lastEmittedIndexRef.current = clamped;
-      setImperativeScroll({ index: clamped, animated });
+      const virtualIndex = toVirtualIndex(clamped);
+      setImperativeScroll({ index: virtualIndex, animated });
       nativeRef.current?.setNativeProps?.({
-        selectedIndex: clamped,
+        selectedIndex: virtualIndex,
         scrollAnimated: animated,
       });
       if (pickerGroup && pickerName && clamped !== previousEmitted) {
@@ -137,7 +166,7 @@ export const DrumPickerNativeBase = forwardRef<
         } as NativeSyntheticEvent<DrumPickerChangeEvent>);
       }
     },
-    [items, labels, onChange, pickerGroup, pickerName]
+    [items, labels, onChange, pickerGroup, pickerName, toVirtualIndex]
   );
 
   useImperativeHandle(
@@ -185,8 +214,8 @@ export const DrumPickerNativeBase = forwardRef<
 
   const handleValueChange = useCallback(
     (event: NativeSyntheticEvent<DrumPickerChangeEvent>) => {
-      const index = event.nativeEvent.index;
-      const value = labels[index] ?? event.nativeEvent.value;
+      const index = toRealIndex(event.nativeEvent.index);
+      const value = isCircular ? labels[index] ?? event.nativeEvent.value : event.nativeEvent.value;
       currentIndexRef.current = index;
       if (index === lastEmittedIndexRef.current) {
         return;
@@ -200,15 +229,26 @@ export const DrumPickerNativeBase = forwardRef<
           item: items[index] ?? labels[index] ?? '',
         });
       }
-      onChange?.(event);
+      if (!isCircular) {
+        onChange?.(event);
+        return;
+      }
+      onChange?.({
+        ...event,
+        nativeEvent: {
+          ...event.nativeEvent,
+          index,
+          value,
+        },
+      });
     },
-    [items, labels, onChange, pickerGroup, pickerName]
+    [isCircular, items, labels, onChange, pickerGroup, pickerName, toRealIndex]
   );
 
   const handleValueChanging = useCallback(
     (event: NativeSyntheticEvent<DrumPickerChangeEvent>) => {
-      const { index } = event.nativeEvent;
-      const value = labels[index] ?? event.nativeEvent.value;
+      const index = toRealIndex(event.nativeEvent.index);
+      const value = isCircular ? labels[index] ?? event.nativeEvent.value : event.nativeEvent.value;
       if (pickerGroup && pickerName) {
         pickerGroup._notifyChanging(pickerName, {
           pickerName,
@@ -217,14 +257,16 @@ export const DrumPickerNativeBase = forwardRef<
           item: items[index] ?? labels[index] ?? '',
         });
       }
-      if (onValueChanging != null) {
+      if (onValueChanging != null && !isCircular) {
+        onValueChanging(event);
+      } else if (onValueChanging != null) {
         onValueChanging({
           ...event,
           nativeEvent: { index, value },
         });
       }
     },
-    [items, labels, onValueChanging, pickerGroup, pickerName]
+    [isCircular, items, labels, onValueChanging, pickerGroup, pickerName, toRealIndex]
   );
 
   const shouldEmitValueChanging =
@@ -235,8 +277,9 @@ export const DrumPickerNativeBase = forwardRef<
       ref={nativeRef}
       {...(testID != null ? { testID } : {})}
       collapsable={false}
-      items={labels}
+      items={nativeItems}
       selectedIndex={nativeSelectedIndex}
+      circular={isCircular}
       scrollAnimated={scrollAnimated}
       itemHeight={itemHeight}
       visibleItemCount={visibleItemCount}
@@ -289,6 +332,7 @@ const DrumPickerImpl = forwardRef<DrumPickerRef, DrumPickerProps<any>>(
       onChange,
       pickerGroup,
       pickerName,
+      circular = false,
       renderItem,
       style,
       testID,
@@ -319,6 +363,7 @@ const DrumPickerImpl = forwardRef<DrumPickerRef, DrumPickerProps<any>>(
           onChange={onChange}
           pickerGroup={pickerGroup}
           pickerName={pickerName}
+      circular={circular}
           style={style}
           testID={testID}
           renderItem={renderItem}
@@ -349,6 +394,7 @@ const DrumPickerImpl = forwardRef<DrumPickerRef, DrumPickerProps<any>>(
         onChange={onChange}
         pickerGroup={pickerGroup}
         pickerName={pickerName}
+        circular={circular}
         style={style}
         testID={testID}
       />
