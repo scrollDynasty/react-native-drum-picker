@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { createRef } from 'react';
 import { act, render } from '@testing-library/react-native';
 import { DrumPicker } from '../DrumPicker.native';
 import {
@@ -7,6 +7,7 @@ import {
   resetNativeDrumPickerMocks,
 } from '../__mocks__/DrumPickerViewNativeComponent';
 import {
+  DrumPickerRef,
   usePickerGroup,
   usePickerGroupChangedEffect,
   usePickerGroupChangingEffect,
@@ -185,5 +186,36 @@ describe('usePickerGroup', () => {
     expect(() =>
       render(<DrumPicker items={HOURS} onChange={() => {}} />)
     ).not.toThrow();
+  });
+
+  it('notifies group on imperative scroll via ref', () => {
+    const onGroupChanged = jest.fn();
+    const ref = createRef<DrumPickerRef>();
+    function ImperativeCase() {
+      const group = usePickerGroup();
+      usePickerGroupChangedEffect(group, onGroupChanged);
+      return (
+        <DrumPicker
+          ref={ref}
+          pickerGroup={group}
+          pickerName="hours"
+          items={HOURS}
+          onChange={() => {}}
+        />
+      );
+    }
+    render(<ImperativeCase />);
+
+    act(() => {
+      ref.current?.scrollToIndex(3, { animated: false });
+    });
+
+    expect(onGroupChanged).toHaveBeenCalledWith(
+      expect.objectContaining({
+        pickerName: 'hours',
+        index: 3,
+        value: '03',
+      })
+    );
   });
 });
