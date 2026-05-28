@@ -576,7 +576,7 @@ In addition to all `DrumPicker` props (on the wrapped instance):
 
 | Prop                       | Type                  | Default       | Description                                                                          |
 | -------------------------- | --------------------- | ------------- | ------------------------------------------------------------------------------------ |
-| `items`                    | `string[]`            | required      | Wheel labels                                                                         |
+| `items`                    | `T[]`                 | required      | Picker items typed by generic `T` (strings or objects). Display/value mapping follows built-in label resolution and/or `renderItem`. |
 | `selectedIndex`            | `number`              | `0`           | Selected row index                                                                   |
 | `itemHeight`               | `number`              | `44`          | Row height (dp)                                                                      |
 | `visibleItemCount`         | `number`              | `5`           | Visible rows (odd recommended)                                                       |

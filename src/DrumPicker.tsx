@@ -223,8 +223,8 @@ const DrumPickerImpl = forwardRef<DrumPickerRef, DrumPickerProps<any>>(
     );
   }
 );
-
 DrumPickerImpl.displayName = 'DrumPicker';
+
 export const DrumPicker = DrumPickerImpl as DrumPickerComponent;
 
 const styles = StyleSheet.create({
