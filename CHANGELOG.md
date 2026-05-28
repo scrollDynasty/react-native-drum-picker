@@ -32,6 +32,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `usePickerGroup()` — creates a shared group handle for multiple pickers.
+- `usePickerGroupChangedEffect(group, cb)` — fires when any picker in the group settles (`onChange`).
+- `usePickerGroupChangingEffect(group, cb)` — fires on every scroll tick of any picker (`onValueChanging`).
+- `pickerGroup` and `pickerName` props on `DrumPicker`.
+- `group.getState()` — snapshot of current values for all registered pickers.
+- Pure JS implementation (no native changes, zero overhead when unused).
 - `renderItem` prop on `DrumPicker` for custom row rendering with React components. Receives `{ item, label, index, isSelected }` while preserving native scroll physics and snap behavior.
 - `minDate` / `maxDate` props on `DateDrumPicker` for constraining selectable date range (inclusive, partial). Year/month/day columns update dynamically based on current selection. Values outside range are auto-clamped. Backward compatible with existing `minYear` / `maxYear` props. `onValueChanging` uses calendar indices; uncontrolled mode fires `onChange` when constraints change.
 - `onValueChanging` event — fires on every scroll tick while the user is dragging, before the picker settles. Enables live synchronization between multiple pickers.

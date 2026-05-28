@@ -70,6 +70,8 @@ export const DrumPickerNativeBase = forwardRef<
     enableScrollByTapOnItem = DEFAULTS.enableScrollByTapOnItem,
     onValueChanging,
     onChange,
+    pickerGroup,
+    pickerName,
     style,
     testID,
   },
@@ -109,6 +111,7 @@ export const DrumPickerNativeBase = forwardRef<
   const applyScrollToIndex = useCallback(
     (index: number, animated: boolean) => {
       const clamped = clampIndex(index, labels.length);
+      const value = labels[clamped] ?? '';
       const previousEmitted = lastEmittedIndexRef.current;
       currentIndexRef.current = clamped;
       lastEmittedIndexRef.current = clamped;
@@ -117,16 +120,24 @@ export const DrumPickerNativeBase = forwardRef<
         selectedIndex: clamped,
         scrollAnimated: animated,
       });
+      if (pickerGroup && pickerName && clamped !== previousEmitted) {
+        pickerGroup._notifyChanged(pickerName, {
+          pickerName,
+          index: clamped,
+          value,
+          item: items[clamped] ?? labels[clamped] ?? '',
+        });
+      }
       if (onChange != null && clamped !== previousEmitted) {
         onChange({
           nativeEvent: {
             index: clamped,
-            value: labels[clamped] ?? '',
+            value,
           },
         } as NativeSyntheticEvent<DrumPickerChangeEvent>);
       }
     },
-    [labels, onChange]
+    [items, labels, onChange, pickerGroup, pickerName]
   );
 
   useImperativeHandle(
@@ -153,33 +164,71 @@ export const DrumPickerNativeBase = forwardRef<
     [applyScrollToIndex, labels]
   );
 
+  useEffect(() => {
+    if (__DEV__ && pickerGroup && !pickerName) {
+      console.warn(
+        '[DrumPicker] pickerGroup provided without pickerName. Add pickerName="uniqueName" to this picker.'
+      );
+    }
+  }, [pickerGroup, pickerName]);
+
+  useEffect(() => {
+    if (!pickerGroup || !pickerName) {
+      return;
+    }
+    const unregister = pickerGroup._register(pickerName, {
+      onChanged: () => {},
+      onChanging: () => {},
+    });
+    return unregister;
+  }, [pickerGroup, pickerName]);
+
   const handleValueChange = useCallback(
     (event: NativeSyntheticEvent<DrumPickerChangeEvent>) => {
       const index = event.nativeEvent.index;
+      const value = labels[index] ?? event.nativeEvent.value;
       currentIndexRef.current = index;
       if (index === lastEmittedIndexRef.current) {
         return;
       }
       lastEmittedIndexRef.current = index;
+      if (pickerGroup && pickerName) {
+        pickerGroup._notifyChanged(pickerName, {
+          pickerName,
+          index,
+          value,
+          item: items[index] ?? labels[index] ?? '',
+        });
+      }
       onChange?.(event);
     },
-    [onChange]
+    [items, labels, onChange, pickerGroup, pickerName]
   );
 
   const handleValueChanging = useCallback(
     (event: NativeSyntheticEvent<DrumPickerChangeEvent>) => {
-      if (onValueChanging == null) {
-        return;
-      }
       const { index } = event.nativeEvent;
       const value = labels[index] ?? event.nativeEvent.value;
-      onValueChanging({
-        ...event,
-        nativeEvent: { index, value },
-      });
+      if (pickerGroup && pickerName) {
+        pickerGroup._notifyChanging(pickerName, {
+          pickerName,
+          index,
+          value,
+          item: items[index] ?? labels[index] ?? '',
+        });
+      }
+      if (onValueChanging != null) {
+        onValueChanging({
+          ...event,
+          nativeEvent: { index, value },
+        });
+      }
     },
-    [labels, onValueChanging]
+    [items, labels, onValueChanging, pickerGroup, pickerName]
   );
+
+  const shouldEmitValueChanging =
+    onValueChanging != null || (pickerGroup != null && pickerName != null);
 
   return (
     <DrumPickerNative
@@ -203,9 +252,9 @@ export const DrumPickerNativeBase = forwardRef<
       containerBackgroundColor={containerBackgroundColor}
       hapticFeedback={hapticFeedback}
       enableScrollByTapOnItem={enableScrollByTapOnItem}
-      onValueChangingEnabled={onValueChanging != null}
+      onValueChangingEnabled={shouldEmitValueChanging}
       onValueChanging={
-        onValueChanging != null ? handleValueChanging : undefined
+        shouldEmitValueChanging ? handleValueChanging : undefined
       }
       onValueChange={handleValueChange}
       style={pickerStyle}
@@ -238,6 +287,8 @@ const DrumPickerImpl = forwardRef<DrumPickerRef, DrumPickerProps<any>>(
       enableScrollByTapOnItem = DEFAULTS.enableScrollByTapOnItem,
       onValueChanging,
       onChange,
+      pickerGroup,
+      pickerName,
       renderItem,
       style,
       testID,
@@ -266,6 +317,8 @@ const DrumPickerImpl = forwardRef<DrumPickerRef, DrumPickerProps<any>>(
           enableScrollByTapOnItem={enableScrollByTapOnItem}
           onValueChanging={onValueChanging}
           onChange={onChange}
+          pickerGroup={pickerGroup}
+          pickerName={pickerName}
           style={style}
           testID={testID}
           renderItem={renderItem}
@@ -294,6 +347,8 @@ const DrumPickerImpl = forwardRef<DrumPickerRef, DrumPickerProps<any>>(
         enableScrollByTapOnItem={enableScrollByTapOnItem}
         onValueChanging={onValueChanging}
         onChange={onChange}
+        pickerGroup={pickerGroup}
+        pickerName={pickerName}
         style={style}
         testID={testID}
       />

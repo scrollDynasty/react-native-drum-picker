@@ -50,6 +50,8 @@ const DrumPickerImpl = forwardRef<DrumPickerRef, DrumPickerProps<any>>(
       selectedTextColor = '#1C1C1E',
       textSize = 20,
       onChange,
+      pickerGroup,
+      pickerName,
       renderItem,
       style,
       testID,
@@ -80,6 +82,25 @@ const DrumPickerImpl = forwardRef<DrumPickerRef, DrumPickerProps<any>>(
       }
     }, []);
 
+    useEffect(() => {
+      if (__DEV__ && pickerGroup && !pickerName) {
+        console.warn(
+          '[DrumPicker] pickerGroup provided without pickerName. Add pickerName="uniqueName" to this picker.'
+        );
+      }
+    }, [pickerGroup, pickerName]);
+
+    useEffect(() => {
+      if (!pickerGroup || !pickerName) {
+        return;
+      }
+      const unregister = pickerGroup._register(pickerName, {
+        onChanged: () => {},
+        onChanging: () => {},
+      });
+      return unregister;
+    }, [pickerGroup, pickerName]);
+
     const applyScroll = useCallback(
       (nextIndex: number) => {
         const clamped = clampIndex(nextIndex, items.length);
@@ -87,6 +108,17 @@ const DrumPickerImpl = forwardRef<DrumPickerRef, DrumPickerProps<any>>(
         indexRef.current = clamped;
         lastEmittedRef.current = clamped;
         setIndex(clamped);
+        if (clamped !== previous) {
+          if (pickerGroup && pickerName) {
+            const groupEvent = {
+              pickerName,
+              index: clamped,
+              value: labels[clamped] ?? '',
+              item: items[clamped] ?? labels[clamped] ?? '',
+            };
+            pickerGroup._notifyChanged(pickerName, groupEvent);
+          }
+        }
         if (onChange != null && clamped !== previous) {
           onChange({
             nativeEvent: {
@@ -96,7 +128,7 @@ const DrumPickerImpl = forwardRef<DrumPickerRef, DrumPickerProps<any>>(
           } as NativeSyntheticEvent<DrumPickerChangeEvent>);
         }
       },
-      [items.length, labels, onChange]
+      [items, labels, onChange, pickerGroup, pickerName]
     );
 
     useImperativeHandle(
