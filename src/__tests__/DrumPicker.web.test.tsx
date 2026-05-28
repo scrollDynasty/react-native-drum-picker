@@ -76,4 +76,30 @@ describe('DrumPicker (web stub)', () => {
       })
     );
   });
+
+  it('supports renderItem with object items and label mapping', () => {
+    const items = [
+      { label: 'One', value: 1 },
+      { label: 'Two', value: 2 },
+      { label: 'Three', value: 3 },
+    ];
+    const ref = createRef<DrumPickerRef>();
+    const { getByText } = render(
+      <DrumPicker
+        ref={ref}
+        items={items}
+        selectedIndex={0}
+        renderItem={({ label, isSelected }) => (
+          <Text>{`${label}-${isSelected ? 'selected' : 'idle'}`}</Text>
+        )}
+      />
+    );
+
+    expect(getByText('One-selected')).toBeTruthy();
+    act(() => {
+      ref.current?.scrollToIndex(1);
+    });
+    expect(getByText('Two-selected')).toBeTruthy();
+    expect(ref.current?.getCurrentValue()).toBe('Two');
+  });
 });

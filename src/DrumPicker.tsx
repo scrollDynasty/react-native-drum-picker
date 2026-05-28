@@ -51,18 +51,19 @@ export const DrumPicker = forwardRef<DrumPickerRef, DrumPickerProps<any>>(
     },
     ref
   ) {
+    const labels = items.map((item) => getItemLabel(item));
     const [index, setIndex] = useState(() =>
-      clampIndex(selectedIndex, items.length)
+      clampIndex(selectedIndex, labels.length)
     );
     const indexRef = useRef(index);
     const lastEmittedRef = useRef(index);
 
     useEffect(() => {
-      const clamped = clampIndex(selectedIndex, items.length);
+      const clamped = clampIndex(selectedIndex, labels.length);
       indexRef.current = clamped;
       lastEmittedRef.current = clamped;
       setIndex(clamped);
-    }, [selectedIndex, items.length]);
+    }, [selectedIndex, labels.length]);
 
     useEffect(() => {
       if (__DEV__ && !didWarnWebStub) {
@@ -85,12 +86,12 @@ export const DrumPicker = forwardRef<DrumPickerRef, DrumPickerProps<any>>(
           onChange({
             nativeEvent: {
               index: clamped,
-              value: items[clamped] ?? '',
+              value: labels[clamped] ?? '',
             },
           } as NativeSyntheticEvent<DrumPickerChangeEvent>);
         }
       },
-      [items, onChange]
+      [items.length, labels, onChange]
     );
 
     useImperativeHandle(
@@ -100,7 +101,7 @@ export const DrumPicker = forwardRef<DrumPickerRef, DrumPickerProps<any>>(
           applyScroll(nextIndex);
         },
         scrollToValue(value, _options = {}) {
-          const match = items.indexOf(value);
+          const match = labels.indexOf(value);
           if (match !== -1) {
             applyScroll(match);
           }
@@ -109,10 +110,10 @@ export const DrumPicker = forwardRef<DrumPickerRef, DrumPickerProps<any>>(
           return indexRef.current;
         },
         getCurrentValue() {
-          return items[indexRef.current] ?? '';
+          return labels[indexRef.current] ?? '';
         },
       }),
-      [applyScroll, items]
+      [applyScroll, labels]
     );
 
     const pickerStyle = resolveDrumPickerStyle(
@@ -120,7 +121,7 @@ export const DrumPicker = forwardRef<DrumPickerRef, DrumPickerProps<any>>(
       visibleItemCount,
       style
     );
-    const value = items[index] ?? '';
+    const value = labels[index] ?? '';
     const centerOffset = Math.floor(visibleItemCount / 2);
     const visibleItems = Array.from({ length: visibleItemCount }, (_, i) => {
       const itemIndex = index - centerOffset + i;
