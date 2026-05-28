@@ -336,4 +336,27 @@ describe('withVirtualized', () => {
       })
     );
   });
+
+  it('forwards renderItem and updates isSelected for real index', () => {
+    const renderSpy = jest.fn(() => null);
+    render(
+      <VirtualizedDrumPicker
+        items={CITIES}
+        selectedIndex={500}
+        windowSize={20}
+        renderItem={renderSpy}
+        onValueChanging={() => {}}
+      />
+    );
+    act(() => {
+      fireNativeDrumPickerChanging(5, 'City 485');
+    });
+    const hasRealSelected = renderSpy.mock.calls.some(
+      ([info]) =>
+        info.index === 485 &&
+        info.label === 'City 485' &&
+        info.isSelected === true
+    );
+    expect(hasRealSelected).toBe(true);
+  });
 });

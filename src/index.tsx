@@ -11,6 +11,7 @@ export type {
   DateDrumPickerRef,
   DrumPickerChangeEvent,
   DrumPickerProps,
+  DrumPickerRenderItemInfo,
   DrumPickerRef,
 } from './types';
 export type { VirtualizedProps } from './withVirtualized';

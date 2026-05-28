@@ -6,13 +6,16 @@ import {
   useRef,
   useState,
 } from 'react';
+import type { ReactElement, RefAttributes } from 'react';
 import {
   StyleSheet,
+  Pressable,
   Text,
   View,
   type NativeSyntheticEvent,
 } from 'react-native';
 import { resolveDrumPickerStyle } from './drumPickerLayout';
+import { getItemLabel } from './itemLabel';
 import type {
   DrumPickerChangeEvent,
   DrumPickerProps,
@@ -32,7 +35,11 @@ function clampIndex(index: number, itemCount: number): number {
  * Web / non-native fallback: read-only preview + working ref API (no native wheel).
  * Metro resolves `DrumPicker.native.tsx` on iOS and Android.
  */
-export const DrumPicker = forwardRef<DrumPickerRef, DrumPickerProps>(
+type DrumPickerComponent = <T = string>(
+  props: DrumPickerProps<T> & RefAttributes<DrumPickerRef>
+) => ReactElement | null;
+
+const DrumPickerImpl = forwardRef<DrumPickerRef, DrumPickerProps<any>>(
   function DrumPicker(
     {
       items,
@@ -43,23 +50,25 @@ export const DrumPicker = forwardRef<DrumPickerRef, DrumPickerProps>(
       selectedTextColor = '#1C1C1E',
       textSize = 20,
       onChange,
+      renderItem,
       style,
       testID,
     },
     ref
   ) {
+    const labels = items.map((item) => getItemLabel(item));
     const [index, setIndex] = useState(() =>
-      clampIndex(selectedIndex, items.length)
+      clampIndex(selectedIndex, labels.length)
     );
     const indexRef = useRef(index);
     const lastEmittedRef = useRef(index);
 
     useEffect(() => {
-      const clamped = clampIndex(selectedIndex, items.length);
+      const clamped = clampIndex(selectedIndex, labels.length);
       indexRef.current = clamped;
       lastEmittedRef.current = clamped;
       setIndex(clamped);
-    }, [selectedIndex, items.length]);
+    }, [selectedIndex, labels.length]);
 
     useEffect(() => {
       if (__DEV__ && !didWarnWebStub) {
@@ -82,12 +91,12 @@ export const DrumPicker = forwardRef<DrumPickerRef, DrumPickerProps>(
           onChange({
             nativeEvent: {
               index: clamped,
-              value: items[clamped] ?? '',
+              value: labels[clamped] ?? '',
             },
           } as NativeSyntheticEvent<DrumPickerChangeEvent>);
         }
       },
-      [items, onChange]
+      [items.length, labels, onChange]
     );
 
     useImperativeHandle(
@@ -97,7 +106,7 @@ export const DrumPicker = forwardRef<DrumPickerRef, DrumPickerProps>(
           applyScroll(nextIndex);
         },
         scrollToValue(value, _options = {}) {
-          const match = items.indexOf(value);
+          const match = labels.indexOf(value);
           if (match !== -1) {
             applyScroll(match);
           }
@@ -106,10 +115,10 @@ export const DrumPicker = forwardRef<DrumPickerRef, DrumPickerProps>(
           return indexRef.current;
         },
         getCurrentValue() {
-          return items[indexRef.current] ?? '';
+          return labels[indexRef.current] ?? '';
         },
       }),
-      [applyScroll, items]
+      [applyScroll, labels]
     );
 
     const pickerStyle = resolveDrumPickerStyle(
@@ -117,7 +126,53 @@ export const DrumPicker = forwardRef<DrumPickerRef, DrumPickerProps>(
       visibleItemCount,
       style
     );
-    const value = items[index] ?? '';
+    const value = labels[index] ?? '';
+    const centerOffset = Math.floor(visibleItemCount / 2);
+    const visibleItems = Array.from({ length: visibleItemCount }, (_, i) => {
+      const itemIndex = index - centerOffset + i;
+      return {
+        item: items[itemIndex],
+        index: itemIndex,
+        isSelected: itemIndex === index,
+        position: i,
+      };
+    });
+
+    if (renderItem != null) {
+      return (
+        <View
+          testID={testID}
+          accessibilityRole="adjustable"
+          accessibilityLabel={value}
+          style={[pickerStyle, styles.container]}
+        >
+          {visibleItems.map(
+            ({ item, index: itemIndex, isSelected, position }) => (
+              <Pressable
+                key={`${itemIndex}-${position}`}
+                style={[
+                  styles.webRow,
+                  {
+                    top: position * itemHeight,
+                    height: itemHeight,
+                  },
+                ]}
+                onPress={() => applyScroll(itemIndex)}
+              >
+                {item != null
+                  ? renderItem({
+                      item,
+                      label: getItemLabel(item),
+                      index: itemIndex,
+                      isSelected,
+                    })
+                  : null}
+              </Pressable>
+            )
+          )}
+        </View>
+      );
+    }
 
     return (
       <View
@@ -136,17 +191,27 @@ export const DrumPicker = forwardRef<DrumPickerRef, DrumPickerProps>(
     );
   }
 );
+DrumPickerImpl.displayName = 'DrumPicker';
 
-DrumPicker.displayName = 'DrumPicker';
+export const DrumPicker = DrumPickerImpl as DrumPickerComponent;
 
 const styles = StyleSheet.create({
   container: {
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: 'transparent',
+    position: 'relative',
+    overflow: 'hidden',
   },
   hint: {
     fontSize: 10,
     marginTop: 4,
+  },
+  webRow: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });

@@ -19,6 +19,7 @@
   "files": [
     "README.md",
     "img",
+    "func-gif",
     "LICENSE",
     "CHANGELOG.md",
     "react-native.config.js",
