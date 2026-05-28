@@ -13,7 +13,9 @@ import type {
   DrumPickerChangeEvent,
   DrumPickerProps,
   DrumPickerRef,
+  DrumPickerRenderItemInfo,
 } from './types';
+import { getItemLabel } from './itemLabel';
 
 export interface VirtualizedProps {
   /**
@@ -140,6 +142,7 @@ export function withVirtualized(
       selectedIndex = 0,
       onChange,
       onValueChanging,
+      renderItem,
       windowSize = 20,
       windowRecenterDebounceMs = 100,
       ...rest
@@ -416,6 +419,29 @@ export function withVirtualized(
       [items, onValueChanging]
     );
 
+    const mappedRenderItem = useCallback(
+      (info: DrumPickerRenderItemInfo<string>) => {
+        if (renderItem == null) {
+          return null;
+        }
+        const currentWindow = windowRef.current;
+        const realIndex = resolveRealIndex(
+          info.index,
+          currentWindow,
+          info.label,
+          items
+        );
+        const realItem = items[realIndex] ?? info.item;
+        return renderItem({
+          item: realItem,
+          label: getItemLabel(realItem),
+          index: realIndex,
+          isSelected: info.isSelected,
+        });
+      },
+      [items, renderItem]
+    );
+
     return (
       <WrappedPicker
         ref={innerRef}
@@ -426,6 +452,7 @@ export function withVirtualized(
         onValueChanging={
           onValueChanging != null ? handleValueChanging : undefined
         }
+        renderItem={renderItem != null ? mappedRenderItem : undefined}
       />
     );
   });

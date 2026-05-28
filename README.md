@@ -339,6 +339,7 @@ const countries = [
 | `isSelected` | `boolean` | Whether the row is centered |
 
 > Performance note: keep `renderItem` lightweight. It can rerender frequently during wheel movement.
+> For complex rows, wrap heavy subtrees with `React.memo` and pass a stable renderer via `useCallback`.
 
 ## DateDrumPicker
 
