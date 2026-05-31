@@ -430,6 +430,25 @@ type TimeDrumPickerMode =
 - **12h ↔ 24h.** `value` and `onChange` are always 24-hour. Flipping AM/PM keeps
   the displayed 12h hour and shifts the 24h hour by ±12.
 
+## Accessibility
+
+`DrumPicker` accepts an `accessibilityLabel` prop. It is forwarded to the
+native view's `accessibilityLabel` and, on web, to the `<select>` element's
+`aria-label` (defaults to `Picker`).
+
+`DateDrumPicker` and `TimeDrumPicker` render multiple columns and give each a
+distinct default label (`Day` / `Month` / `Year`,
+`Hour` / `Minute` / `Second` / `AM/PM`) so assistive technologies can tell the
+wheels apart instead of announcing every column as "Picker". Override per
+column with `columnAccessibilityLabels`:
+
+```tsx
+<TimeDrumPicker
+  mode="hour-minute"
+  columnAccessibilityLabels={{ hour: 'Hours', minute: 'Minutes' }}
+/>
+```
+
 ## Styling
 
 Backgrounds are **transparent by default**. Only text and optional indicator lines are visible.
