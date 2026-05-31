@@ -81,9 +81,14 @@ describe('DrumPicker — web fallback', () => {
     expect(select.props['data-testid']).toBe('my-picker');
   });
 
-  it('exposes an aria-label for screen readers', () => {
+  it('exposes a default aria-label for screen readers', () => {
     const select = renderWeb({ items: ['A'] });
     expect(select.props['aria-label']).toBe('Picker');
+  });
+
+  it('uses a custom accessibilityLabel as aria-label', () => {
+    const select = renderWeb({ items: ['A'], accessibilityLabel: 'Country' });
+    expect(select.props['aria-label']).toBe('Country');
   });
 
   it('synthesizes a native-like event on selection change', () => {

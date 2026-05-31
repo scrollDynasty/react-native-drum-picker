@@ -67,8 +67,9 @@ export function clampSecond(second: number): number {
 
 /**
  * Snap a 0..59 value to the nearest multiple of `interval` that is still
- * within range. Ties round down (deterministic and matches floor semantics
- * users expect when the picker first lands on a value).
+ * within range. Exact half-step ties round **down** (deterministic and
+ * matches the floor semantics users expect when the picker first lands on a
+ * value, e.g. minute 30 with interval 60 stays on the lower mark).
  */
 export function snapToInterval(
   value: number,
@@ -78,7 +79,10 @@ export function snapToInterval(
   if (interval === 1) {
     return safe;
   }
-  const snapped = Math.round(safe / interval) * interval;
+  // Round half *down*: Math.round rounds halves up, so subtract 0.5 and
+  // take the ceiling. e.g. 3 / 2 -> ceil(1.0) = 1 -> 2 (not 4).
+  const steps = Math.ceil(safe / interval - 0.5);
+  const snapped = steps * interval;
   const max = Math.floor(59 / interval) * interval;
   return Math.min(max, Math.max(0, snapped));
 }

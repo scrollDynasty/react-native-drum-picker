@@ -65,9 +65,23 @@ export type DateDrumPickerProps = {
   columnStyle?: StyleProp<ViewStyle>;
   columnStyles?: Partial<Record<DateDrumPickerColumnKey, StyleProp<ViewStyle>>>;
   columnTestIDs?: Partial<Record<DateDrumPickerColumnKey, string>>;
+  /**
+   * Accessibility labels per column. Defaults to `Day` / `Month` / `Year` so
+   * each wheel is distinguishable to assistive tech instead of all reading
+   * "Picker".
+   */
+  columnAccessibilityLabels?: Partial<
+    Record<DateDrumPickerColumnKey, string>
+  >;
 };
 
 type DateColumnKey = DateDrumPickerColumnKey;
+
+const DEFAULT_COLUMN_ACCESSIBILITY_LABELS: Record<DateColumnKey, string> = {
+  day: 'Day',
+  month: 'Month',
+  year: 'Year',
+};
 
 const COLUMN_ORDER: Record<DateDrumPickerMode, DateColumnKey[]> = {
   'day': ['day'],
@@ -114,6 +128,7 @@ export function DateDrumPicker({
   columnStyle,
   columnStyles,
   columnTestIDs,
+  columnAccessibilityLabels,
 }: DateDrumPickerProps) {
   const currentYear = new Date().getFullYear();
   const { minYear, maxYear } = useMemo(
@@ -211,6 +226,10 @@ export function DateDrumPicker({
     columnStyles?.[column],
   ];
 
+  const columnAccessibilityLabel = (column: DateColumnKey): string =>
+    columnAccessibilityLabels?.[column] ??
+    DEFAULT_COLUMN_ACCESSIBILITY_LABELS[column];
+
   const renderColumn = (column: DateColumnKey) => {
     if (column === 'day') {
       return (
@@ -218,6 +237,7 @@ export function DateDrumPicker({
           key="day"
           {...sharedPickerProps}
           testID={columnTestIDs?.day}
+          accessibilityLabel={columnAccessibilityLabel('day')}
           style={columnContainerStyle('day')}
           items={dayItems}
           selectedIndex={Math.min(resolvedValue.day - 1, dayItems.length - 1)}
@@ -239,6 +259,7 @@ export function DateDrumPicker({
           key="month"
           {...sharedPickerProps}
           testID={columnTestIDs?.month}
+          accessibilityLabel={columnAccessibilityLabel('month')}
           style={columnContainerStyle('month')}
           items={monthItems}
           selectedIndex={resolvedValue.month - 1}
@@ -259,6 +280,7 @@ export function DateDrumPicker({
         key="year"
         {...sharedPickerProps}
         testID={columnTestIDs?.year}
+        accessibilityLabel={columnAccessibilityLabel('year')}
         style={columnContainerStyle('year')}
         items={yearItems}
         selectedIndex={resolvedValue.year - minYear}

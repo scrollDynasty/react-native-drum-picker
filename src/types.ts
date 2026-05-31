@@ -13,8 +13,20 @@ export type DrumPickerLabeledItem<T = string> = {
   readonly value: T;
 };
 
-/** A picker item — either a plain string or a `{ label, value }` pair. */
-export type DrumPickerItem<T = string> = string | DrumPickerLabeledItem<T>;
+/**
+ * A picker item.
+ *
+ * - When `T` is `string` (the default), an item may be either a plain string
+ *   or a `{ label, value }` pair.
+ * - When `T` is a non-string type, items **must** be `{ label, value }` pairs
+ *   so the resolved `value` on `onChange.nativeEvent.item` is genuinely `T`.
+ *
+ * The `[T] extends [string]` wrapping keeps the check non-distributive so
+ * union value types behave predictably.
+ */
+export type DrumPickerItem<T = string> = [T] extends [string]
+  ? string | DrumPickerLabeledItem<T>
+  : DrumPickerLabeledItem<T>;
 
 export type DrumPickerChangeEvent<T = string> = {
   index: number;
@@ -44,24 +56,34 @@ export type DrumPickerProps<T = string> = {
   itemBackgroundColor?: string;
   containerBackgroundColor?: string;
   hapticFeedback?: boolean;
+  /**
+   * Accessibility label for the whole picker. Forwarded to the native view's
+   * `accessibilityLabel` and, on web, to the `<select>` element's
+   * `aria-label`. Defaults to `'Picker'` on web when omitted.
+   */
+  accessibilityLabel?: string;
   onChange?: (event: NativeSyntheticEvent<DrumPickerChangeEvent<T>>) => void;
   style?: StyleProp<ViewStyle>;
   testID?: string;
 };
 
 /**
- * Internal helper: extract the label for a picker item. Exported because the
- * Date/Time wrappers also need to normalize items before passing them down.
+ * Internal helper: extract the label string for a picker item. Exported so
+ * the native wrapper (`DrumPicker.native.tsx`) and the web fallback
+ * (`DrumPicker.tsx`) share one normalization path before handing items to the
+ * platform layer.
  */
-export function getItemLabel<T>(item: DrumPickerItem<T>): string {
+export function getItemLabel<T>(
+  item: string | DrumPickerLabeledItem<T>
+): string {
   return typeof item === 'string' ? item : item.label;
 }
 
 /**
  * Internal helper: extract the resolved value for a picker item. For plain
- * strings this returns the string itself (typed as `T` since the consumer
- * chose `T = string` in that case).
+ * strings this returns the string itself (typed as `T` since plain-string
+ * items are only allowed when `T = string`).
  */
-export function getItemValue<T>(item: DrumPickerItem<T>): T {
+export function getItemValue<T>(item: string | DrumPickerLabeledItem<T>): T {
   return (typeof item === 'string' ? item : item.value) as T;
 }

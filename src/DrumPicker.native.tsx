@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef } from 'react';
 import type { NativeSyntheticEvent } from 'react-native';
 import DrumPickerNative from './DrumPickerViewNativeComponent';
 import type { DrumPickerChangeEventPayload } from './DrumPickerViewNativeComponent';
+import { DRUM_PICKER_DEFAULTS as DEFAULTS } from './drumPickerDefaults';
 import { resolveDrumPickerStyle } from './drumPickerLayout';
 import {
   getItemLabel,
@@ -9,23 +10,6 @@ import {
   type DrumPickerChangeEvent,
   type DrumPickerProps,
 } from './types';
-
-const DEFAULTS = {
-  selectedIndex: 0,
-  itemHeight: 44,
-  visibleItemCount: 5,
-  textColor: '#8E8E93',
-  selectedTextColor: '#1C1C1E',
-  textSize: 20,
-  selectedTextSize: 22,
-  showSelectionIndicator: true,
-  selectionIndicatorColor: '#D1D1D6',
-  selectionIndicatorHeight: 1,
-  backgroundColor: 'transparent',
-  itemBackgroundColor: 'transparent',
-  containerBackgroundColor: 'transparent',
-  hapticFeedback: false,
-} as const;
 
 export function DrumPicker<T = string>({
   items,
@@ -43,6 +27,7 @@ export function DrumPicker<T = string>({
   itemBackgroundColor = DEFAULTS.itemBackgroundColor,
   containerBackgroundColor = DEFAULTS.containerBackgroundColor,
   hapticFeedback = DEFAULTS.hapticFeedback,
+  accessibilityLabel,
   onChange,
   style,
   testID,
@@ -101,6 +86,7 @@ export function DrumPicker<T = string>({
   return (
     <DrumPickerNative
       {...(testID != null ? { testID } : {})}
+      {...(accessibilityLabel != null ? { accessibilityLabel } : {})}
       collapsable={false}
       items={labels}
       selectedIndex={selectedIndex}

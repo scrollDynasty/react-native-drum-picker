@@ -7,11 +7,8 @@ import {
   type CSSProperties,
 } from 'react';
 import { StyleSheet, type StyleProp, type ViewStyle } from 'react-native';
-import {
-  getItemLabel,
-  getItemValue,
-  type DrumPickerProps,
-} from './types';
+import { DRUM_PICKER_DEFAULTS as DEFAULTS } from './drumPickerDefaults';
+import { getItemLabel, getItemValue, type DrumPickerProps } from './types';
 
 /**
  * Structural type for the subset of the DOM change event we need. The project
@@ -30,16 +27,6 @@ type WebSelectChangeEvent = {
   preventDefault: () => void;
   stopPropagation: () => void;
 };
-
-const DEFAULTS = {
-  selectedIndex: 0,
-  itemHeight: 44,
-  visibleItemCount: 5,
-  textColor: '#8E8E93',
-  selectedTextColor: '#1C1C1E',
-  textSize: 20,
-  backgroundColor: 'transparent',
-} as const;
 
 /**
  * Web fallback for `DrumPicker`.
@@ -68,6 +55,7 @@ export function DrumPicker<T = string>({
   selectedTextColor = DEFAULTS.selectedTextColor,
   textSize = DEFAULTS.textSize,
   backgroundColor = DEFAULTS.backgroundColor,
+  accessibilityLabel = DEFAULTS.accessibilityLabel,
   onChange,
   style,
   testID,
@@ -179,7 +167,7 @@ export function DrumPicker<T = string>({
       'onChange': handleChange,
       'style': inlineStyle,
       'data-testid': testID,
-      'aria-label': 'Picker',
+      'aria-label': accessibilityLabel,
       'size': Math.max(visibleItemCount, 1),
     },
     items.map((item, index) =>

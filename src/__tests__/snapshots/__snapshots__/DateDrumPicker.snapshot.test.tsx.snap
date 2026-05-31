@@ -14,6 +14,7 @@ exports[`DateDrumPicker snapshots matches day-month-year mode 1`] = `
   }
 >
   <View
+    accessibilityLabel="Day"
     backgroundColor="transparent"
     collapsable={false}
     containerBackgroundColor="transparent"
@@ -77,6 +78,7 @@ exports[`DateDrumPicker snapshots matches day-month-year mode 1`] = `
     visibleItemCount={5}
   />
   <View
+    accessibilityLabel="Month"
     backgroundColor="transparent"
     collapsable={false}
     containerBackgroundColor="transparent"
@@ -121,6 +123,7 @@ exports[`DateDrumPicker snapshots matches day-month-year mode 1`] = `
     visibleItemCount={5}
   />
   <View
+    accessibilityLabel="Year"
     backgroundColor="transparent"
     collapsable={false}
     containerBackgroundColor="transparent"

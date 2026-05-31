@@ -3,8 +3,19 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import {
   DateDrumPicker,
   DrumPicker,
+  TimeDrumPicker,
   type DateDrumPickerValue,
+  type TimeDrumPickerValue,
 } from 'react-native-drum-picker';
+
+type CountryCode = 'us' | 'de' | 'jp' | 'uz';
+
+const COUNTRIES: Array<{ label: string; value: CountryCode }> = [
+  { label: 'United States', value: 'us' },
+  { label: 'Germany', value: 'de' },
+  { label: 'Japan', value: 'jp' },
+  { label: 'Uzbekistan', value: 'uz' },
+];
 
 const ITEM_HEIGHT = 44;
 const VISIBLE_COUNT = 5;
@@ -40,7 +51,14 @@ function useDebouncedCallback<T extends (...args: never[]) => void>(
 
 export default function App() {
   const [example, setExample] = useState<
-    'basic' | 'time' | 'hw' | 'date' | 'controlled' | 'debounce'
+    | 'basic'
+    | 'labeled'
+    | 'timepicker'
+    | 'time'
+    | 'hw'
+    | 'date'
+    | 'controlled'
+    | 'debounce'
   >('basic');
 
   const [sizeIndex, setSizeIndex] = useState(1);
@@ -49,6 +67,11 @@ export default function App() {
   const [heightIndex, setHeightIndex] = useState(75);
   const [weightIndex, setWeightIndex] = useState(90);
   const [controlledIndex, setControlledIndex] = useState(2);
+  const [country, setCountry] = useState<CountryCode>('uz');
+  const [time, setTime] = useState<TimeDrumPickerValue>({
+    hour: 9,
+    minute: 30,
+  });
   const [debouncedLog, setDebouncedLog] = useState('—');
   const [date, setDate] = useState<DateDrumPickerValue>({
     day: 10,
@@ -64,6 +87,8 @@ export default function App() {
     () =>
       [
         ['basic', 'Basic'],
+        ['labeled', 'Labeled'],
+        ['timepicker', 'TimePicker'],
         ['time', 'Time'],
         ['hw', 'Height / weight'],
         ['date', 'Date'],
@@ -105,6 +130,38 @@ export default function App() {
             style={styles.pickerW120}
           />
           <Text style={styles.value}>{SIZES[sizeIndex]}</Text>
+        </View>
+      )}
+
+      {example === 'labeled' && (
+        <View style={styles.section}>
+          <Text style={styles.label}>
+            Labeled items (label shown, value returned)
+          </Text>
+          <DrumPicker<CountryCode>
+            items={COUNTRIES}
+            selectedIndex={COUNTRIES.findIndex((c) => c.value === country)}
+            onChange={(e) => setCountry(e.nativeEvent.item)}
+            accessibilityLabel="Country"
+            style={styles.pickerW120}
+          />
+          <Text style={styles.value}>Selected code: {country}</Text>
+        </View>
+      )}
+
+      {example === 'timepicker' && (
+        <View style={styles.section}>
+          <Text style={styles.label}>TimeDrumPicker (12h, 15-min steps)</Text>
+          <TimeDrumPicker
+            mode="hour-minute-period"
+            value={time}
+            minuteInterval={15}
+            onChange={setTime}
+          />
+          <Text style={styles.value}>
+            {String(time.hour ?? 0).padStart(2, '0')}:
+            {String(time.minute ?? 0).padStart(2, '0')}
+          </Text>
         </View>
       )}
 

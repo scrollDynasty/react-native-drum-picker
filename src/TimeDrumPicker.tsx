@@ -75,6 +75,24 @@ export type TimeDrumPickerProps = {
   columnStyle?: StyleProp<ViewStyle>;
   columnStyles?: Partial<Record<TimeDrumPickerColumnKey, StyleProp<ViewStyle>>>;
   columnTestIDs?: Partial<Record<TimeDrumPickerColumnKey, string>>;
+  /**
+   * Accessibility labels per column. Defaults to `Hour` / `Minute` /
+   * `Second` / `AM/PM` so each wheel is distinguishable to assistive tech
+   * instead of all reading "Picker".
+   */
+  columnAccessibilityLabels?: Partial<
+    Record<TimeDrumPickerColumnKey, string>
+  >;
+};
+
+const DEFAULT_COLUMN_ACCESSIBILITY_LABELS: Record<
+  TimeDrumPickerColumnKey,
+  string
+> = {
+  hour: 'Hour',
+  minute: 'Minute',
+  second: 'Second',
+  period: 'AM/PM',
 };
 
 const COLUMN_ORDER: Record<TimeDrumPickerMode, TimeDrumPickerColumnKey[]> = {
@@ -129,6 +147,7 @@ export function TimeDrumPicker({
   columnStyle,
   columnStyles,
   columnTestIDs,
+  columnAccessibilityLabels,
 }: TimeDrumPickerProps) {
   const resolvedHourFormat = hourFormat ?? defaultHourFormat(mode);
   const normalizedMinuteInterval = useMemo(
@@ -262,11 +281,18 @@ export function TimeDrumPicker({
     columnStyles?.[column],
   ];
 
+  const columnAccessibilityLabel = (
+    column: TimeDrumPickerColumnKey
+  ): string =>
+    columnAccessibilityLabels?.[column] ??
+    DEFAULT_COLUMN_ACCESSIBILITY_LABELS[column];
+
   const renderHour = () => (
     <DrumPicker
       key="hour"
       {...sharedPickerProps}
       testID={columnTestIDs?.hour}
+      accessibilityLabel={columnAccessibilityLabel('hour')}
       style={columnContainerStyle('hour')}
       items={hourItems}
       selectedIndex={hourIndex(resolvedValue.hour, resolvedHourFormat)}
@@ -288,6 +314,7 @@ export function TimeDrumPicker({
       key="minute"
       {...sharedPickerProps}
       testID={columnTestIDs?.minute}
+      accessibilityLabel={columnAccessibilityLabel('minute')}
       style={columnContainerStyle('minute')}
       items={minuteItems}
       selectedIndex={minuteIndex(
@@ -309,6 +336,7 @@ export function TimeDrumPicker({
       key="second"
       {...sharedPickerProps}
       testID={columnTestIDs?.second}
+      accessibilityLabel={columnAccessibilityLabel('second')}
       style={columnContainerStyle('second')}
       items={secondItems}
       selectedIndex={minuteIndex(
@@ -330,6 +358,7 @@ export function TimeDrumPicker({
       key="period"
       {...sharedPickerProps}
       testID={columnTestIDs?.period}
+      accessibilityLabel={columnAccessibilityLabel('period')}
       style={columnContainerStyle('period')}
       items={periodItems}
       selectedIndex={periodIndex(resolvedValue.hour)}

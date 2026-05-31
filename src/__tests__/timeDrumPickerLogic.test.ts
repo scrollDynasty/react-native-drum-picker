@@ -89,6 +89,19 @@ describe('timeDrumPickerLogic', () => {
       expect(snapToInterval(59, 30)).toBe(30);
       expect(snapToInterval(58, 20)).toBe(40);
     });
+    it('rounds exact half-step ties down (matches docstring)', () => {
+      expect(snapToInterval(1, 2)).toBe(0); // 0.5 step -> down
+      expect(snapToInterval(3, 2)).toBe(2); // 1.5 step -> down
+      expect(snapToInterval(5, 10)).toBe(0); // 0.5 step -> down
+      expect(snapToInterval(15, 10)).toBe(10); // 1.5 step -> down
+      expect(snapToInterval(3, 6)).toBe(0); // 0.5 step -> down
+    });
+    it('still rounds clearly-closer values to the nearer mark', () => {
+      expect(snapToInterval(8, 15)).toBe(15);
+      expect(snapToInterval(7, 15)).toBe(0);
+      expect(snapToInterval(26, 10)).toBe(30);
+      expect(snapToInterval(24, 10)).toBe(20);
+    });
   });
 
   describe('to12Hour / from12Hour', () => {
