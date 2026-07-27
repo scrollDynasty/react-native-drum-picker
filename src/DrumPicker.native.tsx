@@ -257,11 +257,12 @@ export const DrumPickerNativeBase = forwardRef<
         return;
       }
       console.warn(
-        '[DrumPicker] still has zero height after ' +
-          `${ZERO_HEIGHT_GRACE_MS}ms — it is mounted but will never be visible. ` +
-          'Usual causes: a parent with height 0 that never expands, a `display: none` ancestor, ' +
-          'or a parent sized by content that has none. ' +
-          'Give the picker or one of its parents a real height. ' +
+        '[DrumPicker] has had zero height for ' +
+          `${ZERO_HEIGHT_GRACE_MS}ms, so nothing is visible yet. ` +
+          'Expected while a collapsing container is closed — the picker centres itself as soon ' +
+          'as it is laid out, so you can ignore this if the section is deliberately collapsed. ' +
+          'Otherwise the usual causes are a parent stuck at height 0, a `display: none` ' +
+          'ancestor, or a parent sized by content that has none. ' +
           'See "Common problems" in the README.'
       );
     }, ZERO_HEIGHT_GRACE_MS);

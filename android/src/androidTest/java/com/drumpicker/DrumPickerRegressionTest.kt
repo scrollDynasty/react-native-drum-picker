@@ -3,6 +3,9 @@ package com.drumpicker
 import androidx.test.core.app.ActivityScenario
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
+import com.facebook.react.bridge.JavaOnlyArray
+import com.facebook.react.bridge.JavaOnlyMap
+import com.facebook.react.uimanager.ReactStylesDiffMap
 import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
@@ -172,6 +175,46 @@ class DrumPickerRegressionTest {
       assertEquals("2026", readAfterFrame(scenario) { it.picker.centeredLabelForTesting() })
       assertEquals("range change must not emit onChange", emptyList<Int>(), emitted)
     }
+  }
+
+  /**
+   * The view-level tests above apply the setters in the worst possible order by hand. This one
+   * goes through [DrumPickerViewManager.updateProperties] instead, which is what Fabric actually
+   * calls — with a `ReactStylesDiffMap` whose backing HashMap has no meaningful iteration order.
+   */
+  @Test
+  fun viewManagerAppliesItemsBeforeSelectedIndex() {
+    ActivityScenario.launch(CollapsedTestActivity::class.java).use { scenario ->
+      val manager = DrumPickerViewManager()
+      val wide = (1926..2076).map(Int::toString)
+      val narrow = (1966..2031).map(Int::toString)
+
+      onUiThread(scenario) { activity ->
+        manager.updateProperties(activity.picker, styleProps(wide, wide.indexOf("2026")))
+        activity.picker.setItemHeightProp(CollapsedTestActivity.ITEM_HEIGHT_DP)
+        activity.picker.setVisibleItemCountProp(CollapsedTestActivity.VISIBLE_ITEM_COUNT)
+        activity.expand()
+      }
+      assertEquals("2026", readAfterFrame(scenario) { it.picker.centeredLabelForTesting() })
+
+      val emitted = CopyOnWriteArrayList<Int>()
+      onUiThread(scenario) { activity ->
+        activity.picker.changeEventListenerForTesting = { emitted.add(it) }
+        manager.updateProperties(activity.picker, styleProps(narrow, narrow.indexOf("2026")))
+      }
+
+      assertEquals("2026", readAfterFrame(scenario) { it.picker.centeredLabelForTesting() })
+      assertEquals("prop transaction must not emit onChange", emptyList<Int>(), emitted)
+    }
+  }
+
+  private fun styleProps(items: List<String>, selectedIndex: Int): ReactStylesDiffMap {
+    val array = JavaOnlyArray()
+    items.forEach { array.pushString(it) }
+    val map = JavaOnlyMap()
+    map.putArray("items", array)
+    map.putInt("selectedIndex", selectedIndex)
+    return ReactStylesDiffMap(map)
   }
 
   @Test

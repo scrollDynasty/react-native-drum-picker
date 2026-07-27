@@ -56,6 +56,11 @@ mounting, two-phase range changes and `onChange` suppression flags.
   and nothing re-centred.
 * **ios:** re-resolve the selection from the requested index on `setItems`, and reassert it in
   `layoutSubviews`, matching the Android behaviour for zero-size mounts and list swaps.
+* **android:** stop swallowing the user's `onChange` when they grab the wheel mid-animation. An
+  animated programmatic scroll armed change suppression until the wheel settled; a drag that
+  interrupted it settled under that same flag, so the row the user chose was applied silently.
+  Suppression is now released as soon as a drag starts, and is never armed when the target row is
+  already centred (no scroll would follow, so nothing would release it).
 * **DateDrumPicker:** clamp the year column's `selectedIndex` like the day and month columns.
 
 ### Features

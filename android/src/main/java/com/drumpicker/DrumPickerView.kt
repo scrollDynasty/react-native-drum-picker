@@ -122,6 +122,9 @@ class DrumPickerView @JvmOverloads constructor(
         when (newState) {
           RecyclerView.SCROLL_STATE_DRAGGING -> {
             notifyNativeGestureStartedIfNeeded()
+            // The user has taken the wheel over. Whatever programmatic animation was in flight is
+            // no longer responsible for where it lands, so stop suppressing the resulting change.
+            suppressChangeEvent = false
             lastChangingIndex = -1
             updateVisibleItemStyles()
           }
@@ -662,10 +665,21 @@ class DrumPickerView @JvmOverloads constructor(
     }
     val index = selectedIndex.coerceIn(0, items.size - 1)
     if (animated) {
+      val current = findSnapCenterIndex()
+      if (current == index && recyclerView.scrollState == RecyclerView.SCROLL_STATE_IDLE) {
+        // Already under the indicator. Arming suppression here would leave it latched: there is
+        // no scroll, so no SCROLL_STATE_IDLE transition would ever come to clear it.
+        if (emit) {
+          maybeEmitChange(index)
+        } else {
+          selectedIndex = index
+          lastEmittedIndex = index
+        }
+        return
+      }
       suppressChangeEvent = !emit
       // Smooth-scrolling across a long list binds every row in between, which drops frames on a
       // year wheel. Jump to just outside the animation window first and animate only the tail.
-      val current = findSnapCenterIndex()
       if (current != RecyclerView.NO_POSITION && abs(current - index) > MAX_ANIMATED_ROWS) {
         val approach =
           if (index > current) index - MAX_ANIMATED_ROWS else index + MAX_ANIMATED_ROWS
