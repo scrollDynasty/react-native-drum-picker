@@ -5,5 +5,9 @@
       android:name="com.drumpicker.TestActivity"
       android:exported="true"
       android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
+    <activity
+      android:name="com.drumpicker.CollapsedTestActivity"
+      android:exported="true"
+      android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
   </application>
 </manifest>

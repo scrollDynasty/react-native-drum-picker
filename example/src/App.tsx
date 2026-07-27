@@ -74,10 +74,16 @@ export default function App() {
     month: 9,
     year: 2026,
   });
-  const [bookingDate, setBookingDate] = useState<DateDrumPickerValue>({});
+  // One snapshot for both the value and the bounds: taking `new Date()` twice can straddle
+  // midnight and leave the controlled value a day below minDate, forcing a clamp on mount.
+  const today = useMemo(() => new Date(), []);
+  const [bookingDate, setBookingDate] = useState<DateDrumPickerValue>(() => ({
+    day: today.getDate(),
+    month: today.getMonth() + 1,
+    year: today.getFullYear(),
+  }));
 
   const bookingMinMax = useMemo(() => {
-    const today = new Date();
     const nextYear = new Date(today);
     nextYear.setFullYear(today.getFullYear() + 1);
     return {
@@ -92,7 +98,7 @@ export default function App() {
         year: nextYear.getFullYear(),
       },
     };
-  }, []);
+  }, [today]);
 
   const saveDebounced = useDebouncedCallback((value: string) => {
     setDebouncedLog(value);

@@ -126,6 +126,80 @@ final class DrumPickerWheelViewTests: XCTestCase {
     XCTAssertEqual(view.selectedIndexForTesting(), 2)
   }
 
+  // MARK: - Regression: mounting without a size (defect 1 / 5)
+
+  func testSelectionSurvivesMountInZeroHeightContainer() {
+    let collapsed = DrumPickerWheelView(frame: .zero)
+    collapsed.setItemHeight(44)
+    collapsed.setVisibleItemCount(5)
+    collapsed.setItems(["Alpha", "Beta", "Gamma", "Delta", "Echo", "Foxtrot", "Golf", "Hotel"])
+    collapsed.setSelectedIndex(7, animated: false)
+
+    // Container expands, exactly like an accordion opening.
+    collapsed.frame = CGRect(x: 0, y: 0, width: 200, height: 220)
+    collapsed.layoutIfNeeded()
+    RunLoop.main.run(until: Date(timeIntervalSinceNow: 0.05))
+
+    let wheel = collapsed.subviews.compactMap { $0 as? UIPickerView }.first!
+    XCTAssertEqual(wheel.selectedRow(inComponent: 0), 7)
+    XCTAssertEqual(collapsed.selectedIndexForTesting(), 7)
+  }
+
+  // MARK: - Regression: items swap (defect 3)
+
+  func testGrowingItemsKeepsSelectedValueAndStaysSilent() {
+    let delegate = MockWheelDelegate()
+    let years = (1966...2031).map(String.init)
+    let wider = (1926...2076).map(String.init)
+
+    view.setItems(years)
+    view.setSelectedIndex(years.firstIndex(of: "2026")!, animated: false)
+    view.layoutIfNeeded()
+    RunLoop.main.run(until: Date(timeIntervalSinceNow: 0.05))
+    view.wheelDelegate = delegate
+
+    view.setItems(wider)
+    view.setSelectedIndex(wider.firstIndex(of: "2026")!, animated: false)
+    RunLoop.main.run(until: Date(timeIntervalSinceNow: 0.05))
+
+    XCTAssertEqual(picker.selectedRow(inComponent: 0), wider.firstIndex(of: "2026"))
+    XCTAssertEqual(delegate.userInitiatedCount, 0)
+  }
+
+  func testShrinkingItemsKeepsSelectedValueWhenIndexArrivesFirst() {
+    let wide = (1926...2076).map(String.init)
+    let narrow = (1966...2031).map(String.init)
+
+    view.setItems(wide)
+    view.setSelectedIndex(wide.firstIndex(of: "2026")!, animated: false)
+    view.layoutIfNeeded()
+    RunLoop.main.run(until: Date(timeIntervalSinceNow: 0.05))
+
+    // Index applied while the wide list is still installed — clamping it against the stale list
+    // is what used to move the selected year.
+    view.setSelectedIndex(narrow.firstIndex(of: "2026")!, animated: false)
+    view.setItems(narrow)
+    RunLoop.main.run(until: Date(timeIntervalSinceNow: 0.05))
+
+    XCTAssertEqual(picker.selectedRow(inComponent: 0), narrow.firstIndex(of: "2026"))
+    XCTAssertEqual(view.selectedIndexForTesting(), narrow.firstIndex(of: "2026"))
+  }
+
+  func testDependentColumnItemsChangeKeepsSelection() {
+    let july = (1...31).map(String.init)
+    let june = (1...30).map(String.init)
+
+    view.setItems(july)
+    view.setSelectedIndex(25, animated: false) // day 26
+    view.layoutIfNeeded()
+    RunLoop.main.run(until: Date(timeIntervalSinceNow: 0.05))
+
+    view.setItems(june)
+    RunLoop.main.run(until: Date(timeIntervalSinceNow: 0.05))
+
+    XCTAssertEqual(picker.selectedRow(inComponent: 0), 25)
+  }
+
   func testTapIgnoredWhenDisabled() {
     view.setSelectedIndex(2, animated: false)
     view.setEnableScrollByTapOnItem(false)

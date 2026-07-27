@@ -5,6 +5,86 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.0](https://github.com/scrollDynasty/react-native-drum-picker/compare/v0.2.4...v0.3.0) (2026-07-27)
+
+Fixes the integration defects that forced consumers to work around the picker with delayed
+mounting, two-phase range changes and `onChange` suppression flags.
+
+### ⚠ BREAKING CHANGES
+
+* **types:** `DateDrumPickerValue` now requires `day`, `month` and `year`. A partial value passed to
+  `DateDrumPicker.value` silently fell back to today's date for the missing fields. Use the new
+  `DateDrumPickerPartialValue` where an incomplete date is intentional — `scrollToDate` and
+  `clampDateDrumPickerValue` both accept it. Migration: `useState<DateDrumPickerValue>({})` becomes
+  an explicit `{ day, month, year }`.
+* **android:** changing `items` now restores the selected **value** instead of the scroll position,
+  and no longer emits `onChange`. Code that relied on the old drift (or on the spurious event) will
+  see different behaviour.
+
+### Bug Fixes
+
+* **android:** put the selected row under the selection indicator instead of
+  `(visibleItemCount - 1) / 2` rows below it. `scrollToPositionWithOffset` measures its offset from
+  the layout manager's start *after padding*, but the offset was computed from the viewport centre
+  as if padding did not exist — and the picker reserves exactly that many rows of top padding. The
+  wheel therefore showed a row two positions early at the default `visibleItemCount = 5`. It went
+  unnoticed because the old code then forced `selectedIndex` to the requested value regardless of
+  where the wheel had actually landed, which is why the reported symptom was "JS state is correct,
+  only the rendering disagrees".
+* **android:** center on `selectedIndex` when the picker mounts without a size. Centering was
+  scheduled through nested `post` calls and computed its offset from a height that was still `0`,
+  so a picker mounted in a collapsed container stayed on index 0. The request is now parked and
+  flushed from `onLayout`, where the real height is known.
+* **android:** draw the rows around the selection after a programmatic scroll.
+  `scrollToPositionWithOffset` only parks an anchor and calls `requestLayout()`; React Native's
+  root view does not lay out native children, so the anchor went unused and the wheel was left
+  with just the centre row until the user dragged it.
+* **android:** keep the selected value when `items` or the date range changes.
+  `selectedIndex` was clamped against the list it was replacing — Fabric applies props in
+  arbitrary order — which permanently moved the selection. The raw requested index is now kept and
+  re-resolved against the new list, and `DrumPickerViewManager` applies size, list and position
+  props in a fixed order.
+* **android:** never emit `onChange` while props are being applied, so a controlled parent no
+  longer needs a ref flag to mute events during reconfiguration.
+* **android:** hand the touch sequence to React Native via `NativeGestureUtil` when the wheel
+  starts scrolling and back when it settles, so the JS responder system stops competing for it.
+  This is what makes the wheel spin inside a `Modal`, where
+  `DialogRootViewGroup.requestDisallowInterceptTouchEvent` is an empty method and the usual signal
+  is discarded.
+* **android:** re-centre when `itemHeight` or `visibleItemCount` changes. Both feed the centering
+  offset while often leaving the picker's own bounds untouched, so `onLayout` reported no change
+  and nothing re-centred.
+* **ios:** re-resolve the selection from the requested index on `setItems`, and reassert it in
+  `layoutSubviews`, matching the Android behaviour for zero-size mounts and list swaps.
+* **android:** stop swallowing the user's `onChange` when they grab the wheel mid-animation. An
+  animated programmatic scroll armed change suppression until the wheel settled; a drag that
+  interrupted it settled under that same flag, so the row the user chose was applied silently.
+  Suppression is now released as soon as a drag starts, and is never armed when the target row is
+  already centred (no scroll would follow, so nothing would release it).
+* **DateDrumPicker:** clamp the year column's `selectedIndex` like the day and month columns.
+
+### Features
+
+* **dev:** warn in `__DEV__` about empty `items`, an out-of-range `selectedIndex` that outlives a
+  render, and a picker still measuring zero after ~1.5s.
+* **docs:** new "Common problems" section covering hidden containers, `Modal`, dependent columns
+  and controlled usage, with an "open on the current date" example.
+
+### Verification
+
+Fixes were derived from React Native 0.86's own layout and touch plumbing —
+`ReactViewGroup.requestLayout()` and `ReactViewGroup.onLayout()` are both empty, and
+`DialogRootViewGroup.requestDisallowInterceptTouchEvent` likewise — which is why the picker now
+drives the RecyclerView's measure/layout itself and hands gestures over explicitly.
+
+The JS suite and a standalone compile against RN 0.86 both pass. `DrumPickerRegressionTest` ran on
+an emulator in CI and caught the centering-offset bug above, which every pre-existing test had
+missed because they only asserted the *reported* index and never the row actually sitting under the
+indicator.
+
+Still unverified: the iOS `DrumPickerWheelViewTests` additions, and the reporter's `Modal` scenario
+on a device.
+
 ## [0.2.4](https://github.com/scrollDynasty/react-native-drum-picker/compare/v0.2.3...v0.2.4) (2026-05-28)
 
 

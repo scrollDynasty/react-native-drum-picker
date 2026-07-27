@@ -41,6 +41,10 @@ public final class DrumPickerWheelView: UIView, UIPickerViewDataSource, UIPicker
 
   private var items: [String] = []
   private var selectedIndex: Int = 0
+
+  /// Last index JS asked for, kept unclamped so `setItems` can re-resolve the *value* rather than
+  /// preserving the scroll position. Mirrors `requestedSelectedIndex` on Android.
+  private var requestedSelectedIndex: Int = 0
   private var suppressSelectionEvents = false
   private var isProgrammaticSelection = false
   private var lastSelectedIndex = -1
@@ -174,8 +178,25 @@ public final class DrumPickerWheelView: UIView, UIPickerViewDataSource, UIPicker
     updatePickerFrame()
     updateIndicators()
     attachPickerScrollViewIfNeeded()
+    reapplySelectionIfDrifted()
     if picker.accessibilityIdentifier != accessibilityIdentifier {
       picker.accessibilityIdentifier = accessibilityIdentifier
+    }
+  }
+
+  /// Re-centres the wheel once the view finally has a size.
+  ///
+  /// Mounting inside a collapsed container means `selectRow` runs against a zero-height picker;
+  /// UIKit can drop that selection when the real frame arrives. Reasserting it on layout is
+  /// idempotent — `selectedIndex` tracks whatever the user last spun to — and is the iOS
+  /// counterpart of the pending-centre flush Android does in `onLayout`.
+  private func reapplySelectionIfDrifted() {
+    guard !items.isEmpty, bounds.height > 0 else { return }
+    let target = min(max(selectedIndex, 0), items.count - 1)
+    guard picker.selectedRow(inComponent: 0) != target else { return }
+    performProgrammaticUpdate {
+      self.picker.selectRow(target, inComponent: 0, animated: false)
+      self.lastSelectedIndex = target
     }
   }
 
@@ -275,7 +296,9 @@ public final class DrumPickerWheelView: UIView, UIPickerViewDataSource, UIPicker
         self.lastSelectedIndex = -1
         return
       }
-      let clamped = min(max(self.selectedIndex, 0), self.items.count - 1)
+      // Re-resolve from the raw request, not from where the wheel currently sits: a list swap
+      // must keep the selected value even when the index was clamped against the old list.
+      let clamped = min(max(self.requestedSelectedIndex, 0), self.items.count - 1)
       self.selectedIndex = clamped
       self.picker.selectRow(clamped, inComponent: 0, animated: false)
       self.lastSelectedIndex = clamped
@@ -286,6 +309,7 @@ public final class DrumPickerWheelView: UIView, UIPickerViewDataSource, UIPicker
   }
 
   @objc public func setSelectedIndex(_ index: Int, animated: Bool) {
+    requestedSelectedIndex = max(index, 0)
     applySelectedIndex(index, animated: animated, userInitiated: false)
   }
 
@@ -409,6 +433,7 @@ public final class DrumPickerWheelView: UIView, UIPickerViewDataSource, UIPicker
       if clamped == lastSelectedIndex {
         return
       }
+      requestedSelectedIndex = clamped
       picker.selectRow(clamped, inComponent: 0, animated: animated)
       lastSelectedIndex = clamped
       notifySelection(row: clamped, userInitiated: true)
@@ -494,6 +519,8 @@ public final class DrumPickerWheelView: UIView, UIPickerViewDataSource, UIPicker
     }
 
     selectedIndex = row
+    // The wheel is the source of truth once the user has spun it.
+    requestedSelectedIndex = row
     lastSelectedIndex = row
     pickerView.reloadComponent(0)
     notifySelection(row: row, userInitiated: true)
@@ -518,6 +545,7 @@ public final class DrumPickerWheelView: UIView, UIPickerViewDataSource, UIPicker
     isProgrammaticSelection = true
     picker.selectRow(center, inComponent: 0, animated: false)
     selectedIndex = center
+    requestedSelectedIndex = center
     lastSelectedIndex = center
     DispatchQueue.main.async {
       self.isProgrammaticSelection = false
@@ -535,6 +563,7 @@ public final class DrumPickerWheelView: UIView, UIPickerViewDataSource, UIPicker
     isProgrammaticSelection = true
     picker.selectRow(center, inComponent: 0, animated: animated)
     selectedIndex = center
+    requestedSelectedIndex = center
     lastSelectedIndex = center
     DispatchQueue.main.async {
       self.isProgrammaticSelection = false

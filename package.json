@@ -1,6 +1,6 @@
 {
   "name": "react-native-drum-picker",
-  "version": "0.2.4",
+  "version": "0.3.0",
   "description": "Cross-platform native drum/wheel picker for React Native (Fabric)",
   "main": "./lib/module/index.js",
   "module": "./lib/module/index.js",
