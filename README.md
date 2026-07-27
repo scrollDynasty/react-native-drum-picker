@@ -759,10 +759,11 @@ picker now also calls `NativeGestureUtil.notifyNativeGestureStarted`, which rout
 `onChildStartedNativeGesture` — the one channel that still reaches the touch dispatcher inside a
 dialog root.
 
-> **Caveat:** this was fixed by analysis of React Native 0.86's own layout and touch plumbing, not
-> by a reproduction on a device — the reporter's original scenario was never re-run. If `Modal`
-> still misbehaves for you, please open an issue with your RN version; the alternatives below are
-> known-good either way.
+> **Caveat:** this was derived from React Native 0.86's own layout and touch plumbing, not from a
+> reproduction on a device — the reporter's original scenario was never re-run inside a `Modal`.
+> The underlying centering fix is covered by instrumented tests, the gesture handoff is not. If
+> `Modal` still misbehaves for you, please open an issue with your RN version; the alternatives
+> below are known-good either way.
 
 If you would rather not depend on it, any of these avoids the extra window entirely:
 

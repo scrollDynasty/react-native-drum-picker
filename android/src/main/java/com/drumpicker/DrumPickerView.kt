@@ -323,8 +323,10 @@ class DrumPickerView @JvmOverloads constructor(
     val holder = recyclerView.findViewHolderForAdapterPosition(position)
     if (holder == null) {
       if (recyclerView.height > 0) {
-        val centerOffset = ((recyclerView.height - itemHeightPx) / 2).coerceAtLeast(0)
-        layoutManager.scrollToPositionWithOffset(position, centerOffset)
+        layoutManager.scrollToPositionWithOffset(
+          position,
+          centerOffsetForViewport(recyclerView.height),
+        )
       } else {
         layoutManager.scrollToPosition(position)
       }
@@ -712,8 +714,7 @@ class DrumPickerView @JvmOverloads constructor(
    * during layout" every time this runs from [onLayout].
    */
   private fun applyCenterAnchor(index: Int, width: Int, height: Int) {
-    val centerOffset = ((height - itemHeightPx) / 2).coerceAtLeast(0)
-    layoutManager.scrollToPositionWithOffset(index, centerOffset)
+    layoutManager.scrollToPositionWithOffset(index, centerOffsetForViewport(height))
     if (recyclerView.isComputingLayout) {
       // The in-flight pass will pick the anchor up; re-entering layout here would throw.
       return
@@ -725,6 +726,22 @@ class DrumPickerView @JvmOverloads constructor(
     )
     recyclerView.layout(0, 0, width, height)
   }
+
+  /**
+   * Offset to pass to [LinearLayoutManager.scrollToPositionWithOffset] so the row lands under the
+   * selection indicator.
+   *
+   * That offset is measured from the layout manager's start *after padding*, not from the top of
+   * the view. [applyRecyclerPadding] reserves `itemHeight * (visibleItemCount - 1) / 2` at the
+   * top, so an offset computed straight from the viewport centre pushes the anchor that many rows
+   * too low — the wheel then shows a row `(visibleItemCount - 1) / 2` earlier than the selected
+   * one. Subtracting the padding cancels it out; for the natural height the result is 0.
+   *
+   * The result may legitimately be negative when the container is shorter than
+   * `itemHeight * visibleItemCount`, so it is deliberately not clamped.
+   */
+  private fun centerOffsetForViewport(height: Int): Int =
+    (height - itemHeightPx) / 2 - recyclerView.paddingTop
 
   private fun updateCenterFromSnap() {
     if (!isLifecycleActive() || items.isEmpty()) {

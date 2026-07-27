@@ -23,6 +23,14 @@ mounting, two-phase range changes and `onChange` suppression flags.
 
 ### Bug Fixes
 
+* **android:** put the selected row under the selection indicator instead of
+  `(visibleItemCount - 1) / 2` rows below it. `scrollToPositionWithOffset` measures its offset from
+  the layout manager's start *after padding*, but the offset was computed from the viewport centre
+  as if padding did not exist — and the picker reserves exactly that many rows of top padding. The
+  wheel therefore showed a row two positions early at the default `visibleItemCount = 5`. It went
+  unnoticed because the old code then forced `selectedIndex` to the requested value regardless of
+  where the wheel had actually landed, which is why the reported symptom was "JS state is correct,
+  only the rendering disagrees".
 * **android:** center on `selectedIndex` when the picker mounts without a size. Centering was
   scheduled through nested `post` calls and computed its offset from a height that was still `0`,
   so a picker mounted in a collapsed container stayed on index 0. The request is now parked and
@@ -64,12 +72,13 @@ Fixes were derived from React Native 0.86's own layout and touch plumbing —
 `DialogRootViewGroup.requestDisallowInterceptTouchEvent` likewise — which is why the picker now
 drives the RecyclerView's measure/layout itself and hands gestures over explicitly.
 
-The JS suite and a standalone compile against RN 0.86 both pass. The Android instrumented tests
-(`DrumPickerRegressionTest`) and the iOS `DrumPickerWheelViewTests` additions ship with this
-release but were **not executed** in the environment the fix was written in, and the reporter's
-`Modal` scenario was not re-run on a device. Run
-`./gradlew :react-native-drum-picker:connectedDebugAndroidTest` before trusting the Android
-behaviour blind.
+The JS suite and a standalone compile against RN 0.86 both pass. `DrumPickerRegressionTest` ran on
+an emulator in CI and caught the centering-offset bug above, which every pre-existing test had
+missed because they only asserted the *reported* index and never the row actually sitting under the
+indicator.
+
+Still unverified: the iOS `DrumPickerWheelViewTests` additions, and the reporter's `Modal` scenario
+on a device.
 
 ## [0.2.4](https://github.com/scrollDynasty/react-native-drum-picker/compare/v0.2.3...v0.2.4) (2026-05-28)
 
