@@ -21,6 +21,7 @@ import {
   buildYearItems,
   clampDateDrumPickerValue,
   type DateDrumPickerMonthFormat,
+  type DateDrumPickerPartialValue,
   type DateDrumPickerValue,
 } from './dateDrumPickerLogic';
 import { DrumPicker } from './DrumPicker.native';
@@ -41,7 +42,11 @@ export type DateDrumPickerMode =
   | 'month-day-year'
   | 'year-month-day';
 
-export type { DateDrumPickerMonthFormat, DateDrumPickerValue };
+export type {
+  DateDrumPickerMonthFormat,
+  DateDrumPickerPartialValue,
+  DateDrumPickerValue,
+};
 export {
   clampDateDrumPickerValue,
   getDaysInMonth,
@@ -55,6 +60,11 @@ export type DateDrumPickerColumnKey = 'day' | 'month' | 'year';
 
 export type DateDrumPickerProps = {
   mode?: DateDrumPickerMode;
+  /**
+   * Controlled value. Must be complete — `{ day, month, year }`. Passing it is enough to position
+   * every column; no ref call is needed, including when the picker mounts inside a container that
+   * is collapsed or not yet measured.
+   */
   value?: DateDrumPickerValue;
   onChange?: (value: DateDrumPickerValue) => void;
   /**
@@ -208,7 +218,7 @@ export const DateDrumPicker = forwardRef<
   }, [minDate, maxDate, minYearProp, maxYearProp]);
 
   const clampValue = useCallback(
-    (input: DateDrumPickerValue | undefined) => {
+    (input: DateDrumPickerPartialValue | undefined) => {
       const calendar = clampDateDrumPickerValue(input ?? {}, minYear, maxYear);
       return clampToConstraints(calendar, constraints);
     },
@@ -302,9 +312,7 @@ export const DateDrumPicker = forwardRef<
       return;
     }
     const clamped = clampValue(value);
-    const day = value.day ?? clamped.day;
-    const month = value.month ?? clamped.month;
-    const year = value.year ?? clamped.year;
+    const { day, month, year } = value;
     if (
       day === clamped.day &&
       month === clamped.month &&
@@ -524,7 +532,10 @@ export const DateDrumPicker = forwardRef<
         testID={columnTestIDs?.year}
         style={columnContainerStyle('year')}
         items={yearItems}
-        selectedIndex={resolvedValue.year - minYear}
+        selectedIndex={Math.min(
+          Math.max(resolvedValue.year - minYear, 0),
+          Math.max(yearItems.length - 1, 0)
+        )}
         onChange={(event: NativeSyntheticEvent<DrumPickerChangeEvent>) => {
           const year = minYear + event.nativeEvent.index;
           emitChange({ year });

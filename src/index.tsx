@@ -27,6 +27,7 @@ export type {
   DateDrumPickerColumnKey,
   DateDrumPickerMode,
   DateDrumPickerMonthFormat,
+  DateDrumPickerPartialValue,
   DateDrumPickerProps,
   DateDrumPickerValue,
 } from './DateDrumPicker';

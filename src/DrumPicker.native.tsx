@@ -7,7 +7,7 @@ import {
   useState,
 } from 'react';
 import type { ElementRef, ReactElement, RefAttributes } from 'react';
-import type { NativeSyntheticEvent } from 'react-native';
+import type { LayoutChangeEvent, NativeSyntheticEvent } from 'react-native';
 import DrumPickerNative from './DrumPickerViewNativeComponent';
 import { DrumPickerWithRenderItem } from './DrumPickerWithRenderItem';
 import { resolveDrumPickerStyle } from './drumPickerLayout';
@@ -38,6 +38,9 @@ const DEFAULTS = {
 
 const CIRCULAR_MULTIPLIER_SMALL_LIST = 200;
 const CIRCULAR_MULTIPLIER_LARGE_LIST = 100;
+
+/** Zero height for this long means the picker is mounted somewhere it will never be measured. */
+const ZERO_HEIGHT_GRACE_MS = 1500;
 
 function clampIndex(index: number, itemCount: number): number {
   if (itemCount <= 0) {
@@ -203,6 +206,68 @@ export const DrumPickerNativeBase = forwardRef<
     }
   }, [pickerGroup, pickerName]);
 
+  const diagnosticsRef = useRef({
+    itemCount: labels.length,
+    index: resolvedSelectedIndex,
+  });
+  diagnosticsRef.current = {
+    itemCount: labels.length,
+    index: resolvedSelectedIndex,
+  };
+
+  useEffect(() => {
+    if (!__DEV__) {
+      return;
+    }
+    // A shrinking `items` list legitimately leaves selectedIndex out of range for the single
+    // render before the parent recomputes it, so only report a mismatch that outlives the tick.
+    const timer = setTimeout(() => {
+      const { itemCount, index } = diagnosticsRef.current;
+      if (itemCount === 0) {
+        console.warn(
+          '[DrumPicker] `items` is empty, so the picker renders nothing. ' +
+            'Render the picker only once you have items, or pass a non-empty array.'
+        );
+        return;
+      }
+      if (index < 0 || index > itemCount - 1) {
+        console.warn(
+          `[DrumPicker] selectedIndex ${index} is outside 0..${itemCount - 1}; ` +
+            `showing index ${clampIndex(index, itemCount)} instead. ` +
+            'Recompute selectedIndex whenever `items` changes.'
+        );
+      }
+    }, 0);
+    return () => clearTimeout(timer);
+  }, [labels.length, resolvedSelectedIndex]);
+
+  const hasMeasuredRef = useRef(false);
+  const handleLayout = useCallback((event: LayoutChangeEvent) => {
+    if (event.nativeEvent.layout.height > 0) {
+      hasMeasuredRef.current = true;
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!__DEV__) {
+      return;
+    }
+    const timer = setTimeout(() => {
+      if (hasMeasuredRef.current) {
+        return;
+      }
+      console.warn(
+        '[DrumPicker] still has zero height after ' +
+          `${ZERO_HEIGHT_GRACE_MS}ms — it is mounted but will never be visible. ` +
+          'Usual causes: a parent with height 0 that never expands, a `display: none` ancestor, ' +
+          'or a parent sized by content that has none. ' +
+          'Give the picker or one of its parents a real height. ' +
+          'See "Common problems" in the README.'
+      );
+    }, ZERO_HEIGHT_GRACE_MS);
+    return () => clearTimeout(timer);
+  }, []);
+
   useEffect(() => {
     if (!pickerGroup || !pickerName) {
       return;
@@ -291,6 +356,7 @@ export const DrumPickerNativeBase = forwardRef<
       ref={nativeRef}
       {...(testID != null ? { testID } : {})}
       collapsable={false}
+      onLayout={handleLayout}
       items={nativeItems}
       selectedIndex={nativeSelectedIndex}
       circular={isCircular}

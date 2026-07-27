@@ -24,31 +24,48 @@ class DrumPickerViewManager :
     DrumPickerView(context)
 
   override fun updateProperties(view: DrumPickerView, props: ReactStylesDiffMap) {
-    for ((key, value) in props.toMap()) {
-      when (key) {
-        "items" -> view.setItemsProp(value)
-        "scrollAnimated" -> view.setScrollAnimatedProp(value)
-        "selectedIndex" -> view.setSelectedIndexProp(value)
-        "itemHeight" -> view.setItemHeightProp(value)
-        "visibleItemCount" -> view.setVisibleItemCountProp(value)
-        "textColor" -> view.setTextColorProp(value)
-        "selectedTextColor" -> view.setSelectedTextColorProp(value)
-        "textSize" -> view.setTextSizeProp(value)
-        "selectedTextSize" -> view.setSelectedTextSizeProp(value)
-        "showSelectionIndicator" -> view.setShowSelectionIndicatorProp(value)
-        "selectionIndicatorColor" -> view.setSelectionIndicatorColorProp(value)
-        "selectionIndicatorHeight" -> view.setSelectionIndicatorHeightProp(value)
-        "backgroundColor" -> view.setBackgroundColorProp(value)
-        "containerBackgroundColor" -> view.setContainerBackgroundColorProp(value)
-        "itemBackgroundColor" -> view.setItemBackgroundColorProp(value)
-        "hapticFeedback" -> view.setHapticFeedbackProp(value)
-        "circular" -> view.setCircularProp(value)
-        "enableScrollByTapOnItem" -> view.setEnableScrollByTapOnItemProp(value)
-        "onValueChangingEnabled" -> view.setOnValueChangingEnabledProp(value)
-        else -> delegate.setProperty(view, key, value)
+    val map = props.toMap()
+    // `props.toMap()` is a HashMap: iterating it applies props in an arbitrary order, so
+    // `selectedIndex` could land while the previous `items` list was still installed. Row metrics
+    // first (they decide the centering offset), then the list, then the position.
+    for (key in ORDERED_PROPS) {
+      if (!map.containsKey(key)) {
+        continue
       }
+      applyProp(view, key, map[key])
+    }
+    for ((key, value) in map) {
+      if (key in ORDERED_PROPS) {
+        continue
+      }
+      applyProp(view, key, value)
     }
     onAfterUpdateTransaction(view)
+  }
+
+  private fun applyProp(view: DrumPickerView, key: String, value: Any?) {
+    when (key) {
+      "items" -> view.setItemsProp(value)
+      "scrollAnimated" -> view.setScrollAnimatedProp(value)
+      "selectedIndex" -> view.setSelectedIndexProp(value)
+      "itemHeight" -> view.setItemHeightProp(value)
+      "visibleItemCount" -> view.setVisibleItemCountProp(value)
+      "textColor" -> view.setTextColorProp(value)
+      "selectedTextColor" -> view.setSelectedTextColorProp(value)
+      "textSize" -> view.setTextSizeProp(value)
+      "selectedTextSize" -> view.setSelectedTextSizeProp(value)
+      "showSelectionIndicator" -> view.setShowSelectionIndicatorProp(value)
+      "selectionIndicatorColor" -> view.setSelectionIndicatorColorProp(value)
+      "selectionIndicatorHeight" -> view.setSelectionIndicatorHeightProp(value)
+      "backgroundColor" -> view.setBackgroundColorProp(value)
+      "containerBackgroundColor" -> view.setContainerBackgroundColorProp(value)
+      "itemBackgroundColor" -> view.setItemBackgroundColorProp(value)
+      "hapticFeedback" -> view.setHapticFeedbackProp(value)
+      "circular" -> view.setCircularProp(value)
+      "enableScrollByTapOnItem" -> view.setEnableScrollByTapOnItemProp(value)
+      "onValueChangingEnabled" -> view.setOnValueChangingEnabledProp(value)
+      else -> delegate.setProperty(view, key, value)
+    }
   }
 
   override fun setItems(view: DrumPickerView?, value: ReadableArray?) {
@@ -129,5 +146,16 @@ class DrumPickerViewManager :
 
   companion object {
     const val NAME = "DrumPickerView"
+
+    /** Props whose relative order matters; everything else follows in map order. */
+    private val ORDERED_PROPS =
+      listOf(
+        "itemHeight",
+        "visibleItemCount",
+        "circular",
+        "items",
+        "scrollAnimated",
+        "selectedIndex",
+      )
   }
 }

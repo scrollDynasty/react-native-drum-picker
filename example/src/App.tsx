@@ -74,7 +74,14 @@ export default function App() {
     month: 9,
     year: 2026,
   });
-  const [bookingDate, setBookingDate] = useState<DateDrumPickerValue>({});
+  const [bookingDate, setBookingDate] = useState<DateDrumPickerValue>(() => {
+    const today = new Date();
+    return {
+      day: today.getDate(),
+      month: today.getMonth() + 1,
+      year: today.getFullYear(),
+    };
+  });
 
   const bookingMinMax = useMemo(() => {
     const today = new Date();

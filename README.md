@@ -695,6 +695,112 @@ Backgrounds are **transparent by default**. Only text and optional indicator lin
 
 Use an **odd** `visibleItemCount` (e.g. `5`) for a symmetric wheel.
 
+## Common problems
+
+### Opening the picker on a given date
+
+The most frequent case: a section that renders the picker only while it is open, and wants it to
+open already showing a date. A controlled `value` is all you need — no ref calls, no delayed
+mounting, no `key` remount.
+
+```tsx
+const [open, setOpen] = useState(false);
+const [date, setDate] = useState({ day: 26, month: 7, year: 2026 });
+
+return (
+  <>
+    <Button title="Pick a date" onPress={() => setOpen(true)} />
+    {open ? (
+      <DateDrumPicker
+        mode="day-month-year"
+        locale="ru"
+        value={date}
+        onChange={setDate}
+        minDate={{ day: 1, month: 1, year: 1966 }}
+        maxDate={{ day: 31, month: 12, year: 2031 }}
+        itemHeight={44}
+        visibleItemCount={5}
+      />
+    ) : null}
+  </>
+);
+```
+
+On open the wheel sits on `26 июль 2026` with its neighbours (24, 25, **26**, 27, 28) already
+drawn, and `onChange` stays silent until the user actually spins something.
+
+### Mounting inside a hidden or zero-height container
+
+Accordions, bottom sheets and `{isOpen ? <Picker/> : null}` all mount the picker before it has a
+size. Since **0.3.0** the picker parks its centering request and applies it the moment it is first
+laid out, so this works out of the box. Two things still matter:
+
+- the container must eventually reach a non-zero height — an ancestor stuck at `height: 0`, or
+  `display: 'none'`, means the picker is never measured and never becomes visible. In `__DEV__` the
+  picker warns about this after ~1.5s;
+- keep `value` / `selectedIndex` controlled across the open/close cycle; do not reset it to `0`
+  while the section is collapsed.
+
+### Inside a React Native `<Modal>`
+
+Up to 0.2.4 the picker was effectively unusable inside `Modal`: rows clipped, offset from the
+selection indicator, and swiping did nothing. Both halves of that are addressed in **0.3.0**, for
+reasons worth spelling out because they explain the rest of this section too.
+
+**Layout.** `Modal` hosts its children in a separate Android window under `DialogRootViewGroup`,
+whose size only reaches the shadow tree asynchronously (`onSizeChanged` → state update → new mount
+transaction). So the picker is mounted, laid out at height 0, and only gets real bounds several
+frames later — the same situation as a collapsed accordion, just slower. The 0.3.0 centering fix is
+layout-driven and applies whenever the real height arrives, however late that is.
+
+**Gestures.** `DialogRootViewGroup.requestDisallowInterceptTouchEvent` is an empty method, so the
+usual "this gesture is mine" signal a scrolling view sends to its ancestors is discarded there. The
+picker now also calls `NativeGestureUtil.notifyNativeGestureStarted`, which routes through
+`onChildStartedNativeGesture` — the one channel that still reaches the touch dispatcher inside a
+dialog root.
+
+> **Caveat:** this was fixed by analysis of React Native 0.86's own layout and touch plumbing, not
+> by a reproduction on a device — the reporter's original scenario was never re-run. If `Modal`
+> still misbehaves for you, please open an issue with your RN version; the alternatives below are
+> known-good either way.
+
+If you would rather not depend on it, any of these avoids the extra window entirely:
+
+- an absolutely positioned overlay `View` inside your normal screen tree;
+- a bottom-sheet library that renders into the same root (`@gorhom/bottom-sheet`,
+  `react-native-modalize`);
+- a dedicated screen / route.
+
+```tsx
+// instead of <Modal> …
+{open ? (
+  <View style={StyleSheet.absoluteFill} pointerEvents="box-none">
+    <Pressable style={StyleSheet.absoluteFill} onPress={() => setOpen(false)} />
+    <View style={styles.sheet}>
+      <DateDrumPicker value={date} onChange={setDate} />
+    </View>
+  </View>
+) : null}
+```
+
+### Dependent columns (days in month, ranges that change)
+
+Changing `items` — a shorter month, a widened year range, a new `minDate`/`maxDate` — keeps the
+**selected value**, not the scroll position, and does not emit `onChange`. You do not need a ref
+flag to suppress events while reconfiguring props, and you do not need to widen the range in two
+phases.
+
+If the selected value falls outside the new range it is clamped: the year to
+`minDate.year…maxDate.year`, then the month to that year's allowed months, then the day to that
+month's length. A clamp caused by *your* value being out of range does emit `onChange`, once, so
+controlled parents can store the corrected value.
+
+### Controlled usage
+
+`value` is authoritative on every render. `onChange` fires only for user input, an explicit
+`scrollToDate` / `scrollToIndex` call, or the clamp described above — never as a side effect of
+changing other props.
+
 ## Troubleshooting
 
 | Issue                                 | What to try                                                                                                                           |
@@ -704,7 +810,10 @@ Use an **odd** `visibleItemCount` (e.g. `5`) for a symmetric wheel.
 | Gradle / build errors                 | `cd android && ./gradlew clean` (Windows: `.\gradlew clean`)                                                                          |
 | `adb` not found                       | Install Android SDK Platform-Tools; add to `PATH`                                                                                     |
 | Empty or white picker                 | Enable New Architecture; upgrade to **0.1.5+** for layout defaults; or set `style={{ width, height: itemHeight * visibleItemCount }}` |
-| Wrong initial row / off-center        | Upgrade to **0.1.5+**; avoid `key` remount hacks unless needed for other reasons                                                      |
+| Wrong initial row / off-center        | Upgrade to **0.3.0+**; see [Mounting inside a hidden or zero-height container](#mounting-inside-a-hidden-or-zero-height-container)     |
+| Only the centre row is drawn          | Upgrade to **0.3.0+**                                                                                                                 |
+| Value jumps when the range changes    | Upgrade to **0.3.0+**; see [Dependent columns](#dependent-columns-days-in-month-ranges-that-change)                                   |
+| Clipped / unscrollable in `<Modal>`   | Upgrade to **0.3.0+**; see [Inside a React Native `<Modal>`](#inside-a-react-native-modal)                                            |
 | Props not applied                     | Rebuild app after native changes; run `yarn build` in the library before packing                                                      |
 | iOS build issues                      | Run `pod install` in `example/ios`; use New Architecture; see [CONTRIBUTING.md](./CONTRIBUTING.md)                                    |
 | Expo Go                               | Use prebuild + dev build; this library is not in Expo Go                                                                              |

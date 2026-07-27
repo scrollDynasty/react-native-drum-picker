@@ -1,4 +1,18 @@
+/**
+ * A complete calendar date. All three fields are required: `DateDrumPicker` renders a column per
+ * field, so a partial value would silently fall back to today's date for whatever is missing.
+ *
+ * Use {@link DateDrumPickerPartialValue} for inputs that are allowed to be incomplete —
+ * `scrollToDate` and `clampDateDrumPickerValue` both accept it.
+ */
 export type DateDrumPickerValue = {
+  day: number;
+  month: number;
+  year: number;
+};
+
+/** A date with any subset of fields — missing fields are filled in by clamping. */
+export type DateDrumPickerPartialValue = {
   day?: number;
   month?: number;
   year?: number;
@@ -42,10 +56,10 @@ export function clampDayForMonth(
 }
 
 export function clampDateDrumPickerValue(
-  value: DateDrumPickerValue,
+  value: DateDrumPickerPartialValue,
   minYear: number,
   maxYear: number
-): Required<DateDrumPickerValue> {
+): DateDrumPickerValue {
   const { minYear: min, maxYear: max } = normalizeYearRange(minYear, maxYear);
   const now = new Date();
   const month = clampMonth(value.month ?? now.getMonth() + 1);

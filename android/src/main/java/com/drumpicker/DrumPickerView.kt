@@ -19,6 +19,7 @@ import com.facebook.react.bridge.ReactContext
 import com.facebook.react.uimanager.UIManagerHelper
 import com.facebook.react.uimanager.common.UIManagerType
 import com.facebook.react.uimanager.events.EventDispatcher
+import com.facebook.react.uimanager.events.NativeGestureUtil
 import kotlin.math.abs
 
 class DrumPickerView @JvmOverloads constructor(
@@ -28,6 +29,9 @@ class DrumPickerView @JvmOverloads constructor(
   companion object {
     private const val CIRCULAR_MULTIPLIER_SMALL_LIST = 200
     private const val CIRCULAR_MULTIPLIER_LARGE_LIST = 100
+
+    /** Rows an animated jump may traverse before it is shortened into a jump plus a short glide. */
+    private const val MAX_ANIMATED_ROWS = 20
   }
 
   private val recyclerView = RecyclerView(context)
@@ -67,8 +71,31 @@ class DrumPickerView @JvmOverloads constructor(
   private var isAttachedToWindow = false
   private var isDisposed = false
   private var styleUpdatePosted = false
-  private var pendingScrollRunnable: Runnable? = null
   private val minWidthPx = dpToPx(DrumPickerDefaults.MIN_WIDTH_DP)
+
+  /**
+   * Last index JS asked for, kept unclamped.
+   *
+   * Fabric hands props over as an unordered map, so `selectedIndex` can be applied while the
+   * previous `items` list is still installed. Clamping the incoming value against that stale list
+   * destroys it, which is how a selected year used to drift when the range changed. Keeping the
+   * raw request lets [setItemsProp] re-resolve the position against the new list.
+   */
+  private var requestedSelectedIndex = 0
+
+  /** Centering that could not run yet because the picker has no viewport. */
+  private var hasPendingCenterRequest = false
+  private var pendingCenterEmitsChange = false
+
+  /**
+   * Non-zero while props are being applied. Prop-driven repositioning must never surface as
+   * `onChange`, otherwise a controlled parent sees a value it never selected.
+   */
+  private var programmaticDepth = 0
+
+  /** Set once per touch sequence, when the RecyclerView actually starts scrolling. */
+  private var nativeGestureNotified = false
+  private var lastDownEvent: MotionEvent? = null
 
   private val styleUpdateRunnable =
     Runnable {
@@ -94,11 +121,13 @@ class DrumPickerView @JvmOverloads constructor(
         }
         when (newState) {
           RecyclerView.SCROLL_STATE_DRAGGING -> {
+            notifyNativeGestureStartedIfNeeded()
             lastChangingIndex = -1
             updateVisibleItemStyles()
           }
           RecyclerView.SCROLL_STATE_SETTLING -> updateVisibleItemStyles()
           RecyclerView.SCROLL_STATE_IDLE -> {
+            notifyNativeGestureEndedIfNeeded()
             updateVisibleItemStyles()
             if (suppressChangeEvent) {
               val centerIndex = findSnapCenterIndex()
@@ -152,33 +181,36 @@ class DrumPickerView @JvmOverloads constructor(
       return
     }
 
-    recyclerView.stopScroll()
-    items = newItems
-    circularRealItemCount = resolveCircularRealItemCount(newItems.size)
-    adapter.updateItems(newItems)
-    lastEmittedIndex = -1
-    lastHapticIndex = -1
-    lastChangingIndex = -1
+    withProgrammaticUpdate {
+      recyclerView.stopScroll()
+      items = newItems
+      circularRealItemCount = resolveCircularRealItemCount(newItems.size)
+      adapter.updateItems(newItems)
+      lastHapticIndex = -1
+      lastChangingIndex = -1
 
-    if (items.isEmpty()) {
-      selectedIndex = selectedIndex.coerceAtLeast(0)
-      return
+      if (items.isEmpty()) {
+        selectedIndex = 0
+        lastEmittedIndex = -1
+        return@withProgrammaticUpdate
+      }
+
+      // Re-resolve against the raw request rather than the current scroll position: the wheel
+      // must keep the selected *value*, and `selectedIndex` may have been clamped against the
+      // list this update is replacing.
+      selectedIndex = requestedSelectedIndex.coerceIn(0, items.size - 1)
+      lastEmittedIndex = selectedIndex
+      requestCenterOnSelectedIndex(animated = false, emit = false)
     }
-
-    selectedIndex = selectedIndex.coerceIn(0, items.size - 1)
-    runWhenAttached { scheduleScrollToSelectedIndexCentered(animated = false, emit = false) }
   }
 
   fun setSelectedIndexProp(value: Any?) {
-    val index = toInt(value, selectedIndex)
-    val safeIndex =
-      if (items.isEmpty()) {
-        index.coerceAtLeast(0)
-      } else {
-        index.coerceIn(0, items.size - 1)
-      }
-    setSelectedIndex(safeIndex, animated = scrollAnimatedForNextIndex)
+    requestedSelectedIndex = toInt(value, requestedSelectedIndex).coerceAtLeast(0)
+    val animated = scrollAnimatedForNextIndex
     scrollAnimatedForNextIndex = false
+    withProgrammaticUpdate {
+      setSelectedIndex(requestedSelectedIndex, animated = animated)
+    }
   }
 
   fun setScrollAnimatedProp(value: Any?) {
@@ -277,7 +309,8 @@ class DrumPickerView @JvmOverloads constructor(
       return
     }
     selectedIndex = clamped
-    scheduleScrollToSelectedIndexCentered(animated = true, emit = true)
+    requestedSelectedIndex = clamped
+    requestCenterOnSelectedIndex(animated = true, emit = true)
   }
 
   /** @see selectedIndexForTesting — instrumented tests only */
@@ -321,6 +354,22 @@ class DrumPickerView @JvmOverloads constructor(
 
   internal fun selectedIndexForTesting(): Int = selectedIndex
 
+  /** Index of the row actually sitting under the selection indicator. */
+  internal fun snapCenterIndexForTesting(): Int = findSnapCenterIndex()
+
+  /** Label of the row actually sitting under the selection indicator. */
+  internal fun centeredLabelForTesting(): String? =
+    items.getOrNull(findSnapCenterIndex())
+
+  /** How many rows the RecyclerView has laid out — 1 means neighbours are missing. */
+  internal fun laidOutRowCountForTesting(): Int = recyclerView.childCount
+
+  /**
+   * Observes change events in instrumented tests, where [context] is not a ReactContext and the
+   * real event dispatcher is therefore unreachable.
+   */
+  internal var changeEventListenerForTesting: ((Int) -> Unit)? = null
+
   override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
     updateMinimumDimensions()
     val width = resolveSize(minWidthPx, widthMeasureSpec)
@@ -342,8 +391,58 @@ class DrumPickerView @JvmOverloads constructor(
     layoutSelectionIndicators(width, height)
     if (changed) {
       applyRecyclerPadding()
-      runWhenAttached { scheduleScrollToSelectedIndexCentered(animated = false, emit = false) }
+      // New bounds invalidate the offset derived from the previous height. Re-centering targets
+      // `selectedIndex`, which tracks whatever the user last scrolled to, so this is idempotent
+      // and never overrides a manual choice — unless a drag is in flight, which we leave alone.
+      if (recyclerView.scrollState == RecyclerView.SCROLL_STATE_IDLE) {
+        hasPendingCenterRequest = true
+      }
     }
+    // First point at which the viewport height is known. A request parked while the picker was
+    // collapsed is flushed here rather than re-posted frame after frame.
+    if (hasPendingCenterRequest && height > 0) {
+      hasPendingCenterRequest = false
+      val emit = pendingCenterEmitsChange
+      pendingCenterEmitsChange = false
+      centerOnSelectedIndex(animated = false, emit = emit, width = width, height = height)
+    }
+  }
+
+  override fun onInterceptTouchEvent(ev: MotionEvent): Boolean {
+    if (ev.actionMasked == MotionEvent.ACTION_DOWN) {
+      nativeGestureNotified = false
+      lastDownEvent?.recycle()
+      lastDownEvent = MotionEvent.obtain(ev)
+    }
+    return super.onInterceptTouchEvent(ev)
+  }
+
+  /**
+   * Tells React Native that a native scroll has taken over the touch sequence.
+   *
+   * Without it the JS responder system keeps competing for the gesture. This matters most inside
+   * a React Native `Modal`: `ReactModalHostView.DialogRootViewGroup.requestDisallowInterceptTouchEvent`
+   * is an empty method, so the usual "leave my gesture alone" signal is swallowed there and
+   * `onChildStartedNativeGesture` is the only channel that still reaches the touch dispatcher.
+   */
+  private fun notifyNativeGestureStartedIfNeeded() {
+    if (nativeGestureNotified) {
+      return
+    }
+    nativeGestureNotified = true
+    parent?.requestDisallowInterceptTouchEvent(true)
+    val down = lastDownEvent ?: return
+    NativeGestureUtil.notifyNativeGestureStarted(this, down)
+  }
+
+  /** Hands the touch sequence back once the wheel has settled. */
+  private fun notifyNativeGestureEndedIfNeeded() {
+    if (!nativeGestureNotified) {
+      return
+    }
+    nativeGestureNotified = false
+    val down = lastDownEvent ?: return
+    NativeGestureUtil.notifyNativeGestureEnded(this, down)
   }
 
   override fun onAttachedToWindow() {
@@ -360,7 +459,11 @@ class DrumPickerView @JvmOverloads constructor(
     isDisposed = true
     suppressChangeEvent = false
     styleUpdatePosted = false
-    cancelPendingScroll()
+    hasPendingCenterRequest = false
+    pendingCenterEmitsChange = false
+    nativeGestureNotified = false
+    lastDownEvent?.recycle()
+    lastDownEvent = null
     recyclerView.stopScroll()
     recyclerView.removeCallbacks(styleUpdateRunnable)
     removeCallbacks(null)
@@ -374,8 +477,9 @@ class DrumPickerView @JvmOverloads constructor(
   private fun isLifecycleActive(): Boolean = isAttachedToWindow && !isDisposed
 
   fun setSelectedIndex(index: Int, animated: Boolean = false) {
+    requestedSelectedIndex = index.coerceAtLeast(0)
     if (items.isEmpty()) {
-      selectedIndex = index.coerceAtLeast(0)
+      selectedIndex = requestedSelectedIndex
       return
     }
     val clamped = index.coerceIn(0, items.size - 1)
@@ -388,7 +492,7 @@ class DrumPickerView @JvmOverloads constructor(
       return
     }
     selectedIndex = clamped
-    scheduleScrollToSelectedIndexCentered(animated = animated, emit = false)
+    requestCenterOnSelectedIndex(animated = animated, emit = false)
   }
 
   fun setItemHeight(height: Float) {
@@ -402,6 +506,9 @@ class DrumPickerView @JvmOverloads constructor(
     applyRecyclerPadding()
     updateMinimumDimensions()
     requestLayout()
+    // Row height feeds the centering offset. The picker's own bounds may well stay the same, so
+    // `onLayout` would report `changed == false` and never re-centre on its own.
+    requestCenterOnSelectedIndex(animated = false, emit = false)
   }
 
   fun setVisibleItemCount(count: Int) {
@@ -412,6 +519,7 @@ class DrumPickerView @JvmOverloads constructor(
     applyRecyclerPadding()
     updateMinimumDimensions()
     requestLayout()
+    requestCenterOnSelectedIndex(animated = false, emit = false)
   }
 
   private fun updateMinimumDimensions() {
@@ -512,85 +620,110 @@ class DrumPickerView @JvmOverloads constructor(
     bottomIndicator.requestLayout()
   }
 
-  private fun scheduleScrollToSelectedIndexCentered(animated: Boolean, emit: Boolean) {
-    if (!isLifecycleActive() || items.isEmpty()) {
-      return
-    }
-    cancelPendingScroll()
-    val runnable =
-      Runnable {
-        pendingScrollRunnable = null
-        if (!isLifecycleActive()) {
-          return@Runnable
-        }
-        scrollToSelectedIndexCentered(animated, emit)
-      }
-    pendingScrollRunnable = runnable
-    if (recyclerView.height > 0) {
-      recyclerView.post(runnable)
-    } else {
-      post(runnable)
+  /** Runs [block] with change events suppressed, so prop updates never look like user input. */
+  private inline fun withProgrammaticUpdate(block: () -> Unit) {
+    programmaticDepth++
+    try {
+      block()
+    } finally {
+      programmaticDepth--
     }
   }
 
-  private fun cancelPendingScroll() {
-    pendingScrollRunnable?.let { pending ->
-      recyclerView.removeCallbacks(pending)
-      removeCallbacks(pending)
-    }
-    pendingScrollRunnable = null
-  }
-
-  private fun scrollToSelectedIndexCentered(animated: Boolean, emit: Boolean) {
-    if (!isLifecycleActive() || items.isEmpty()) {
+  /**
+   * Centers [selectedIndex] as soon as the picker actually has a viewport.
+   *
+   * The centering offset is derived from the RecyclerView's height, so a request that arrives
+   * before the first layout — props are applied before mount, and a collapsed container reports
+   * zero height — is parked and flushed from [onLayout], where the real height is known. Nothing
+   * is posted, so no frame is spent polling for a size that may take a while to arrive.
+   */
+  private fun requestCenterOnSelectedIndex(animated: Boolean, emit: Boolean) {
+    if (isDisposed || items.isEmpty()) {
       return
     }
-    suppressChangeEvent = !emit
+    val width = recyclerView.width
+    val height = recyclerView.height
+    if (width <= 0 || height <= 0) {
+      hasPendingCenterRequest = true
+      pendingCenterEmitsChange = pendingCenterEmitsChange || emit
+      return
+    }
+    hasPendingCenterRequest = false
+    pendingCenterEmitsChange = false
+    centerOnSelectedIndex(animated, emit, width, height)
+  }
+
+  private fun centerOnSelectedIndex(animated: Boolean, emit: Boolean, width: Int, height: Int) {
+    if (isDisposed || items.isEmpty() || height <= 0) {
+      return
+    }
     val index = selectedIndex.coerceIn(0, items.size - 1)
     if (animated) {
+      suppressChangeEvent = !emit
+      // Smooth-scrolling across a long list binds every row in between, which drops frames on a
+      // year wheel. Jump to just outside the animation window first and animate only the tail.
+      val current = findSnapCenterIndex()
+      if (current != RecyclerView.NO_POSITION && abs(current - index) > MAX_ANIMATED_ROWS) {
+        val approach =
+          if (index > current) index - MAX_ANIMATED_ROWS else index + MAX_ANIMATED_ROWS
+        applyCenterAnchor(approach.coerceIn(0, items.size - 1), width, height)
+      }
       recyclerView.smoothScrollToPosition(index)
       return
     }
 
-    if (recyclerView.height <= 0) {
-      scheduleScrollToSelectedIndexCentered(animated = false, emit = emit)
-      return
+    // Guard the synchronous relayout below: it makes the RecyclerView dispatch onScrolled.
+    suppressChangeEvent = true
+    applyCenterAnchor(index, width, height)
+    var snappedIndex = findSnapCenterIndex()
+    if (snappedIndex != RecyclerView.NO_POSITION && snappedIndex != index) {
+      applyCenterAnchor(index, width, height)
+      snappedIndex = findSnapCenterIndex()
     }
+    updateVisibleItemStyles()
+    suppressChangeEvent = false
 
-    val centerOffset = ((recyclerView.height - itemHeightPx) / 2).coerceAtLeast(0)
-    layoutManager.scrollToPositionWithOffset(index, centerOffset)
-    recyclerView.post {
-      if (!isLifecycleActive()) {
-        return@post
-      }
-      var snappedIndex = findSnapCenterIndex()
-      if (snappedIndex != RecyclerView.NO_POSITION && snappedIndex != index) {
-        layoutManager.scrollToPositionWithOffset(index, centerOffset)
-        snappedIndex = findSnapCenterIndex()
-      }
-      updateVisibleItemStyles()
-      val resolvedIndex =
-        if (emit && snappedIndex != RecyclerView.NO_POSITION) snappedIndex else index
-      if (emit) {
-        maybeEmitChange(resolvedIndex)
-      } else {
-        lastEmittedIndex = index
-        selectedIndex = index
-      }
-      suppressChangeEvent = false
+    if (emit) {
+      maybeEmitChange(if (snappedIndex != RecyclerView.NO_POSITION) snappedIndex else index)
+    } else {
+      selectedIndex = index
+      lastEmittedIndex = index
     }
   }
 
-  private fun runWhenAttached(block: () -> Unit) {
-    if (!isLifecycleActive()) {
+  /**
+   * Anchors [index] to the middle of the viewport and makes the RecyclerView consume the anchor
+   * right away.
+   *
+   * [LinearLayoutManager.scrollToPositionWithOffset] only records the anchor and asks for a new
+   * layout pass — which never comes. React Native drives layout from its mounting layer:
+   * `ReactViewGroup.requestLayout()` and `ReactViewGroup.onLayout()` are both empty, so a
+   * `requestLayout()` from a native child dies at the nearest React parent and no traversal
+   * reaches us. Left alone the anchor would sit unused until the next commit, leaving the wheel
+   * where it was with only the centre row filled in.
+   *
+   * Re-running measure/layout on the RecyclerView here both applies the anchor and lets the
+   * layout manager fill the viewport, which is what puts the neighbouring rows back.
+   * [View.forceLayout] is what makes that possible: [measure] short-circuits on unchanged specs
+   * unless the force-layout flag is set, and it would then never reach `onLayoutChildren`, the
+   * step that actually consumes the anchor. It is deliberately not `requestLayout()` — that would
+   * additionally register a doomed second traversal and log "requestLayout() improperly called
+   * during layout" every time this runs from [onLayout].
+   */
+  private fun applyCenterAnchor(index: Int, width: Int, height: Int) {
+    val centerOffset = ((height - itemHeightPx) / 2).coerceAtLeast(0)
+    layoutManager.scrollToPositionWithOffset(index, centerOffset)
+    if (recyclerView.isComputingLayout) {
+      // The in-flight pass will pick the anchor up; re-entering layout here would throw.
       return
     }
-    post {
-      if (!isLifecycleActive()) {
-        return@post
-      }
-      block()
-    }
+    recyclerView.forceLayout()
+    recyclerView.measure(
+      MeasureSpec.makeMeasureSpec(width, MeasureSpec.EXACTLY),
+      MeasureSpec.makeMeasureSpec(height, MeasureSpec.EXACTLY),
+    )
+    recyclerView.layout(0, 0, width, height)
   }
 
   private fun updateCenterFromSnap() {
@@ -603,6 +736,9 @@ class DrumPickerView @JvmOverloads constructor(
     }
 
     selectedIndex = centerIndex
+    // The wheel is the source of truth once the user has spun it: remember this as the intent to
+    // restore should `items` be swapped without JS sending a fresh selectedIndex.
+    requestedSelectedIndex = centerIndex
     updateVisibleItemStyles()
     maybePerformHaptic(centerIndex)
     maybeEmitChange(centerIndex)
@@ -634,13 +770,13 @@ class DrumPickerView @JvmOverloads constructor(
     if (centerVirtual == centerIndex) {
       return
     }
-    if (recyclerView.height <= 0) {
+    if (recyclerView.height <= 0 || recyclerView.width <= 0) {
       recyclerView.scrollToPosition(centerVirtual)
     } else {
-      val centerOffset = ((recyclerView.height - itemHeightPx) / 2).coerceAtLeast(0)
-      layoutManager.scrollToPositionWithOffset(centerVirtual, centerOffset)
+      applyCenterAnchor(centerVirtual, recyclerView.width, recyclerView.height)
     }
     selectedIndex = centerVirtual
+    requestedSelectedIndex = centerVirtual
     lastEmittedIndex = centerVirtual
     lastChangingIndex = centerVirtual
   }
@@ -708,6 +844,7 @@ class DrumPickerView @JvmOverloads constructor(
       !onValueChangingEnabled ||
       !isLifecycleActive() ||
       suppressChangeEvent ||
+      programmaticDepth > 0 ||
       items.isEmpty()
     ) {
       return
@@ -740,7 +877,7 @@ class DrumPickerView @JvmOverloads constructor(
   }
 
   private fun maybeEmitChange(index: Int) {
-    if (!isLifecycleActive() || suppressChangeEvent || items.isEmpty()) {
+    if (!isLifecycleActive() || suppressChangeEvent || programmaticDepth > 0 || items.isEmpty()) {
       return
     }
     if (index < 0 || index >= items.size) {
@@ -754,6 +891,7 @@ class DrumPickerView @JvmOverloads constructor(
 
     lastEmittedIndex = clamped
     selectedIndex = clamped
+    changeEventListenerForTesting?.invoke(clamped)
 
     val reactContext = context as? ReactContext ?: return
     if (!reactContext.hasActiveReactInstance()) {
