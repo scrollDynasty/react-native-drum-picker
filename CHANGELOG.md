@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.3.0](https://github.com/scrollDynasty/react-native-drum-picker/compare/v0.2.4...v0.3.0) (2026-07-27)
 
+
+### ⚠ BREAKING CHANGES
+
+* DateDrumPickerValue now requires day, month and year; use DateDrumPickerPartialValue where an incomplete date is intentional.
+
+### Bug Fixes
+
+* **android:** correct row positioning under selection indicator and improve centering logic ([5059aa4](https://github.com/scrollDynasty/react-native-drum-picker/commit/5059aa4e7f42e5de34828fa5b10280c00ab5ac8d))
+* **android:** improve user interaction by releasing change suppression on drag start ([b856aba](https://github.com/scrollDynasty/react-native-drum-picker/commit/b856aba5d66c8419b2c9afe44a8f469d4af2e241))
+* centre without a viewport and keep the selected value ([a1bcaa7](https://github.com/scrollDynasty/react-native-drum-picker/commit/a1bcaa7f7a32b591623c54204563936096a641d6))
+* centre without a viewport and keep the selected value ([08097e8](https://github.com/scrollDynasty/react-native-drum-picker/commit/08097e80c6a8170d74968df3ed28c150021edfda))
+
+## [0.3.0](https://github.com/scrollDynasty/react-native-drum-picker/compare/v0.2.4...v0.3.0) (2026-07-27)
+
 Fixes the integration defects that forced consumers to work around the picker with delayed
 mounting, two-phase range changes and `onChange` suppression flags.
 
