@@ -18,6 +18,7 @@
   },
   "files": [
     "README.md",
+    "DrumPicker.podspec",
     "img",
     "func-gif",
     "LICENSE",
@@ -43,7 +44,8 @@
     "example": "yarn workspace react-native-drum-picker-example",
     "clean": "del-cli android/build example/android/build example/android/app/build example/ios/build lib",
     "build": "bob build",
-    "prepublishOnly": "bob build",
+    "check:package": "node scripts/check-package-contents.mjs",
+    "prepublishOnly": "bob build && node scripts/check-package-contents.mjs",
     "typecheck": "tsc",
     "lint": "eslint \"**/*.{js,ts,tsx}\"",
     "test": "jest"

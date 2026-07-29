@@ -41,6 +41,9 @@ jobs:
       - name: Build
         run: yarn build
 
+      - name: Verify published package contents
+        run: yarn check:package
+
       - name: Verify version matches tag
         run: |
           PKG_VERSION=$(node -p "require('./package.json').version")
