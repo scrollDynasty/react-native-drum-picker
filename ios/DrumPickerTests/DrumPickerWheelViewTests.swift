@@ -216,6 +216,22 @@ final class DrumPickerWheelViewTests: XCTestCase {
 
     XCTAssertEqual(view.selectedIndexForTesting(), 2)
   }
+
+  func testSetDisabledTogglesUserInteraction() {
+    view.setDisabled(true)
+    XCTAssertFalse(picker.isUserInteractionEnabled)
+
+    view.setDisabled(false)
+    XCTAssertTrue(picker.isUserInteractionEnabled)
+  }
+
+  func testProgrammaticSelectionStillWorksWhileDisabled() {
+    view.setDisabled(true)
+    view.setSelectedIndex(3, animated: false)
+
+    XCTAssertEqual(view.selectedIndexForTesting(), 3)
+    XCTAssertEqual(picker.selectedRow(inComponent: 0), 3)
+  }
 }
 
 private final class MockWheelDelegate: NSObject, DrumPickerWheelViewDelegate {
