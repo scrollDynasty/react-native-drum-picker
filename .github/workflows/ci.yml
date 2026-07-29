@@ -65,6 +65,31 @@ jobs:
         with:
           fail_ci_if_error: false
 
+  package-contents:
+    name: package-contents
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      actions: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        with:
+          persist-credentials: false
+
+      - name: Setup
+        uses: ./.github/actions/setup
+
+      - name: Build package
+        run: yarn build
+
+      # The iOS jobs build the example straight from the workspace, where the
+      # podspec is always present. Only this job looks at what npm would ship.
+      - name: Verify published package contents
+        run: yarn check:package
+
   android-build:
     name: android-build
     runs-on: ubuntu-latest
@@ -325,6 +350,7 @@ jobs:
     needs:
       - lint-and-typecheck
       - js-tests
+      - package-contents
       - android-build
       - ios-build
       - android-instrumented
@@ -335,6 +361,7 @@ jobs:
         run: |
           if [[ "${{ needs.lint-and-typecheck.result }}" != "success" || \
                 "${{ needs.js-tests.result }}"          != "success" || \
+                "${{ needs.package-contents.result }}"  != "success" || \
                 "${{ needs.android-build.result }}"     != "success" || \
                 "${{ needs.ios-build.result }}"         != "success" || \
                 "${{ needs.android-instrumented.result }}" != "success" || \
