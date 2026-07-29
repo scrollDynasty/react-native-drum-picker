@@ -33,6 +33,7 @@ const DEFAULTS = {
   itemBackgroundColor: 'transparent',
   containerBackgroundColor: 'transparent',
   hapticFeedback: false,
+  disabled: false,
   enableScrollByTapOnItem: false,
 } as const;
 
@@ -73,6 +74,7 @@ export const DrumPickerNativeBase = forwardRef<
     itemBackgroundColor = DEFAULTS.itemBackgroundColor,
     containerBackgroundColor = DEFAULTS.containerBackgroundColor,
     hapticFeedback = DEFAULTS.hapticFeedback,
+    disabled = DEFAULTS.disabled,
     enableScrollByTapOnItem = DEFAULTS.enableScrollByTapOnItem,
     onValueChanging,
     onChange,
@@ -375,6 +377,7 @@ export const DrumPickerNativeBase = forwardRef<
       itemBackgroundColor={itemBackgroundColor}
       containerBackgroundColor={containerBackgroundColor}
       hapticFeedback={hapticFeedback}
+      disabled={disabled}
       enableScrollByTapOnItem={enableScrollByTapOnItem}
       onValueChangingEnabled={shouldEmitValueChanging}
       onValueChanging={
@@ -408,6 +411,7 @@ const DrumPickerImpl = forwardRef<DrumPickerRef, DrumPickerProps<any>>(
       itemBackgroundColor = DEFAULTS.itemBackgroundColor,
       containerBackgroundColor = DEFAULTS.containerBackgroundColor,
       hapticFeedback = DEFAULTS.hapticFeedback,
+      disabled = DEFAULTS.disabled,
       enableScrollByTapOnItem = DEFAULTS.enableScrollByTapOnItem,
       onValueChanging,
       onChange,
@@ -439,6 +443,7 @@ const DrumPickerImpl = forwardRef<DrumPickerRef, DrumPickerProps<any>>(
           itemBackgroundColor={itemBackgroundColor}
           containerBackgroundColor={containerBackgroundColor}
           hapticFeedback={hapticFeedback}
+          disabled={disabled}
           enableScrollByTapOnItem={enableScrollByTapOnItem}
           onValueChanging={onValueChanging}
           onChange={onChange}
@@ -470,6 +475,7 @@ const DrumPickerImpl = forwardRef<DrumPickerRef, DrumPickerProps<any>>(
         itemBackgroundColor={itemBackgroundColor}
         containerBackgroundColor={containerBackgroundColor}
         hapticFeedback={hapticFeedback}
+        disabled={disabled}
         enableScrollByTapOnItem={enableScrollByTapOnItem}
         onValueChanging={onValueChanging}
         onChange={onChange}

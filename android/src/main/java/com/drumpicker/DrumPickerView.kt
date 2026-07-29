@@ -97,6 +97,12 @@ class DrumPickerView @JvmOverloads constructor(
   private var nativeGestureNotified = false
   private var lastDownEvent: MotionEvent? = null
 
+  /**
+   * Blocks touch-driven scrolling. Programmatic centering stays available, so a controlled
+   * parent can still move the wheel while the user cannot.
+   */
+  private var isInteractionDisabled = false
+
   private val styleUpdateRunnable =
     Runnable {
       styleUpdatePosted = false
@@ -285,6 +291,19 @@ class DrumPickerView @JvmOverloads constructor(
     hapticFeedback = value as? Boolean ?: false
   }
 
+  fun setDisabledProp(value: Any?) {
+    val disabled = toBoolean(value, false)
+    if (isInteractionDisabled == disabled) {
+      return
+    }
+    isInteractionDisabled = disabled
+    if (disabled) {
+      // A drag may be in flight when the prop flips; drop it rather than letting it settle
+      // somewhere the user can no longer correct.
+      recyclerView.stopScroll()
+    }
+  }
+
   fun setEnableScrollByTapOnItemProp(value: Any?) {
     enableScrollByTapOnItem = toBoolean(value, false)
     adapter.enableScrollByTapOnItem = enableScrollByTapOnItem
@@ -304,7 +323,12 @@ class DrumPickerView @JvmOverloads constructor(
   }
 
   private fun scrollToPositionFromTap(position: Int) {
-    if (!enableScrollByTapOnItem || !isLifecycleActive() || items.isEmpty()) {
+    if (
+      isInteractionDisabled ||
+      !enableScrollByTapOnItem ||
+      !isLifecycleActive() ||
+      items.isEmpty()
+    ) {
       return
     }
     val clamped = position.coerceIn(0, items.size - 1)
@@ -414,6 +438,11 @@ class DrumPickerView @JvmOverloads constructor(
   }
 
   override fun onInterceptTouchEvent(ev: MotionEvent): Boolean {
+    // Intercept before the RecyclerView sees anything, so a disabled wheel neither scrolls nor
+    // leaks the gesture to whatever sits behind it.
+    if (isInteractionDisabled) {
+      return true
+    }
     if (ev.actionMasked == MotionEvent.ACTION_DOWN) {
       nativeGestureNotified = false
       lastDownEvent?.recycle()
@@ -421,6 +450,9 @@ class DrumPickerView @JvmOverloads constructor(
     }
     return super.onInterceptTouchEvent(ev)
   }
+
+  override fun onTouchEvent(ev: MotionEvent): Boolean =
+    if (isInteractionDisabled) true else super.onTouchEvent(ev)
 
   /**
    * Tells React Native that a native scroll has taken over the touch sequence.

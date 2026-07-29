@@ -124,6 +124,10 @@ using namespace facebook::react;
     [_wheelView setEnableScrollByTapOnItem:newViewProps.enableScrollByTapOnItem];
   }
 
+  if (oldViewProps.disabled != newViewProps.disabled) {
+    [_wheelView setDisabled:newViewProps.disabled];
+  }
+
   if (oldViewProps.circular != newViewProps.circular) {
     _wheelView.isCircular = newViewProps.circular;
   }

@@ -28,6 +28,7 @@ interface NativeProps extends ViewProps {
   containerBackgroundColor?: ColorValue;
   itemBackgroundColor?: ColorValue;
   hapticFeedback?: CodegenTypes.WithDefault<boolean, false>;
+  disabled?: CodegenTypes.WithDefault<boolean, false>;
   enableScrollByTapOnItem?: CodegenTypes.WithDefault<boolean, false>;
   onValueChangingEnabled?: CodegenTypes.WithDefault<boolean, false>;
   onValueChange?: CodegenTypes.DirectEventHandler<DrumPickerChangeEventPayload>;

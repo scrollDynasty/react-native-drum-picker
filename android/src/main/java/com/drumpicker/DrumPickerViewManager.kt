@@ -61,6 +61,7 @@ class DrumPickerViewManager :
       "containerBackgroundColor" -> view.setContainerBackgroundColorProp(value)
       "itemBackgroundColor" -> view.setItemBackgroundColorProp(value)
       "hapticFeedback" -> view.setHapticFeedbackProp(value)
+      "disabled" -> view.setDisabledProp(value)
       "circular" -> view.setCircularProp(value)
       "enableScrollByTapOnItem" -> view.setEnableScrollByTapOnItemProp(value)
       "onValueChangingEnabled" -> view.setOnValueChangingEnabledProp(value)
@@ -130,6 +131,10 @@ class DrumPickerViewManager :
 
   override fun setHapticFeedback(view: DrumPickerView?, value: Boolean) {
     view?.setHapticFeedbackProp(value)
+  }
+
+  override fun setDisabled(view: DrumPickerView?, value: Boolean) {
+    view?.setDisabledProp(value)
   }
 
   override fun setCircular(view: DrumPickerView?, value: Boolean) {

@@ -143,6 +143,20 @@ export type DrumPickerProps<T = string> = {
   containerBackgroundColor?: string;
   hapticFeedback?: boolean;
   /**
+   * Block user interaction. The wheel stops responding to drags and taps,
+   * and swallows touches instead of passing them to views underneath.
+   *
+   * Scrolling driven from your own code is unaffected: `selectedIndex`
+   * updates and the `scrollToIndex` / `scrollToValue` ref methods still work,
+   * which is what you usually want while a form is submitting.
+   *
+   * Appearance is left to you — combine with `textColor` or a wrapping
+   * `<View style={{ opacity: 0.4 }}>` if the picker should also look inert.
+   *
+   * @default false
+   */
+  disabled?: boolean;
+  /**
    * When true, tapping an item above or below the center
    * scrolls the picker to that item.
    * @default false

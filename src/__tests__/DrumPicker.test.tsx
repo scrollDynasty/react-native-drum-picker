@@ -1,5 +1,6 @@
 import { render } from '@testing-library/react-native';
 import React from 'react';
+import { Text } from 'react-native';
 import {
   fireNativeDrumPickerChange,
   getLatestNativeDrumPickerProps,
@@ -98,5 +99,41 @@ describe('enableScrollByTapOnItem', () => {
     expect(getLatestNativeDrumPickerProps()?.enableScrollByTapOnItem).toBe(
       true
     );
+  });
+});
+
+describe('disabled', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    resetNativeDrumPickerMocks();
+  });
+
+  it('passes disabled=false by default', () => {
+    render(<DrumPicker items={['A', 'B', 'C']} />);
+    expect(getLatestNativeDrumPickerProps()?.disabled).toBe(false);
+  });
+
+  it('passes disabled=true when set', () => {
+    render(<DrumPicker items={['A', 'B', 'C']} disabled />);
+    expect(getLatestNativeDrumPickerProps()?.disabled).toBe(true);
+  });
+
+  it('forwards disabled through the renderItem path', () => {
+    render(
+      <DrumPicker
+        items={['A', 'B', 'C']}
+        disabled
+        renderItem={({ label }) => <Text>{label}</Text>}
+      />
+    );
+    expect(getLatestNativeDrumPickerProps()?.disabled).toBe(true);
+  });
+
+  it('still follows a controlled selectedIndex while disabled', () => {
+    const { rerender } = render(
+      <DrumPicker items={['A', 'B', 'C']} selectedIndex={0} disabled />
+    );
+    rerender(<DrumPicker items={['A', 'B', 'C']} selectedIndex={2} disabled />);
+    expect(getLatestNativeDrumPickerProps()?.selectedIndex).toBe(2);
   });
 });
