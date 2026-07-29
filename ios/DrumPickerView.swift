@@ -386,6 +386,12 @@ public final class DrumPickerWheelView: UIView, UIPickerViewDataSource, UIPicker
     enableScrollByTapOnItem = value
   }
 
+  /// Blocks touch-driven scrolling. `setSelectedIndex(_:animated:)` keeps working, so a
+  /// controlled parent can still move the wheel while the user cannot.
+  @objc public func setDisabled(_ value: Bool) {
+    picker.isUserInteractionEnabled = !value
+  }
+
   @objc public func setOnValueChangingEnabled(_ value: Bool) {
     onValueChangingEnabled = value
     if value {

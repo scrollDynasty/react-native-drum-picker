@@ -13,6 +13,7 @@ type MockProps = ViewProps & {
   circular?: boolean;
   scrollAnimated?: boolean;
   hapticFeedback?: boolean;
+  disabled?: boolean;
   enableScrollByTapOnItem?: boolean;
   onValueChangingEnabled?: boolean;
   onValueChange?: (event: {

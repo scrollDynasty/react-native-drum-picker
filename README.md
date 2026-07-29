@@ -177,6 +177,18 @@ const [index, setIndex] = useState(1);
 />;
 ```
 
+### Locking the picker while a form submits
+
+```tsx
+const [saving, setSaving] = useState(false);
+
+<View style={{ opacity: saving ? 0.4 : 1 }}>
+  <DrumPicker items={items} disabled={saving} onChange={handleChange} />
+</View>;
+```
+
+`disabled` blocks drags and taps, and swallows touches so nothing behind the picker reacts either. Programmatic movement is deliberately left working — `selectedIndex` and the `scrollToIndex` / `scrollToValue` ref methods still scroll the wheel, so you can reset or correct a locked form. Appearance is up to you: the prop changes behaviour only, so wrap it as above if it should also look inert.
+
 ### `onChange` and expensive side effects
 
 ![Debounce demo](./func-gif/Debounce.gif)
@@ -624,6 +636,7 @@ In addition to all `DrumPicker` props (on the wrapped instance):
 | `selectionIndicatorColor`  | `string`              | `#D1D1D6`     | Line color                                                                           |
 | `selectionIndicatorHeight` | `number`              | `1`           | Line thickness (dp)                                                                  |
 | `hapticFeedback`           | `boolean`             | `false`       | Light haptic on snap (Android + iOS)                                                 |
+| `disabled`                 | `boolean`             | `false`       | Block user drags and taps. Programmatic scrolling still works.                       |
 | `circular`                 | `boolean`             | `false`       | Enable infinite loop scroll. Wraps last->first and first->last.                      |
 | `enableScrollByTapOnItem`  | `boolean`             | `false`       | Tap a visible row to scroll it to center (Android + iOS)                             |
 | `onChange`                 | `function`            | —             | `nativeEvent: { index, value }`                                                      |
@@ -658,6 +671,7 @@ In addition to all `DrumPicker` props (on the wrapped instance):
 | `itemBackgroundColor`      | `string`                        | `transparent`    | Passed to each column                                                        |
 | `containerBackgroundColor` | `string`                        | `transparent`    | Passed to each column                                                        |
 | `hapticFeedback`           | `boolean`                       | `false`          | Passed to each column                                                        |
+| `disabled`                 | `boolean`                       | `false`          | Passed to each column                                                        |
 | `enableScrollByTapOnItem`  | `boolean`                       | `false`          | Passed to each column                                                        |
 | `style`                    | `ViewStyle`                     | —                | Row container                                                                |
 | `columnStyle`              | `ViewStyle`                     | —                | All columns                                                                  |

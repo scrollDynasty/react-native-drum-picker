@@ -103,6 +103,8 @@ export type DateDrumPickerProps = {
   itemBackgroundColor?: string;
   containerBackgroundColor?: string;
   hapticFeedback?: boolean;
+  /** Block user interaction on every column. Programmatic scrolling still works. */
+  disabled?: boolean;
   enableScrollByTapOnItem?: boolean;
   style?: StyleProp<ViewStyle>;
   columnStyle?: StyleProp<ViewStyle>;
@@ -160,6 +162,7 @@ export const DateDrumPicker = forwardRef<
     itemBackgroundColor = 'transparent',
     containerBackgroundColor = 'transparent',
     hapticFeedback = false,
+    disabled = false,
     enableScrollByTapOnItem = false,
     style,
     columnStyle,
@@ -429,6 +432,7 @@ export const DateDrumPicker = forwardRef<
     itemBackgroundColor,
     containerBackgroundColor,
     hapticFeedback,
+    disabled,
     enableScrollByTapOnItem,
   };
 

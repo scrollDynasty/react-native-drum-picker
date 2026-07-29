@@ -93,4 +93,46 @@ class DrumPickerTapTest {
       assertEquals(2, readSelectedIndex(scenario))
     }
   }
+
+  @Test
+  fun tapIgnoredWhileInteractionDisabled() {
+    val instrumentation = InstrumentationRegistry.getInstrumentation()
+    ActivityScenario.launch(TestActivity::class.java).use { scenario ->
+      scenario.onActivity { activity ->
+        // Tap-to-scroll is on: only `disabled` should be keeping the wheel still.
+        activity.picker.setEnableScrollByTapOnItemProp(true)
+        activity.picker.setDisabledProp(true)
+        activity.picker.setSelectedIndexProp(2)
+        activity.picker.requestLayout()
+      }
+      instrumentation.waitForIdleSync()
+      waitForSelectedIndex(scenario, 2)
+
+      scenario.onActivity { activity ->
+        activity.picker.testingPerformItemTap(0)
+      }
+      instrumentation.waitForIdleSync()
+      assertEquals(2, readSelectedIndex(scenario))
+    }
+  }
+
+  @Test
+  fun programmaticSelectionStillWorksWhileInteractionDisabled() {
+    val instrumentation = InstrumentationRegistry.getInstrumentation()
+    ActivityScenario.launch(TestActivity::class.java).use { scenario ->
+      scenario.onActivity { activity ->
+        activity.picker.setDisabledProp(true)
+        activity.picker.setSelectedIndexProp(1)
+        activity.picker.requestLayout()
+      }
+      instrumentation.waitForIdleSync()
+      waitForSelectedIndex(scenario, 1)
+
+      scenario.onActivity { activity ->
+        activity.picker.setSelectedIndexProp(3)
+      }
+      instrumentation.waitForIdleSync()
+      waitForSelectedIndex(scenario, 3)
+    }
+  }
 }
