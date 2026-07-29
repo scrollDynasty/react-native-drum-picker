@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.1](https://github.com/scrollDynasty/react-native-drum-picker/compare/v0.3.0...v0.3.1) (2026-07-29)
+
+
+### Features
+
+* add disabled prop to block user interaction ([2f01427](https://github.com/scrollDynasty/react-native-drum-picker/commit/2f014279b159eb0517091e681e09c4276eea5d37))
+* **ci:** add package contents verification to CI and publish workflows ([4cd7806](https://github.com/scrollDynasty/react-native-drum-picker/commit/4cd7806e824b27df687f427a04e2a21e8a97dd86))
+* **ci:** add package contents verification to CI and publish workflows ([6ca9c18](https://github.com/scrollDynasty/react-native-drum-picker/commit/6ca9c18f3c7abe6d0e38124f7f5b193e81d10ab1))
+
 ## [0.3.0](https://github.com/scrollDynasty/react-native-drum-picker/compare/v0.2.4...v0.3.0) (2026-07-27)
 
 
