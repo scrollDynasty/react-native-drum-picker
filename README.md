@@ -12,7 +12,11 @@ A smooth **cross-platform native** iOS-style drum/wheel picker for React Native 
 
 ## Preview
 
-iOS preview coming soon — see the `ios-build` CI job for validation status.
+Recordings of the picker in real screens — basic wheel, time picker, height/weight onboarding,
+date columns, debounced updates and large lists — are inlined throughout [Examples](#examples).
+
+An iOS recording is still pending; iOS behaviour is verified in CI by `ios-build` and by
+`pod lib lint` with XCTest in `ios-unit-tests`.
 
 ## Features
 
@@ -25,6 +29,7 @@ iOS preview coming soon — see the `ios-build` CI job for validation status.
 - TypeScript API
 - Flexible `DateDrumPicker` wrapper (day / month / year columns)
 - Fabric View / New Architecture
+- **Zero runtime dependencies** — nothing is added to your dependency tree
 
 ## Installation
 
@@ -49,10 +54,14 @@ npx react-native run-android
 | Platform | Status                                                                    |
 | -------- | ------------------------------------------------------------------------- |
 | Android  | Supported                                                                 |
-| iOS      | Supported                                                                 |
+| iOS      | Supported — **requires 0.3.1 or newer** when installed from npm           |
 | Web      | Read-only preview stub (`DrumPicker.tsx`); ref API works, no native wheel |
 
 Requires **React Native 0.76+** with the **New Architecture** enabled.
+
+> **iOS on 0.2.4 and 0.3.0:** those releases shipped without `DrumPicker.podspec`, so CocoaPods
+> could not autolink the native code and iOS rendered `Unimplemented component: <DrumPickerView>`.
+> Upgrade to **0.3.1+**; no code changes are needed on your side.
 
 ## Compatibility
 
@@ -64,21 +73,24 @@ Requires **React Native 0.76+** with the **New Architecture** enabled.
 | iOS                                | Supported                                 |
 | iOS Old Architecture (Paper)       | Not supported — Fabric required           |
 | Expo Go                            | **Not supported** (native library)        |
-| Expo SDK 54 + dev build / prebuild | Tested                                    |
+| Expo dev build / prebuild          | Works; not covered by CI (see below)      |
 | `react-native-screens` navigation  | Tested (use **0.1.4+** for detach safety) |
 
-### Tested with
+### What CI actually verifies
 
-| Tool             | Version                      |
-| ---------------- | ---------------------------- |
-| Expo SDK         | 54                           |
-| React Native     | 0.81.5, 0.85.0 (example app) |
-| New Architecture | enabled                      |
-| Android          | emulator / device            |
+Every PR runs against the example app, so this table reflects real builds rather than intent:
 
-**Intended range:** `react-native >= 0.76` with New Architecture. The package is **actively tested on RN 0.81.x / 0.85.x**. Older 0.76–0.80 may work but are not CI-guaranteed.
+| Tool             | Version           | Jobs                                                        |
+| ---------------- | ----------------- | ----------------------------------------------------------- |
+| React Native     | 0.85.0            | `android-build`, `ios-build`                                 |
+| New Architecture | enabled           | all native jobs                                              |
+| Android          | emulator, API 34  | `android-instrumented`                                       |
+| iOS              | Xcode 26          | `ios-unit-tests` (`pod lib lint` + XCTest)                    |
+| Published tarball| —                 | `package-contents` (what `npm pack` would actually ship)      |
 
-This package is an **Android Fabric View** library. Use a **development build** or `expo run:android` after `expo prebuild` — not Expo Go.
+**Intended range:** `react-native >= 0.76` with New Architecture. Older 0.76–0.84 may work but are not CI-guaranteed.
+
+**Expo:** the example app is bare React Native, so Expo is not exercised in CI. The library needs no config plugin — a **development build** or `expo run:ios` / `expo run:android` after `expo prebuild` picks it up through autolinking. Expo Go will never work, because it cannot load custom native code.
 
 ### React Native 0.81+ event dispatch
 
